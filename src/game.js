@@ -19,9 +19,17 @@ export const STATE = {
   GAME_OVER: 'GAME_OVER',
 };
 
-const POINTS = { scare: 15, save: 25, survivor: 5, perfect: 50 };
+const POINTS = { save: 25, survivor: 5, perfect: 50 }; // scaring a wolf pays WOLF_TYPES[kind].points
 const ZOOM = { min: 0.7, max: 1.5 }; // multiplier on the default camera distance
 const BEST_KEY = 'this-is-my-sheep.best';
+
+// Shown in the wave banner the first time a new kind of animal turns up.
+const INTRODUCTIONS = {
+  wanderer: 'A Wanderer joined: it strays, but the dog herds it back easily',
+  runner: 'Runners are fast. Watch the edges of the flock!',
+  ram: 'The Old Ram joined. The flock gathers round him',
+  brute: 'A Brute is coming. Stay close to scare it off!',
+};
 
 function readBest() {
   try {
@@ -72,6 +80,8 @@ export class Game {
       cfg: null,
       huntingAllowed: false,
       onSheepPanic: (s) => this.juice.sheepPanic(s),
+      onSheepStray: (s) => this.juice.sheepStray(s),
+      onWolfResist: (w) => this.juice.wolfResist(w),
       onWolfCharge: (w) => this.onWolfCharge(w),
       onWolfScared: (w, threatening) => this.onWolfScared(w, threatening),
       onSheepGrabbed: (s, w) => this.juice.sheepGrabbed(s),
@@ -89,7 +99,7 @@ export class Game {
     });
 
     this.bindUI();
-    this.spawnSheep(12, false);
+    this.spawnSheep(['ram', 'wanderer', 'wanderer', ...Array(9).fill('normal')], false);
     this.ui.setBest(this.best);
     this.ui.setMuted(this.sfx.muted);
     this.ui.show('menu');
@@ -148,6 +158,7 @@ export class Game {
     this.dog.hasTarget = false;
     this.wave = 0;
     this.wool = 0;
+    this.seen = new Set(['normal']);
     this.ui.setHudVisible(true);
     this.nextWave();
   }
@@ -156,14 +167,21 @@ export class Game {
     this.wave++;
     this.cfg = this.ctx.cfg = waveConfig(this.wave);
     const add = Math.max(0, Math.min(this.cfg.newSheep, SHEEP.cap - this.sheep.length));
-    this.spawnSheep(add, this.wave > 1);
+    const kinds = Array(add).fill('normal');
+    let k = 0;
+    if (this.cfg.ram && !this.sheep.some((s) => s.kind === 'ram') && k < add) kinds[k++] = 'ram';
+    for (let i = 0; i < this.cfg.wanderers && k < add; i++) kinds[k++] = 'wanderer';
+    this.spawnSheep(kinds, this.wave > 1);
     this.waveStartSheep = this.sheep.length;
     this.waveTime = 0;
     this.wolvesSpawned = 0;
     this.nextWolfAt = 2;
     this.introTimer = 2.2;
     this.ui.show(null);
-    this.ui.banner(`Wave ${this.wave}`, this.wave === 1 ? 'Click the meadow to move your dog' : `${this.cfg.wolves} wolves are coming`);
+    const newcomer = ['brute', 'ram', 'runner', 'wanderer'].find((kind) => !this.seen.has(kind) && (kinds.includes(kind) || this.cfg.pack.includes(kind)));
+    for (const kind of [...kinds, ...this.cfg.pack]) this.seen.add(kind);
+    const sub = newcomer ? INTRODUCTIONS[newcomer] : this.wave === 1 ? 'Click the meadow to move your dog' : `${this.cfg.wolves} wolves are coming`;
+    this.ui.banner(`Wave ${this.wave}`, sub);
     this.setState(STATE.INTRO);
   }
 
@@ -199,7 +217,7 @@ export class Game {
     for (const w of this.wolves) w.destroy();
     this.wolves.length = 0;
     this.juice.clearFloats();
-    if (this.sheep.length < 8) this.spawnSheep(12 - this.sheep.length, false);
+    if (this.sheep.length < 8) this.spawnSheep(Array(12 - this.sheep.length).fill('normal'), false);
     for (const s of this.sheep) s.grabbedBy = null;
     this.ui.setHudVisible(false);
     this.ui.setBest(this.best);
@@ -224,11 +242,11 @@ export class Game {
 
   // --- Spawning ------------------------------------------------------------
 
-  spawnSheep(count, announce) {
-    for (let i = 0; i < count; i++) {
+  spawnSheep(kinds, announce) {
+    for (const kind of kinds) {
       const a = Math.random() * Math.PI * 2;
-      const r = 2.5 + Math.random() * (2 + Math.sqrt(this.sheep.length + count));
-      const s = new Sheep(this.world.scene).setPosition(Math.cos(a) * r, 0, Math.sin(a) * r);
+      const r = 2.5 + Math.random() * (2 + Math.sqrt(this.sheep.length + kinds.length));
+      const s = new Sheep(this.world.scene, kind).setPosition(Math.cos(a) * r, 0, Math.sin(a) * r);
       s.heading = Math.random() * Math.PI * 2;
       s.root.rotation.y = s.heading;
       if (announce) {
@@ -239,13 +257,13 @@ export class Game {
     }
   }
 
-  spawnWolf() {
+  spawnWolf(kind) {
     // Spread arrivals around the meadow rather than bunching on one side.
     const base = this.wolvesSpawned * 2.4 + Math.random() * 1.2;
-    const w = new Wolf(this.world.scene).setPosition(Math.cos(base) * WORLD.spawnRadius, 0, Math.sin(base) * WORLD.spawnRadius);
+    const w = new Wolf(this.world.scene, kind).setPosition(Math.cos(base) * WORLD.spawnRadius, 0, Math.sin(base) * WORLD.spawnRadius);
     toWander(w, this.ctx);
     this.wolves.push(w);
-    this.sfx.howl();
+    this.sfx.howl({ brute: 0.7, runner: 1.25 }[kind] ?? 1);
   }
 
   // --- Events --------------------------------------------------------------
@@ -263,7 +281,7 @@ export class Game {
 
   onWolfScared(wolf, threatening) {
     if (this.dog.bark()) this.juice.bark(this.dog);
-    const points = threatening && this.state === STATE.PLAYING ? POINTS.scare : 0;
+    const points = threatening && this.state === STATE.PLAYING ? wolf.type.points : 0;
     this.addWool(points);
     this.juice.wolfScared(wolf, points);
   }
@@ -307,7 +325,7 @@ export class Game {
       case STATE.PLAYING:
         this.waveTime += dt;
         if (this.wolvesSpawned < this.cfg.wolves && this.waveTime >= this.nextWolfAt) {
-          this.spawnWolf();
+          this.spawnWolf(this.cfg.pack[this.wolvesSpawned] ?? 'normal');
           this.wolvesSpawned++;
           this.nextWolfAt += this.cfg.spawnInterval;
         }
@@ -329,6 +347,7 @@ export class Game {
     this.updateCamera(dt);
     this.juice.updateFloats(dt);
     this.ui.updateIndicators(this.wolves, this.world.camera);
+    this.ui.updateFearMeters(this.wolves, this.world.camera);
     if (this.state !== STATE.MENU) {
       this.ui.setHud({
         sheep: this.sheep.length,
@@ -356,6 +375,8 @@ export class Game {
     }
     dog.alert = wolves.some(isThreatening);
     dog.update(dt, time);
+    // Keep barking at a brute that stands its ground.
+    if (wolves.some((w) => w.resisting) && dog.bark()) this.juice.bark(dog);
     const look = nearest ? nearest.position : this.shepherd.position;
     dog.lookYaw = THREE.MathUtils.clamp(angleTo(dog.heading, Math.atan2(look.x - dog.position.x, look.z - dog.position.z)), -1, 1);
 
@@ -386,7 +407,10 @@ export class Game {
       emit(tmp.set(e.position.x - e.velocity.x * 0.05, 0.15, e.position.z - e.velocity.z * 0.05));
     };
     trail(this.dog, 6, 0.05, (p) => this.particles.dust(p, 1, 0.8));
-    for (const w of this.wolves) trail(w, 5, 0.08, (p) => this.particles.dust(p, 1, 0.9));
+    for (const w of this.wolves) {
+      if (w.kind === 'runner') trail(w, 5, 0.04, (p) => this.particles.dust(p, 2, 0.8));
+      else trail(w, 5, 0.08, (p) => this.particles.dust(p, 1, w.kind === 'brute' ? 1.4 : 0.9));
+    }
     for (const s of this.sheep) trail(s, 3, 0.25, (p) => this.particles.grass(p, 2));
   }
 

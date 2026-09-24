@@ -1750,3 +1750,63 @@ specification** containing:
 The coding prompts should be designed so a vibe-coding agent can build
 the game incrementally without producing an over-engineered or
 unmanageable codebase.
+
+------------------------------------------------------------------------
+
+# 60. Sheep and Wolf Variants (implemented)
+
+Each variant is a set of overrides (`SHEEP_TYPES` / `WOLF_TYPES` in
+`src/config.js`) applied to the shared flocking and wolf AI, plus a few
+behaviour hooks. The goal is to change *decisions*, not just numbers.
+
+## Wanderer sheep (wave 2+, one per wave)
+
+-   Walks more often, further and faster; weak cohesion and a looser
+    boundary (1.6× flock radius), so it drifts to the edge.
+-   Notices the dog from 8 units (normal: 4) and reacts twice as
+    strongly: one quick pass herds it home.
+-   Wolves prefer stragglers, so it acts as wolf bait.
+-   Look: beige fleece, smaller, fidgets and looks around a lot; a "?"
+    pops up when it strays.
+-   Adds a second job for the dog: herding vs guarding.
+
+## Old Ram (wave 5+, one per flock)
+
+-   Slow, mostly ignores the dog, barely panics at wolves (30%).
+-   Sheep within 7 units are drawn toward him and panic 40% less.
+-   Wolves need twice as long to take him.
+-   Look: bigger, curled horns, darker face; lowers his head at nearby
+    wolves.
+-   Losing him makes the flock jumpier; a new ram joins next wave.
+
+## Runner wolf (wave 3+)
+
+-   1.6× speed, stalks for 40% as long, targets the nearest sheep.
+-   Scared from 1.3× the dog's threat radius, flees for a shorter time
+    and comes back sooner.
+-   Skittish: abandons a chase if the dog gets near its target.
+-   Look: small tan wolf with big ears and a heavy dust trail; its
+    off-screen indicator pulses faster. Worth 20 wool.
+
+## Brute wolf (wave 6+)
+
+-   0.7× speed, but a single bark isn't enough: a fear meter fills while
+    the dog stays within its threat radius, and it flees after 1.5 s.
+-   While resisting it snarls and backs away slowly facing the dog, and
+    a grab in progress is put on hold.
+-   Shoves sheep out of its way; completes a grab in 60% of the time.
+-   Look: 1.5× bigger, near-black with pale scars and orange eyes,
+    lower howl, larger indicator. Worth 40 wool.
+
+## Pack composition
+
+``` text
+wave 1-2   wolves only
+wave 3-5   + 1 runner
+wave 6-7   + 1 runner, 1 brute
+wave 8+    runners = min(5, (wave-2)/2), brutes = min(3, (wave-4)/2)
+```
+
+The first wolf of each wave is always a normal one, so special wolves
+arrive mid-wave. The wave banner introduces each new type the first
+time it appears.

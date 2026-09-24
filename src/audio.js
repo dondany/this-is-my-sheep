@@ -160,10 +160,12 @@ export class Sfx {
     this.tone({ type: 'triangle', freq: 1500, freqEnd: 600, dur: 0.2, gain: 0.12, at: 0.08 });
   }
 
-  howl() {
-    if (!this.ready || !this.throttle('howl', 5000)) return;
-    this.tone({ type: 'sine', freq: 330, freqEnd: 560, dur: 0.55, gain: 0.07, attack: 0.2, vibrato: { rate: 5, depth: 8 } });
-    this.tone({ type: 'sine', freq: 560, freqEnd: 400, dur: 1.4, gain: 0.07, attack: 0.05, at: 0.5, vibrato: { rate: 5, depth: 10 } });
+  // pitch < 1 for bigger wolves, > 1 for smaller ones.
+  howl(pitch = 1) {
+    if (!this.ready || !this.throttle(`howl${pitch}`, 5000)) return;
+    const gain = pitch < 1 ? 0.1 : 0.07;
+    this.tone({ type: 'sine', freq: 330 * pitch, freqEnd: 560 * pitch, dur: 0.55, gain, attack: 0.2, vibrato: { rate: 5, depth: 8 } });
+    this.tone({ type: 'sine', freq: 560 * pitch, freqEnd: 400 * pitch, dur: 1.4, gain, attack: 0.05, at: 0.5, vibrato: { rate: 5, depth: 10 } });
   }
 
   click() {

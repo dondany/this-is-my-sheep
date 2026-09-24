@@ -10,6 +10,7 @@ export class UI {
     this.handlers = {};
     this.cache = {};
     this.indicators = [];
+    this.meters = [];
     this.el = {
       hud: $('hud'),
       sheep: $('hud-sheep'),
@@ -123,7 +124,36 @@ export class UI {
       el.style.transform = `translate(${sx}px, ${sy}px) translate(-50%, -50%)`;
       el.firstChild.style.transform = `rotate(${angle}rad)`;
       el.classList.toggle('danger', isThreatening(wolf));
+      el.classList.toggle('runner', wolf.kind === 'runner');
+      el.classList.toggle('brute', wolf.kind === 'brute');
     }
     for (let i = used; i < this.indicators.length; i++) this.indicators[i].style.display = 'none';
+  }
+
+  // Fear meter over wolves that need the dog to stand its ground (brutes).
+  updateFearMeters(wolves, camera) {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    let used = 0;
+    for (const wolf of wolves) {
+      if (!wolf.type.courage || wolf.fear <= 0) continue;
+      tmp.copy(wolf.position);
+      tmp.y += 3.3;
+      tmp.project(camera);
+      if (tmp.z > 1) continue;
+      let el = this.meters[used];
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'fear-meter';
+        el.innerHTML = '<div class="fear-fill"></div>';
+        this.el.indicatorLayer.appendChild(el);
+        this.meters.push(el);
+      }
+      used++;
+      el.style.display = '';
+      el.style.transform = `translate(${(tmp.x * 0.5 + 0.5) * w}px, ${(-tmp.y * 0.5 + 0.5) * h}px) translate(-50%, -50%)`;
+      el.firstChild.style.transform = `scaleX(${Math.min(1, wolf.fear / wolf.type.courage)})`;
+    }
+    for (let i = used; i < this.meters.length; i++) this.meters[i].style.display = 'none';
   }
 }

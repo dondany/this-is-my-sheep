@@ -5,6 +5,23 @@ Click the meadow to send the dog running; wolves that get too close to it turn t
 
 Design doc: [`shepherd_dog_threejs_game_plan.md`](shepherd_dog_threejs_game_plan.md)
 
+## Animals
+
+The flock and the wolf pack get more varied as the waves go on. Each type is a set of numbers in
+`SHEEP_TYPES` / `WOLF_TYPES` in `src/config.js`, so balancing is mostly editing values there.
+
+| | Type | From wave | Behaviour |
+| --- | --- | --- | --- |
+| 🐑 | **Sheep** | 1 | Grazes, strolls, sticks with the flock. |
+| 🐑 | **Wanderer** (beige fleece) | 2, one per wave | Strays far from the flock (a "?" pops up) and attracts wolves, but notices the dog from twice as far and runs home easily. |
+| 🐏 | **Old Ram** (horns) | 5, one per flock | Big, slow, ignores the dog and barely panics. Nearby sheep gather round him and panic less. Wolves need twice as long to take him. If he's lost, a new ram joins next wave. |
+| 🐺 | **Wolf** | 1 | Prowls the tree line, goes for stragglers, flees from one bark. 15 wool. |
+| 🐺 | **Runner** (tan, big ears) | 3 | 1.6× faster, barely stalks, goes for the nearest sheep. Scared from further away, gives up a chase if the dog gets near its target, and comes back quickly. 20 wool. |
+| 🐺 | **Brute** (big, black, scarred) | 6 | Slow, and one bark isn't enough: keep the dog next to it for 1.5 s (fear meter over its head) and it flees. While resisting it backs off snarling and can't finish a grab. Shoves sheep aside and takes them faster. 40 wool. |
+
+From wave 8 packs mix several Runners and Brutes (`wolfPack()` in `src/config.js`). The wave banner
+introduces each new type the first time it appears.
+
 ## Run locally
 
 ES modules need an HTTP server (opening `index.html` via `file://` won't work):

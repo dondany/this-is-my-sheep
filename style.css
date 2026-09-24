@@ -416,6 +416,43 @@ h2 {
   border-left-color: var(--danger);
 }
 
+.indicator.runner.danger {
+  animation-duration: 0.25s;
+}
+
+.indicator.brute {
+  width: 54px;
+  height: 54px;
+  background: #e9dcc4;
+}
+
+.indicator.brute .face {
+  font-size: 28px;
+}
+
+.fear-meter {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 64px;
+  height: 12px;
+  background: var(--paper-2);
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.fear-fill {
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left;
+}
+
+.float-text.stray {
+  font-size: 30px;
+  color: #fff3b0;
+}
+
 @keyframes pulse {
   to {
     box-shadow: 0 0 0 6px rgba(201, 87, 69, 0.3);

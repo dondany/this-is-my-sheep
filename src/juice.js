@@ -97,6 +97,16 @@ export class Juice {
     this.sfx.bleat(true);
   }
 
+  sheepStray(sheep) {
+    this.floatText('?', { follow: sheep, offsetY: 2.2, cls: 'stray', duration: 1.2 });
+    this.sfx.bleat(false);
+  }
+
+  wolfResist(wolf) {
+    this.floatText('GRRR!', { follow: wolf, offsetY: 3.4, cls: 'danger', duration: 0.9 });
+    this.sfx.growl();
+  }
+
   sheepGrabbed(sheep) {
     this.floatText('HELP!', { follow: sheep, offsetY: 2.4, cls: 'danger', duration: 1.1 });
     this.ring(sheep.position, { from: 0.3, to: 2, duration: 0.5, color: COLORS.danger, opacity: 0.8 });
