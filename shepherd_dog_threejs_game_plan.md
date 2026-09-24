@@ -1770,7 +1770,7 @@ behaviour hooks. The goal is to change *decisions*, not just numbers.
     pops up when it strays.
 -   Adds a second job for the dog: herding vs guarding.
 
-## Lamb (wave 4+, one per wave; two from wave 8)
+## Lamb (wave 3+, one per wave; two from wave 8)
 
 -   Paired with an adult sheep (its mother) and follows her, staying
     about 1.4 units away.
@@ -1784,7 +1784,7 @@ behaviour hooks. The goal is to change *decisions*, not just numbers.
 -   Decision: protect lamb pairs, and choose between chasing a lost lamb
     and guarding the edge.
 
-## Black Sheep (wave 8+, one per flock)
+## Black Sheep (wave 7+, one per flock)
 
 -   A regular sheep most of the time, but every 12-18 s it winds up for
     1.2 s (stamping, snorting, "!") and then stampedes: it charges in a
@@ -1816,7 +1816,7 @@ behaviour hooks. The goal is to change *decisions*, not just numbers.
 -   Look: small tan wolf with big ears and a heavy dust trail; its
     off-screen indicator pulses faster. Worth 20 wool.
 
-## Sneaky wolf (wave 7+)
+## Sneaky wolf (wave 5+)
 
 -   Spawns silently (no howl) on the side of the flock away from the dog.
 -   No off-screen indicator until it is within 15 units of the flock
@@ -1828,7 +1828,7 @@ behaviour hooks. The goal is to change *decisions*, not just numbers.
 -   Decision: scan the edges instead of only reacting to arrows; the
     dog's position creates a blind spot.
 
-## Alpha wolf (wave 9+, one per wave)
+## Alpha wolf (wave 8+, one per wave)
 
 -   While an alpha is on the field, every other wolf stalks for half as
     long.
@@ -1853,22 +1853,136 @@ behaviour hooks. The goal is to change *decisions*, not just numbers.
 -   Look: 1.5× bigger, near-black with pale scars and orange eyes,
     lower howl, larger indicator. Worth 40 wool.
 
+## Sleepy Sheep (wave 4+, one per wave)
+
+-   Lies down and dozes (eyes shut, "z" floating up): no wandering, no
+    fear of wolves, and wolves find it a slightly more tempting target.
+-   The dog coming within 3 units wakes it with a start: it bleats and
+    every sheep within 5 units panics and scatters.
+-   Awake for 20-30 s, then it nods off again once it's calm.
+-   Decision: leave it asleep and guard it where it lies, or wake it up
+    and deal with the scatter.
+
+## Golden Fleece (wave 6, then a 35% chance per wave if there isn't one)
+
+-   Gold fleece that glitters. Every wolf strongly prefers it (`lure`).
+-   Worth 100 wool (20× the normal survivor reward) at the end of every
+    wave it survives.
+-   Decision: risk and reward; wolves converge on one spot.
+
+## Bellwether (wave 8+, one per flock)
+
+-   Collar and bell. Every 5-7 s it rings: a gold ring pulses out and
+    sheep within 10 units are pulled back toward it for 1.6 s.
+-   If a wolf takes it, flock cohesion drops to 40% (and the boundary
+    pull weakens) for the rest of the wave: "The flock loses heart…".
+-   Decision: a second anchor alongside the ram, and a priority to
+    protect.
+
+## Goat (wave 9+, one per game)
+
+-   Not a sheep: separate entity, not counted in the flock, ignored by
+    wolves. Ambles about near the flock.
+-   Charges any wolf within 7 units and head-butts it ("BONK!"): the
+    wolf is dazed for 1.3 s and drops any sheep it was holding (counts
+    as a save). 5 s cooldown.
+-   Decision: none really: a helper you can't control. Fun, and a small
+    late-game relief.
+
+## Pup Pack (wave 2+)
+
+-   Three tiny wolves spawned together as a group. Followers copy the
+    lead pup's state and target and stay close to it.
+-   Weak: 5 wool each, take 1.6× longer to finish a grab.
+-   When the dog has been within 8 units for 0.35 s they split up and
+    scatter in different directions ("YIP!"), then hunt individually.
+    Once all of them are prowling again they regroup.
+-   Scaring all three within 0.6 s pays a +30 bonus ("PUP PACK!").
+-   Decision: dash through them while they're still bunched up.
+
+## Howler (wave 4+)
+
+-   Never attacks. Prowls 7 units inside the lurk ring (reachable by
+    the dog) and every 6-9 s sits back and howls for a second.
+-   The howl makes every sheep within 36 units (the whole flock, from
+    the edge) panic and get pushed away from the howler.
+-   Its off-screen indicator is dashed; scaring it pays 20 wool.
+-   Decision: leave the flock to chase off something that isn't
+    directly dangerous.
+
+## Trickster (wave 7+)
+
+-   Orange fox-like wolf. While approaching, if the dog is running
+    toward it (within 16 units, heading within ~40°), it switches its
+    target to the sheep furthest from the dog ("HEH!"). Once per
+    attack.
+-   Fragile: scared from 1.4× the threat radius. 30 wool.
+-   Decision: don't over-commit; read its intent first.
+
+## Wolf in Sheep's Clothing (wave 9+, one per wave)
+
+-   Joins the flock as a new "sheep" at the start of the wave. It isn't
+    counted in the flock total, wolves ignore it and it never joins a
+    stampede.
+-   Tells: grey wolf tail poking out, grey legs, no bounce in its walk.
+-   15-25 s into the wave it throws off the fleece ("IT'S A WOLF!") and
+    goes straight for the nearest sheep.
+-   Keeping the dog within 2.5 units of it for 0.5 s exposes it early
+    ("EXPOSED!"); it's scared on the spot for 40 wool.
+-   At the end of the wave an unrevealed one slinks off.
+-   Decision: paying attention inside the flock, not just around it.
+
 ## Pack composition
 
 ``` text
-wave 1-2   wolves only
-wave 3-5   + 1 runner
-wave 6     + 1 runner, 1 brute
-wave 7-8   + 1 sneaky
-wave 8+    runners = min(5, (wave-2)/2), brutes = min(3, (wave-4)/2)
-wave 9+    sneaky  = min(3, (wave-5)/2), + 1 alpha
+wave 2+    + pup packs (1, 2 from wave 6)
+wave 3+    + runners   (1, then min(5, (wave-2)/2) from wave 8)
+wave 4+    + howlers   (1, 2 from wave 9)
+wave 5+    + sneaky    (1, then min(3, (wave-5)/2) from wave 9)
+wave 6+    + brutes    (1, then min(3, (wave-4)/2) from wave 8)
+wave 7+    + tricksters(1, 2 from wave 10)
+wave 8+    + 1 alpha
 ```
+
+The pack has `min(1 + wave, 15)` slots (a pup pack takes one). When
+there are more special wolves than slots, the priority is alpha, brute,
+sneaky, trickster, runner, howler, pups.
 
 Herding: a sheep within the dog's fear radius also turns its wander
 direction away from the dog, so a dog placed behind a stray walks it home.
 
-The first wolf of each wave is always a normal one, so special wolves
-arrive mid-wave. New types are introduced one per wave: wanderer (2),
-runner (3), lamb (4), ram (5), brute (6), sneaky (7), black sheep (8),
-alpha (9). The wave banner introduces each new type the first
-time it appears.
+The first wolf of each wave is always a normal one (when there's room),
+so special wolves arrive mid-wave. One new flock-side and one new
+wolf-side animal appears each wave (`FIRST_WAVE`):
+
+``` text
+wave 2   wanderer       pup pack
+wave 3   lamb           runner
+wave 4   sleepy sheep   howler
+wave 5   old ram        sneaky wolf
+wave 6   golden fleece  brute
+wave 7   black sheep    trickster
+wave 8   bellwether     alpha
+wave 9   goat           wolf in sheep's clothing
+```
+
+The wave banner names the newcomers ("New: Sleepy Sheep & Howler").
+
+------------------------------------------------------------------------
+
+# 61. Bestiary (implemented)
+
+-   A collection screen with two sections, the flock and the wolves:
+    18 entries in total.
+-   Each entry has a portrait rendered from the in-game model (a
+    separate small WebGL renderer, cached as images), a name, a short
+    description and a tip.
+-   Locked entries show the portrait as a dark silhouette with "???"
+    and "turns up from wave N".
+-   An entry unlocks the first time the animal is on the field during a
+    game (sneaky wolves once they come close, the disguised wolf once
+    it's revealed). A card slides in from the corner ("New in the
+    bestiary"); clicking it opens the entry.
+-   Opened from the 📖 button, the menu, pause, end-of-wave and game-over
+    screens, or the B key. Opening it mid-wave pauses the game.
+-   Unlocks persist in `localStorage`.

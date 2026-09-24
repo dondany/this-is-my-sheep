@@ -14,6 +14,11 @@ export const COLORS = {
   lambWool: 0xfffcf4,
   blackWool: 0x3d3836,
   blackFace: 0x1c1a19,
+  goldWool: 0xf2c14e,
+  bell: 0xe0b040,
+  collar: 0x8a4b2f,
+  goat: 0xe8e2d6,
+  goatDark: 0x8c7f70,
   eye: 0xfffaf0,
 
   dog: 0x222222,
@@ -35,6 +40,13 @@ export const COLORS = {
   alpha: 0x55524d,
   alphaMane: 0xd8d2c6,
   alphaEye: 0xffd35c,
+  fox: 0xd9793a,
+  foxLight: 0xf4e8d0,
+  foxDark: 0x2b2826,
+  howler: 0x7d7a8a,
+  howlerLight: 0xb4b0c0,
+  pup: 0x8a867e,
+  pupLight: 0xbdb8ae,
 
   wood: 0xa96f45,
   brown: 0x76513a,
@@ -200,6 +212,53 @@ export const BLACK = {
   points: 10,
 };
 
+// The rest of the flock-side types start from a normal sheep and override a few values.
+Object.assign(SHEEP_TYPES, {
+  // Dozes on the spot: won't wander off, but won't flee from wolves either.
+  sleepy: { ...SHEEP_TYPES.normal, fidget: 0.4, lure: 2 },
+  // Rare. Every wolf wants it; worth a fortune if it survives the wave.
+  golden: { ...SHEEP_TYPES.normal, lure: 8, wool: 20 },
+  // Rings its bell to regroup the sheep around it.
+  bellwether: { ...SHEEP_TYPES.normal, scale: 1.2, cohesion: 0.45, radiusScale: 0.8, panic: 0.8 },
+  // A wolf in a sheepskin. Not a real sheep: wolves ignore it and it doesn't count.
+  disguised: { ...SHEEP_TYPES.normal, fake: true, fidget: 0.6 },
+});
+
+export const SLEEPY = {
+  wakeRadius: 3, // the dog this close wakes it up...
+  startleRadius: 5, // ...and the sheep this close to it scatter
+  awake: [18, 30], // seconds before it dozes off again
+};
+
+export const BELL = {
+  interval: [5, 7],
+  radius: 10, // sheep this close regroup around the bellwether
+  pull: 2.2,
+  regroupTime: 1.6,
+  lostCohesion: 0.4, // flock cohesion multiplier for the rest of the wave once it's taken
+};
+
+export const GOLDEN = {
+  firstWave: 6,
+  chance: 0.35, // later waves: chance of a golden fleece joining if there isn't one
+};
+
+export const GOAT = {
+  walkSpeed: 2,
+  chargeSpeed: 6,
+  sightRadius: 7, // goes for wolves this close
+  buttRadius: 1.6,
+  cooldown: 5,
+  stun: 1.3,
+};
+
+export const DISGUISE = {
+  reveal: [15, 25], // seconds into the wave before it throws off the sheepskin
+  sniffRadius: 2.5, // the dog this close for `sniffTime` exposes it early
+  sniffTime: 0.5,
+  points: 40,
+};
+
 export const LAMB = {
   followDistance: 1.4, // how close it stays to its mother
   follow: 1.5,
@@ -299,6 +358,37 @@ export const WOLF_TYPES = {
   },
 };
 
+Object.assign(WOLF_TYPES, {
+  // Tiny, arrives in threes. Weak on its own, but the group splits up when the dog comes close.
+  pup: { ...WOLF_TYPES.normal, scale: 0.65, speed: 1.1, threatScale: 1.2, fleeTime: 1.5, grabTime: 1.6, points: 5 },
+  // Never attacks. Howls from the tree line and makes the flock panic.
+  howler: { ...WOLF_TYPES.normal, scale: 1.15, speed: 0.9, howler: true, points: 20 },
+  // Fox-like feinter: fakes an attack on one side, then switches to the far side once the dog commits.
+  trickster: { ...WOLF_TYPES.normal, scale: 0.95, speed: 1.3, stalk: 0.8, threatScale: 1.4, fleeTime: 1.2, feint: true, points: 30 },
+  // What's under the sheepskin (see DISGUISE).
+  disguised: { ...WOLF_TYPES.normal, points: 40 },
+});
+
+export const PUPS = {
+  count: 3,
+  splitRadius: 8, // the dog this close for `reaction` seconds makes the group split up
+  reaction: 0.35,
+  comboWindow: 0.6, // scare all three within this many seconds for the bonus
+  comboPoints: 30,
+};
+
+export const HOWLER = {
+  ringOffset: 7, // prowls this much inside the lurk ring, so the dog can reach it
+  interval: [6, 9],
+  windup: 1,
+  radius: 36, // sheep this close panic on a howl: from the edge of the meadow that's the whole flock
+};
+
+export const TRICKSTER = {
+  commitRadius: 16, // the dog heading its way from this close counts as "committed"
+  commitAim: 0.75, // how directly the dog must be heading at it (cosine)
+};
+
 export const ALPHA = {
   stalk: 0.5, // other wolves' stalking time while an alpha is on the field
   panicRadius: 10, // scaring the alpha also scares every wolf this close to it
@@ -318,18 +408,33 @@ function shuffle(list) {
   return list;
 }
 
-// Which wolves make up a wave's pack: runners from wave 3, brutes from wave 6, sneaky from 7,
-// mixed packs from 8, one alpha per wave from 9.
+// When each kind first appears. One new flock-side and one new wolf-side animal per wave, 2 to 9.
+export const FIRST_WAVE = {
+  wanderer: 2, pups: 2,
+  lamb: 3, runner: 3,
+  sleepy: 4, howler: 4,
+  ram: 5, sneaky: 5,
+  golden: 6, brute: 6,
+  black: 7, trickster: 7,
+  bellwether: 8, alpha: 8,
+  goat: 9, disguised: 9,
+};
+
+// Which wolves make up a wave's pack ('pups' is a group of three pups taking one slot).
+// Listed in priority order: when the pack is full, the later kinds are left out.
 export function wolfPack(wave, count) {
-  const runners = wave < 3 ? 0 : wave < 8 ? 1 : Math.min(5, Math.floor((wave - 2) / 2));
-  const brutes = wave < 6 ? 0 : wave < 8 ? 1 : Math.min(3, Math.floor((wave - 4) / 2));
-  const sneaky = wave < 7 ? 0 : wave < 9 ? 1 : Math.min(3, Math.floor((wave - 5) / 2));
-  const alphas = wave < 9 ? 0 : 1;
+  const from = (kind, n) => (wave >= FIRST_WAVE[kind] ? n : 0);
+  const wanted = [
+    ['alpha', from('alpha', 1)],
+    ['brute', from('brute', wave < 8 ? 1 : Math.min(3, Math.floor((wave - 4) / 2)))],
+    ['sneaky', from('sneaky', wave < 9 ? 1 : Math.min(3, Math.floor((wave - 5) / 2)))],
+    ['trickster', from('trickster', wave < 10 ? 1 : 2)],
+    ['runner', from('runner', wave < 8 ? 1 : Math.min(5, Math.floor((wave - 2) / 2)))],
+    ['howler', from('howler', wave < 9 ? 1 : 2)],
+    ['pups', from('pups', wave < 6 ? 1 : 2)],
+  ];
   const pack = [];
-  for (let i = 0; i < alphas && pack.length < count; i++) pack.push('alpha');
-  for (let i = 0; i < runners && pack.length < count; i++) pack.push('runner');
-  for (let i = 0; i < brutes && pack.length < count; i++) pack.push('brute');
-  for (let i = 0; i < sneaky && pack.length < count; i++) pack.push('sneaky');
+  for (const [kind, n] of wanted) for (let i = 0; i < n && pack.length < count; i++) pack.push(kind);
   while (pack.length < count) pack.push('normal');
   shuffle(pack);
   // Lead with a normal wolf so the special ones arrive mid-wave.
@@ -343,11 +448,17 @@ export function waveConfig(wave) {
   return {
     wave,
     difficulty,
-    newSheep: wave === 1 ? 10 : 4,
-    wanderers: wave >= 2 ? 1 : 0, // of the new sheep
-    ram: wave >= 5, // an Old Ram joins if the flock doesn't have one
-    lambs: wave < 4 ? 0 : wave < 8 ? 1 : 2, // of the new sheep; each is paired with a mother
-    black: wave >= 8, // a Black Sheep joins if the flock doesn't have one
+    newSheep: wave === 1 ? 10 : 3, // plain sheep; the special ones below come on top
+    wanderers: wave >= FIRST_WAVE.wanderer ? 1 : 0,
+    lambs: wave < FIRST_WAVE.lamb ? 0 : wave < 8 ? 1 : 2, // each is paired with a mother
+    sleepy: wave >= FIRST_WAVE.sleepy ? 1 : 0,
+    golden: wave === GOLDEN.firstWave || (wave > GOLDEN.firstWave && Math.random() < GOLDEN.chance),
+    // One per flock: joins if the flock doesn't have one
+    ram: wave >= FIRST_WAVE.ram,
+    black: wave >= FIRST_WAVE.black,
+    bellwether: wave >= FIRST_WAVE.bellwether,
+    goat: wave >= FIRST_WAVE.goat, // one per game
+    disguised: wave >= FIRST_WAVE.disguised ? 1 : 0,
     wolves: Math.min(1 + wave, 15),
     duration: Math.min(40 + wave * 5, 90),
     spawnInterval: Math.max(2, 9 - wave * 0.6),

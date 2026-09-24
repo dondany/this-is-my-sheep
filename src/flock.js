@@ -1,4 +1,4 @@
-import { SHEEP, WORLD, RAM_CALM, LAMB, BLACK } from './config.js';
+import { SHEEP, WORLD, RAM_CALM, LAMB, BLACK, SLEEPY, BELL, GOAT } from './config.js';
 import { angleTo } from './entities.js';
 
 const NEIGH2 = SHEEP.neighbourRadius ** 2;
@@ -29,7 +29,7 @@ function startStampede(s, sheep, ctx) {
   s.stampedeDir.set(Math.sin(a), 0, Math.cos(a));
   s.stampede = BLACK.duration;
   const recruits = sheep
-    .filter((o) => o !== s && !o.grabbedBy && !o.leader && o.kind !== 'ram' && o.position.distanceTo(s.position) < BLACK.recruitRadius)
+    .filter((o) => o !== s && !o.grabbedBy && !o.leader && !o.asleep && !o.type.fake && o.kind !== 'ram' && o.position.distanceTo(s.position) < BLACK.recruitRadius)
     .sort((a, b) => a.position.distanceTo(s.position) - b.position.distanceTo(s.position))
     .slice(0, BLACK.followers);
   for (const o of recruits) {
@@ -74,6 +74,103 @@ function updateStampedes(sheep, ctx, dt) {
   }
 }
 
+// --- Sleepy sheep and the bellwether -----------------------------------------
+
+function wakeUp(s, sheep, ctx) {
+  s.asleep = false;
+  s.wakeTimer = between(SLEEPY.awake);
+  s.fear = 0.6;
+  // Startled awake: it bleats and the sheep around it scatter.
+  for (const o of sheep) {
+    if (o === s || o.grabbedBy || o.asleep) continue;
+    const ox = o.position.x - s.position.x;
+    const oz = o.position.z - s.position.z;
+    const d = Math.hypot(ox, oz);
+    if (d < SLEEPY.startleRadius && d > 1e-3) {
+      o.fear = Math.max(o.fear, 0.8);
+      o.velocity.x += (ox / d) * 4;
+      o.velocity.z += (oz / d) * 4;
+    }
+  }
+  ctx.onSheepWoke?.(s);
+}
+
+function ringBell(s, sheep, ctx) {
+  s.bellSwing = 1;
+  for (const o of sheep) {
+    if (o === s || o.grabbedBy || o.asleep || o.leader) continue;
+    if (o.position.distanceTo(s.position) < BELL.radius) {
+      o.regroup = BELL.regroupTime;
+      o.regroupTo = s;
+    }
+  }
+  ctx.onBell?.(s);
+}
+
+// The goat does its own thing: ambles about and charges wolves that come close.
+export function updateGoat(g, ctx, dt) {
+  const { wolves, center } = ctx;
+  g.cooldown -= dt;
+  const busy = (w) => w.gone || w.state === 'FLEE' || w.state === 'LEAVE' || w.stun > 0;
+  if (g.target && (busy(g.target) || g.target.position.distanceTo(g.position) > GOAT.sightRadius * 1.5)) g.target = null;
+  if (!g.target && g.cooldown <= 0) {
+    let best = GOAT.sightRadius;
+    for (const w of wolves) {
+      const d = w.position.distanceTo(g.position);
+      if (!busy(w) && d < best) {
+        best = d;
+        g.target = w;
+      }
+    }
+  }
+
+  let dx = 0;
+  let dz = 0;
+  if (g.target) {
+    const tx = g.target.position.x - g.position.x;
+    const tz = g.target.position.z - g.position.z;
+    const td = Math.hypot(tx, tz) || 1e-3;
+    dx = (tx / td) * GOAT.chargeSpeed;
+    dz = (tz / td) * GOAT.chargeSpeed;
+    if (td < GOAT.buttRadius * g.target.type.scale) {
+      ctx.onGoatButt?.(g, g.target);
+      g.butt = 1;
+      g.cooldown = GOAT.cooldown;
+      g.target = null;
+    }
+  } else {
+    g.turnTimer -= dt;
+    if (g.turnTimer <= 0) {
+      g.turnTimer = 2 + Math.random() * 4;
+      g.wanderAngle += (Math.random() - 0.5) * 2.5;
+      g.idle = Math.random() < 0.35;
+    }
+    if (!g.idle) {
+      dx = Math.sin(g.wanderAngle) * GOAT.walkSpeed;
+      dz = Math.cos(g.wanderAngle) * GOAT.walkSpeed;
+    }
+    // Loosely stays in the same part of the meadow as the flock.
+    const cx = center.x - g.position.x;
+    const cz = center.z - g.position.z;
+    const cd = Math.hypot(cx, cz);
+    if (cd > 16) {
+      dx += (cx / cd) * (cd - 16) * 0.3;
+      dz += (cz / cd) * (cd - 16) * 0.3;
+    }
+  }
+  const r = Math.hypot(g.position.x, g.position.z);
+  if (r > WORLD.playRadius - 2) {
+    dx -= (g.position.x / r) * 3;
+    dz -= (g.position.z / r) * 3;
+  }
+  const resp = 1 - Math.exp(-4 * dt);
+  g.velocity.x += (dx - g.velocity.x) * resp;
+  g.velocity.z += (dz - g.velocity.z) * resp;
+  g.position.x += g.velocity.x * dt;
+  g.position.z += g.velocity.z * dt;
+  g.faceVelocity(8, dt, 0.3);
+}
+
 export function flockCenter(sheep, out) {
   out.set(0, 0, 0);
   if (!sheep.length) return out;
@@ -90,6 +187,7 @@ export function updateFlock(sheep, ctx, dt) {
   const n = sheep.length;
   const baseRadius = SHEEP.flockRadius + Math.sqrt(n) * SHEEP.flockRadiusPerSqrt;
   const home = shepherd.position;
+  const cohesionScale = ctx.cohesionScale ?? 1; // drops once the bellwether is lost
   updateStampedes(sheep, ctx, dt);
 
   for (let i = 0; i < n; i++) {
@@ -104,6 +202,47 @@ export function updateFlock(sheep, ctx, dt) {
     const radius = baseRadius * t.radiusScale;
     let dx = 0;
     let dz = 0;
+
+    // Sleepy sheep: doze on the spot until the dog comes by, then nod off again later.
+    if (s.kind === 'sleepy') {
+      if (s.asleep) {
+        if (s.position.distanceTo(dog.position) < SLEEPY.wakeRadius) wakeUp(s, sheep, ctx);
+        else {
+          s.velocity.set(0, 0, 0);
+          s.snore = (s.snore ?? Math.random() * 3) - dt;
+          if (s.snore <= 0) {
+            s.snore = 3 + Math.random() * 2;
+            ctx.onSnore?.(s);
+          }
+          continue;
+        }
+      } else if ((s.wakeTimer -= dt) <= 0 && s.fear < 0.1 && !s.leader) {
+        s.asleep = true;
+        ctx.onSheepDozed?.(s);
+      }
+    }
+
+    // Bellwether: rings every few seconds, calling nearby sheep back to it.
+    if (s.kind === 'bellwether') {
+      s.ringTimer = (s.ringTimer ?? between(BELL.interval)) - dt;
+      if (s.ringTimer <= 0) {
+        s.ringTimer = between(BELL.interval);
+        ringBell(s, sheep, ctx);
+      }
+    }
+    if (s.regroup > 0) {
+      s.regroup -= dt;
+      const b = s.regroupTo;
+      if (b?.alive) {
+        const bx = b.position.x - px;
+        const bz = b.position.z - pz;
+        const bd = Math.hypot(bx, bz);
+        if (bd > 2) {
+          dx += (bx / bd) * BELL.pull;
+          dz += (bz / bd) * BELL.pull;
+        }
+      }
+    }
 
     // Lambs: lose the mother → bolt off alone; brought back to the flock → adopt a new one.
     if (s.kind === 'lamb') {
@@ -203,7 +342,7 @@ export function updateFlock(sheep, ctx, dt) {
     const cz = center.z - pz;
     const cd = Math.hypot(cx, cz);
     if (cd > 1e-3) {
-      const pull = Math.min(cd / radius, 1) * (s.orphan ? 0 : t.cohesion);
+      const pull = Math.min(cd / radius, 1) * (s.orphan ? 0 : t.cohesion) * cohesionScale;
       dx += (cx / cd) * pull;
       dz += (cz / cd) * pull;
     }
@@ -211,7 +350,7 @@ export function updateFlock(sheep, ctx, dt) {
     const hz = home.z - pz;
     const hd = Math.hypot(hx, hz);
     if (hd > radius) {
-      const pull = (hd - radius) * (s.orphan ? LAMB.orphanBoundary : t.boundary);
+      const pull = (hd - radius) * (s.orphan ? LAMB.orphanBoundary : t.boundary) * (0.5 + 0.5 * cohesionScale);
       dx += (hx / hd) * pull;
       dz += (hz / hd) * pull;
     } else if (hd < 1.6 && hd > 1e-3) {

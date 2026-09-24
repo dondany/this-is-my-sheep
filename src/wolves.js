@@ -1,4 +1,4 @@
-import { WOLF, WORLD, SNEAKY, ALPHA } from './config.js';
+import { WOLF, WORLD, SNEAKY, ALPHA, PUPS, HOWLER, TRICKSTER } from './config.js';
 import { angleTo } from './entities.js';
 
 // Wolf states:
@@ -18,6 +18,13 @@ import { angleTo } from './entities.js';
 //           on the far side of the flock from the dog before moving in.
 //   alpha   while it's around, the others stalk for less time; when it attacks, every prowling
 //           wolf attacks with it. Scaring it scares all wolves within ALPHA.panicRadius too.
+//   howler  never attacks: prowls a little inside the tree line and howls, panicking the flock.
+//   trickster  once the dog heads its way, switches to a sheep on the far side of the flock.
+//   pup     comes in groups of three that move together and split up when the dog gets close.
+//
+// Any wolf can be stunned by the goat for a moment (`stun`).
+
+const between = ([min, max]) => min + Math.random() * (max - min);
 
 const THREATENING = new Set(['APPROACH', 'CHASE', 'ATTACK']);
 
@@ -30,6 +37,23 @@ export function toWander(w, ctx) {
   const alphaAround = ctx.wolves.some((o) => o.type.leader && o.state !== 'LEAVE');
   const led = alphaAround && !w.type.leader ? ALPHA.stalk : 1;
   w.stateTimer = stalk * w.type.stalk * led;
+  w.feinted = false;
+}
+
+// Goat head-butt: dazed for a moment, and it lets go of any sheep it was holding.
+export function stunWolf(w, ctx, seconds) {
+  if (w.state === 'ATTACK' && w.target?.grabbedBy === w) {
+    w.target.grabbedBy = null;
+    w.target.fear = 1;
+    ctx.onSheepSaved(w.target, w);
+  }
+  if (w.state === 'ATTACK' || w.state === 'CHASE') {
+    w.state = 'APPROACH';
+    w.retarget = 0;
+  }
+  w.target = null;
+  w.stun = seconds;
+  w.velocity.set(0, 0, 0);
 }
 
 export function isThreatening(w) {
@@ -41,7 +65,7 @@ function pickTarget(w, ctx) {
   let best = null;
   let bestScore = Infinity;
   for (const s of ctx.sheep) {
-    if (s.grabbedBy) continue;
+    if (s.grabbedBy || s.type.fake) continue;
     const d = w.position.distanceTo(s.position);
     const straggle = s.position.distanceTo(ctx.center);
     const score = d - straggle * bias - s.type.lure + Math.random() * 2;
@@ -65,7 +89,9 @@ function aimAway(w, ddx, ddz, dd) {
 }
 
 function scare(w, ctx, ddx, ddz, dd) {
-  const threatening = isThreatening(w);
+  const threatening = isThreatening(w) || !!w.type.howler;
+  w.howling = 0;
+  w.stun = 0;
   if (w.state === 'ATTACK' && w.target) {
     const s = w.target;
     s.grabbedBy = null;
@@ -80,6 +106,17 @@ function scare(w, ctx, ddx, ddz, dd) {
   w.stateTimer = ctx.dog.stats.fleeTime * w.type.fleeTime;
   aimAway(w, ddx, ddz, dd);
   ctx.onWolfScared(w, threatening);
+
+  // Pups: scaring the whole group in one pass earns a bonus.
+  const g = w.group;
+  if (g) {
+    g.scares = g.scares.filter((t) => ctx.time - t < PUPS.comboWindow);
+    g.scares.push(ctx.time);
+    if (g.scares.length === g.pups.filter((p) => p.alive).length && g.scares.length > 1) {
+      g.scares = [];
+      ctx.onPupCombo?.(w);
+    }
+  }
 
   // The pack follows its leader's lead.
   if (w.type.leader) {
@@ -105,9 +142,56 @@ function giveUp(w, ddx, ddz, dd) {
   aimAway(w, ddx, ddz, dd);
 }
 
+// Pups move as a group until the dog gets close; then they scatter and act alone.
+function updatePupGroups(wolves, ctx, dt) {
+  const groups = new Set(wolves.map((w) => w.group).filter(Boolean));
+  for (const g of groups) {
+    const pups = g.pups.filter((p) => p.alive && !p.gone);
+    if (g.split) {
+      // Regroup once they're all prowling again.
+      if (pups.every((p) => p.state === 'WANDER')) g.split = false;
+      continue;
+    }
+    const near = pups.some((p) => p.state !== 'FLEE' && p.position.distanceTo(ctx.dog.position) < PUPS.splitRadius);
+    g.alarm = near ? g.alarm + dt : 0;
+    if (g.alarm < PUPS.reaction) continue;
+    g.split = true;
+    g.alarm = 0;
+    pups.forEach((p, i) => {
+      if (p.state === 'FLEE' || p.state === 'ATTACK') return;
+      const ax = p.position.x - ctx.dog.position.x;
+      const az = p.position.z - ctx.dog.position.z;
+      const a = Math.atan2(az, ax) + (i - 1) * 0.9; // fan out in different directions
+      p.state = 'FLEE';
+      p.pause = 0;
+      p.stateTimer = 0.7;
+      p.target = null;
+      p.fleeDir.set(Math.cos(a), 0, Math.sin(a));
+    });
+    ctx.onPupsSplit?.(pups[0]);
+  }
+}
+
+// A howl: every sheep in range panics and scatters away from the howler.
+function howl(w, ctx) {
+  for (const s of ctx.sheep) {
+    if (s.grabbedBy || s.asleep) continue;
+    const sx = s.position.x - w.position.x;
+    const sz = s.position.z - w.position.z;
+    const d = Math.hypot(sx, sz);
+    if (d > HOWLER.radius || d < 1e-3) continue;
+    const k = 1 - d / HOWLER.radius;
+    s.fear = Math.max(s.fear, 0.9);
+    s.velocity.x += (sx / d) * (1.5 + 3 * k);
+    s.velocity.z += (sz / d) * (1.5 + 3 * k);
+  }
+  ctx.onHowl?.(w);
+}
+
 export function updateWolves(wolves, ctx, dt) {
   const { dog, cfg } = ctx;
   const waveSpeed = cfg ? cfg.wolfSpeed : 1;
+  updatePupGroups(wolves, ctx, dt);
 
   for (const w of wolves) {
     const T = w.type;
@@ -137,6 +221,25 @@ export function updateWolves(wolves, ctx, dt) {
       else if (w.fear > 0) w.fear = Math.max(0, w.fear - dt * 0.5);
     }
 
+    // Dazed by the goat: stand still (the dog can still scare it).
+    if (w.stun > 0 && w.state !== 'FLEE') {
+      w.stun -= dt;
+      w.velocity.set(0, 0, 0);
+      w.resisting = false;
+      continue;
+    }
+
+    // Grouped pups follow the first pup's lead.
+    const lead = w.group && !w.group.split ? w.group.pups.find((p) => p.alive && !p.gone) : null;
+    if (lead && lead !== w) {
+      w.orbitDir = lead.orbitDir;
+      if (w.state === 'WANDER' && (lead.state === 'APPROACH' || lead.state === 'CHASE')) {
+        w.state = 'APPROACH';
+        w.target = lead.target;
+        w.retarget = 1.5;
+      }
+    }
+
     switch (w.state) {
       case 'WANDER': {
         w.stateTimer -= dt;
@@ -157,7 +260,8 @@ export function updateWolves(wolves, ctx, dt) {
         }
         vx = -oz * w.orbitDir * orbitSpeed;
         vz = ox * w.orbitDir * orbitSpeed;
-        const radial = (WORLD.lurkRadius - r) * 1.2;
+        const ring = WORLD.lurkRadius - (T.howler ? HOWLER.ringOffset : 0);
+        const radial = (ring - r) * 1.2;
         vx += ox * radial;
         vz += oz * radial;
         const vl = Math.hypot(vx, vz);
@@ -165,6 +269,20 @@ export function updateWolves(wolves, ctx, dt) {
         if (vl > max) {
           vx *= max / vl;
           vz *= max / vl;
+        }
+        // Howlers never attack: they stop now and then to howl at the flock.
+        if (T.howler) {
+          if (w.howling > 0) {
+            snap = true;
+            w.turnToward(Math.atan2(ctx.center.x - px, ctx.center.z - pz), 6, dt);
+            w.howling -= dt;
+            if (w.howling <= 0) howl(w, ctx);
+          } else if (ctx.huntingAllowed && (w.howlTimer -= dt) <= 0) {
+            w.howlTimer = between(HOWLER.interval);
+            w.howling = HOWLER.windup;
+            ctx.onHowlStart?.(w);
+          }
+          break;
         }
         if (w.stateTimer <= 0 && inPosition && ctx.huntingAllowed && ctx.sheep.length) {
           w.state = 'APPROACH';
@@ -180,13 +298,35 @@ export function updateWolves(wolves, ctx, dt) {
 
       case 'APPROACH': {
         w.retarget -= dt;
-        if (!w.target || !w.target.alive || w.target.grabbedBy || w.retarget <= 0) {
+        if (!w.target || !w.target.alive || w.target.grabbedBy || (w.retarget <= 0 && !w.feinted)) {
           w.target = pickTarget(w, ctx);
           w.retarget = 1.5;
         }
         if (!w.target) {
           toWander(w, ctx);
           break;
+        }
+        // Trickster: once the dog commits to it, switch to the far side of the flock.
+        if (T.feint && !w.feinted && dd < TRICKSTER.commitRadius && dog.speed > 4) {
+          // Cosine between the dog's heading and the direction from the dog to this wolf.
+          const heading = (dog.velocity.x * ddx + dog.velocity.z * ddz) / (dog.speed * dd);
+          if (heading > TRICKSTER.commitAim) {
+            let far = null;
+            let farD = -1;
+            for (const s of ctx.sheep) {
+              if (s.grabbedBy || s.type.fake) continue;
+              const d = s.position.distanceTo(dog.position);
+              if (d > farD) {
+                farD = d;
+                far = s;
+              }
+            }
+            if (far) {
+              w.target = far;
+              w.feinted = true;
+              ctx.onFeint?.(w);
+            }
+          }
         }
         const tx = w.target.position.x - px;
         const tz = w.target.position.z - pz;
@@ -289,6 +429,17 @@ export function updateWolves(wolves, ctx, dt) {
     if (backingOff) {
       vx = (ddx / dd) * 1.2;
       vz = (ddz / dd) * 1.2;
+    }
+
+    // Grouped pups stick close to their lead pup.
+    if (lead && lead !== w && !snap && w.state !== 'FLEE' && w.state !== 'LEAVE') {
+      const lx = lead.position.x - px;
+      const lz = lead.position.z - pz;
+      const ld = Math.hypot(lx, lz);
+      if (ld > 1.4) {
+        vx += (lx / ld) * Math.min(ld - 1.4, 3) * 1.5;
+        vz += (lz / ld) * Math.min(ld - 1.4, 3) * 1.5;
+      }
     }
 
     // Keep a little space between wolves.

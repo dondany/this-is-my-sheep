@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { COLORS, DOG, WORLD, SHEEP_TYPES, WOLF_TYPES, BLACK, ALPHA } from './config.js';
+import { COLORS, DOG, WORLD, SHEEP_TYPES, WOLF_TYPES, BLACK, ALPHA, GOAT } from './config.js';
 import { GEO, mesh } from './materials.js';
 
 const TAU = Math.PI * 2;
@@ -89,14 +89,17 @@ export class Animal {
 // ---------------------------------------------------------------------------
 
 const HORN = new THREE.TorusGeometry(0.15, 0.06, 6, 14, Math.PI * 1.6);
+const COLLAR = new THREE.TorusGeometry(0.3, 0.045, 6, 18);
+const BELL = new THREE.CylinderGeometry(0.06, 0.13, 0.17, 8);
 
-// kind: 'normal' | 'wanderer' | 'ram' | 'lamb' | 'black' (see SHEEP_TYPES)
+// kind: 'normal' | 'wanderer' | 'ram' | 'lamb' | 'black' | 'sleepy' | 'golden' | 'bellwether'
+//       | 'disguised' (see SHEEP_TYPES)
 export class Sheep extends Animal {
   constructor(scene, kind = 'normal') {
     super(scene);
     this.kind = kind;
     this.type = SHEEP_TYPES[kind];
-    const wool = { wanderer: COLORS.wandererWool, lamb: COLORS.lambWool, black: COLORS.blackWool }[kind] ?? COLORS.sheep;
+    const wool = { wanderer: COLORS.wandererWool, lamb: COLORS.lambWool, black: COLORS.blackWool, golden: COLORS.goldWool }[kind] ?? COLORS.sheep;
     const face = { ram: COLORS.ramFace, black: COLORS.blackFace }[kind] ?? COLORS.sheepFace;
 
     const body = (this.body = new THREE.Group());
@@ -110,9 +113,12 @@ export class Sheep extends Animal {
     body.add(head);
     head.add(mesh(GEO.sphere, face, { position: [0, 0, 0.14], scale: [0.25, 0.27, 0.32], shadow: true }));
     head.add(mesh(GEO.lowSphere, wool, { position: [0, 0.2, 0.04], scale: 0.2 }));
+    this.eyes = [];
     for (const side of [-1, 1]) {
       head.add(mesh(GEO.sphere, face, { position: [side * 0.27, 0.06, 0.02], scale: [0.15, 0.06, 0.09], rotation: [0, 0, side * -0.4] }));
-      head.add(mesh(GEO.sphere, COLORS.eye, { position: [side * 0.12, 0.08, 0.4], scale: 0.05 }));
+      const eye = mesh(GEO.sphere, COLORS.eye, { position: [side * 0.12, 0.08, 0.4], scale: 0.05 });
+      head.add(eye);
+      this.eyes.push(eye);
       if (kind === 'ram') {
         // Curled horns on the sides of the head.
         head.add(mesh(HORN, COLORS.horn, { position: [side * 0.24, 0.12, 0.06], rotation: [0.3, Math.PI / 2, 0.4], shadow: true }));
@@ -120,8 +126,19 @@ export class Sheep extends Animal {
     }
 
     if (kind === 'lamb') head.scale.setScalar(1.3); // babies have big heads
+    if (kind === 'bellwether') {
+      body.add(mesh(COLLAR, COLORS.collar, { position: [0, 0.12, 0.5], rotation: [Math.PI / 2 - 0.3, 0, 0] }));
+      this.bell = mesh(BELL, COLORS.bell, { position: [0, -0.2, 0.62], shadow: true });
+      body.add(this.bell);
+    }
+    if (kind === 'disguised') {
+      // The tell: a grey wolf tail poking out of the fleece.
+      body.add(mesh(GEO.tail, COLORS.wolf, { position: [0, 0.02, -0.6], scale: [0.09, 0.55, 0.09], rotation: [1.1, 0, 0] }));
+    }
 
-    this.legs = addLegs(this.root, face, { x: 0.24, zFront: 0.32, zBack: -0.32, y: 0.5, length: 0.5, width: 0.075 });
+    // The disguised wolf's legs are grey instead of black.
+    const legColor = kind === 'disguised' ? COLORS.wolf : face;
+    this.legs = addLegs(this.root, legColor, { x: 0.24, zFront: 0.32, zBack: -0.32, y: 0.5, length: 0.5, width: 0.075 });
     this.root.scale.setScalar(this.type.scale);
 
     // Behaviour state, driven by flock.js
@@ -146,6 +163,12 @@ export class Sheep extends Animal {
     this.stampede = 0;
     this.stampedeDir = new THREE.Vector3();
     this.leader = null;
+    this.asleep = kind === 'sleepy';
+    this.sleepPose = this.asleep ? 1 : 0;
+    this.wakeTimer = 0;
+    this.regroup = 0; // seconds left being called by a bellwether
+    this.regroupTo = null;
+    this.bellSwing = 0;
   }
 
   // Pop in with a little bounce.
@@ -159,6 +182,20 @@ export class Sheep extends Animal {
     this.phase += dt * (6 + speed * 3.5);
     this.swingLegs(this.legs, this.phase, 0.6 * moving);
 
+    // Sleepy sheep lie down: legs folded, body low, eyes shut.
+    this.sleepPose = damp(this.sleepPose, this.asleep ? 1 : 0, 5, dt);
+    const lie = this.sleepPose;
+    if (lie > 0.01) {
+      const [fl, fr, bl, br] = this.legs;
+      fl.rotation.x = fr.rotation.x = fl.rotation.x * (1 - lie) - 1.4 * lie;
+      bl.rotation.x = br.rotation.x = bl.rotation.x * (1 - lie) + 1.4 * lie;
+    }
+    for (const eye of this.eyes) eye.scale.y = this.asleep ? 0.012 : 0.05;
+    if (this.bell) {
+      this.bellSwing = Math.max(0, this.bellSwing - dt * 1.5);
+      this.bell.rotation.x = Math.sin(time * 18) * 0.5 * this.bellSwing + Math.sin(this.phase) * 0.1 * moving;
+    }
+
     // Personality: the occasional hop or look around.
     this.idleTimer -= dt;
     if (this.idleTimer <= 0) {
@@ -171,8 +208,9 @@ export class Sheep extends Animal {
 
     if (this.windup > 0 && this.hop === 0) this.hop = 1; // stamping before a stampede
 
-    // "Flop-flop-flop" walk bounce plus hops.
-    let y = 0.78 + Math.abs(Math.sin(this.phase)) * 0.08 * moving;
+    // "Flop-flop-flop" walk bounce plus hops. The disguised wolf walks flat: another tell.
+    const bounce = this.type.fake ? 0 : 0.08;
+    let y = 0.78 + Math.abs(Math.sin(this.phase)) * bounce * moving - lie * 0.4 + Math.sin(time * 2 + this.phase) * 0.02 * lie;
     if (this.hop > 0) {
       this.hop = Math.max(0, this.hop - dt * 2.5);
       y += Math.sin(this.hop * Math.PI) * 0.45;
@@ -180,11 +218,11 @@ export class Sheep extends Animal {
     this.body.position.y = y;
     this.body.rotation.x = Math.sin(this.phase * 2) * 0.05 * moving;
 
-    const grazing = this.mode === 'graze' && speed < 0.4 && this.fear < 0.1 && !this.grabbedBy;
+    const grazing = (this.mode === 'graze' && speed < 0.4 && this.fear < 0.1 && !this.grabbedBy && !this.type.fake) || this.asleep;
     // The ram lowers its head at nearby wolves instead of panicking.
     const brace = this.kind === 'ram' && this.wolfNear && !grazing;
     this.headDip = damp(this.headDip, grazing ? 1 : brace ? 0.5 : 0, brace ? 2 : 4, dt);
-    this.head.rotation.x = this.headDip * (0.7 + (grazing ? Math.sin(time * 5 + this.phase) * 0.08 : 0));
+    this.head.rotation.x = this.headDip * (this.asleep ? 0.45 : 0.7 + (grazing ? Math.sin(time * 5 + this.phase) * 0.08 : 0));
     this.head.position.y = 0.2 - this.headDip * 0.18;
     this.head.rotation.y = damp(this.head.rotation.y, grazing ? 0 : this.lookYaw, 5, dt);
 
@@ -381,9 +419,14 @@ const WOLF_LOOKS = {
   brute: { body: COLORS.brute, light: COLORS.bruteLight, eye: COLORS.bruteEye, girth: 1.15, ears: 0.8 },
   sneaky: { body: COLORS.sneaky, light: COLORS.sneakyLight, eye: COLORS.sneakyEye, girth: 0.95, ears: 0.8, legs: 0.65 },
   alpha: { body: COLORS.alpha, light: COLORS.alphaMane, eye: COLORS.alphaEye, girth: 1.05, ears: 1.1 },
+  pup: { body: COLORS.pup, light: COLORS.pupLight, eye: COLORS.wolfEye, girth: 1.1, ears: 1.3, legs: 0.8, head: 1.35 },
+  howler: { body: COLORS.howler, light: COLORS.howlerLight, eye: 0x9fd3ff, girth: 1, ears: 1.2 },
+  trickster: { body: COLORS.fox, light: COLORS.foxLight, eye: COLORS.wolfEye, girth: 0.8, ears: 1.6, legColor: COLORS.foxDark, bushy: true },
+  disguised: { body: COLORS.wolf, light: COLORS.wolfLight, eye: COLORS.wolfEye, girth: 1, ears: 1 },
 };
 
-// kind: 'normal' | 'runner' | 'brute' | 'sneaky' | 'alpha' (see WOLF_TYPES)
+// kind: 'normal' | 'runner' | 'brute' | 'sneaky' | 'alpha' | 'pup' | 'howler' | 'trickster' | 'disguised'
+// (see WOLF_TYPES)
 export class Wolf extends Animal {
   constructor(scene, kind = 'normal') {
     super(scene);
@@ -402,6 +445,11 @@ export class Wolf extends Animal {
     this.gone = false;
     this.headDip = 0;
     this.tailLift = 1.1;
+    this.stun = 0; // seconds left dazed (goat head-butt)
+    this.howling = 0; // howler: seconds left in the current howl
+    this.howlTimer = 0;
+    this.feinted = false; // trickster: already switched sides this attack
+    this.group = null; // pups: shared group state
 
     // Angular silhouette: boxes and 4-sided cones.
     const look = WOLF_LOOKS[kind];
@@ -424,6 +472,12 @@ export class Wolf extends Animal {
       }
     }
 
+    if (kind === 'disguised') {
+      // Scraps of the sheepskin still clinging to its back.
+      body.add(mesh(GEO.lowSphere, COLORS.sheep, { position: [0, 0.26, -0.15], scale: [0.3, 0.16, 0.34] }));
+      body.add(mesh(GEO.lowSphere, COLORS.sheep, { position: [0.12, 0.24, 0.25], scale: [0.2, 0.14, 0.2] }));
+    }
+
     if (kind === 'alpha') {
       // Pale mane around the neck and shoulders.
       body.add(mesh(GEO.box, COLORS.alphaMane, { position: [0, 0.1, 0.3], scale: [0.7, 0.6, 0.34], rotation: [0.25, 0, 0], shadow: true }));
@@ -441,6 +495,7 @@ export class Wolf extends Animal {
 
     const head = (this.head = new THREE.Group());
     head.position.set(0, 0.2, 0.62);
+    head.scale.setScalar(look.head ?? 1);
     body.add(head);
     head.add(mesh(GEO.box, look.body, { position: [0, 0, 0.12], scale: [0.42, 0.36, 0.42], shadow: true }));
     head.add(mesh(GEO.box, look.light, { position: [0, -0.07, 0.42], scale: [0.22, 0.18, 0.36] }));
@@ -454,9 +509,12 @@ export class Wolf extends Animal {
     const tail = (this.tail = new THREE.Group());
     tail.position.set(0, 0.1, -0.62);
     body.add(tail);
-    tail.add(mesh(GEO.tail, look.body, { scale: [0.13 * g, 0.8, 0.13 * g] }));
+    if (look.bushy) {
+      tail.add(mesh(GEO.tail, look.body, { scale: [0.22, 0.85, 0.22] }));
+      tail.add(mesh(GEO.lowSphere, look.light, { position: [0, -0.75, 0], scale: [0.11, 0.16, 0.11] }));
+    } else tail.add(mesh(GEO.tail, look.body, { scale: [0.13 * g, 0.8, 0.13 * g] }));
 
-    this.legs = addLegs(this.root, look.body, { x: 0.17 * g, zFront: 0.4, zBack: -0.45, y: 0.8 * legs, length: 0.8 * legs, width: 0.13 * g, geometry: GEO.boxLeg });
+    this.legs = addLegs(this.root, look.legColor ?? look.body, { x: 0.17 * g, zFront: 0.4, zBack: -0.45, y: 0.8 * legs, length: 0.8 * legs, width: 0.13 * g, geometry: GEO.boxLeg });
     this.root.scale.setScalar(this.type.scale);
   }
 
@@ -466,16 +524,18 @@ export class Wolf extends Animal {
     this.phase += dt * (5 + speed * 1.4);
     this.swingLegs(this.legs, this.phase, 0.8 * Math.min(1, speed / 2));
 
-    const st = this.resisting ? 'RESIST' : this.state;
+    const st = this.stun > 0 ? 'STUN' : this.howling > 0 ? 'HOWL' : this.resisting ? 'RESIST' : this.state;
     let hop = 0;
     if (st === 'FLEE' && this.pause > 0) hop = Math.sin((this.pause / 0.14) * Math.PI) * 0.35;
     this.body.position.y = this.bodyY + Math.abs(Math.sin(this.phase)) * 0.08 * run + hop;
     this.body.rotation.y = st === 'ATTACK' ? Math.sin(time * 30) * 0.15 : 0;
-    // Snarling in place: small fast shudder.
-    this.body.rotation.z = st === 'RESIST' ? Math.sin(time * 38) * 0.05 : 0;
+    // Snarling in place: small fast shudder. Dazed: slow wobble.
+    this.body.rotation.z = st === 'RESIST' ? Math.sin(time * 38) * 0.05 : st === 'STUN' ? Math.sin(time * 10) * 0.25 : 0;
+    // Howling: sit back, nose to the sky.
+    this.body.rotation.x = damp(this.body.rotation.x, st === 'HOWL' ? -0.35 : 0, 8, dt);
 
     // Head low while stalking, up while fleeing. Tail tucked when scared.
-    const dip = { WANDER: 0.1, APPROACH: 0.3, CHASE: 0.15, ATTACK: 0.45, RESIST: 0.35, FLEE: -0.25, LEAVE: 0 }[st] ?? 0;
+    const dip = { WANDER: 0.1, APPROACH: 0.3, CHASE: 0.15, ATTACK: 0.45, RESIST: 0.35, FLEE: -0.25, LEAVE: 0, HOWL: -0.9, STUN: 0.4 }[st] ?? 0;
     this.headDip = damp(this.headDip, dip + (st === 'FLEE' ? 0 : this.prowl), 8, dt);
     this.head.rotation.x = this.headDip;
     const tail = { FLEE: 0.35, CHASE: 1.6, ATTACK: 1.7, RESIST: 1.9, APPROACH: 1.0 }[st] ?? 1.2;
@@ -601,5 +661,54 @@ export class Shepherd extends Animal {
     this.hat.position.y = 0.2 + this.hatLift;
     this.torso.scale.y = 1 + Math.sin(time * 2) * 0.012;
     this.torso.rotation.z = Math.sin(time * 0.7) * 0.03;
+  }
+}
+
+// ---------------------------------------------------------------------------
+
+// Not a sheep: wanders wherever it likes and head-butts wolves (behaviour in flock.js → updateGoat).
+export class Goat extends Animal {
+  constructor(scene) {
+    super(scene);
+    this.kind = 'goat';
+    this.wanderAngle = Math.random() * TAU;
+    this.turnTimer = 0;
+    this.cooldown = 0;
+    this.butt = 0; // head-down lunge animation
+    this.target = null;
+
+    const body = (this.body = new THREE.Group());
+    body.position.y = 0.85;
+    this.root.add(body);
+    body.add(mesh(GEO.sphere, COLORS.goat, { scale: [0.28, 0.3, 0.55], shadow: true }));
+    body.add(mesh(GEO.sphere, COLORS.goat, { position: [0, 0.05, 0.38], scale: [0.26, 0.3, 0.25] }));
+
+    const head = (this.head = new THREE.Group());
+    head.position.set(0, 0.28, 0.52);
+    body.add(head);
+    head.add(mesh(GEO.box, COLORS.goat, { position: [0, 0.05, 0.14], scale: [0.24, 0.26, 0.36], rotation: [0.3, 0, 0], shadow: true }));
+    head.add(mesh(GEO.box, COLORS.goatDark, { position: [0, -0.02, 0.33], scale: [0.14, 0.12, 0.08] }));
+    head.add(mesh(GEO.tail, COLORS.goatDark, { position: [0, -0.1, 0.22], scale: [0.05, 0.2, 0.05] })); // beard
+    for (const side of [-1, 1]) {
+      head.add(mesh(GEO.cone, COLORS.goatDark, { position: [side * 0.08, 0.3, 0.02], scale: [0.05, 0.3, 0.05], rotation: [-0.7, 0, side * 0.15] }));
+      head.add(mesh(GEO.sphere, COLORS.goat, { position: [side * 0.17, 0.1, 0.06], scale: [0.12, 0.04, 0.06], rotation: [0, 0, side * 0.3] }));
+      head.add(mesh(GEO.box, COLORS.wolfEye, { position: [side * 0.1, 0.12, 0.27], scale: [0.06, 0.04, 0.02] }));
+    }
+    body.add(mesh(GEO.cone, COLORS.goat, { position: [0, 0.22, -0.52], scale: [0.06, 0.18, 0.06], rotation: [-0.6, 0, 0] }));
+
+    this.legs = addLegs(this.root, COLORS.goatDark, { x: 0.15, zFront: 0.34, zBack: -0.34, y: 0.7, length: 0.7, width: 0.06 });
+    this.root.scale.setScalar(1.1);
+  }
+
+  animate(dt, time) {
+    const speed = this.speed;
+    const moving = Math.min(speed / 1.5, 1);
+    this.phase += dt * (6 + speed * 2.5);
+    this.swingLegs(this.legs, this.phase, 0.7 * moving);
+    this.body.position.y = 0.85 + Math.abs(Math.sin(this.phase)) * 0.1 * moving;
+    this.butt = Math.max(0, this.butt - dt * 2.5);
+    const charging = this.target ? 0.4 : 0;
+    this.head.rotation.x = damp(this.head.rotation.x, charging + Math.sin(this.butt * Math.PI) * 0.8, 10, dt);
+    this.head.rotation.y = Math.sin(time * 0.7 + this.phase * 0.1) * 0.3 * (1 - moving);
   }
 }

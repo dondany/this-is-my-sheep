@@ -44,6 +44,7 @@
       </div>
     </div>
     <div class="hud-buttons">
+      <button class="icon-btn" data-action="bestiary" aria-label="Bestiary">📖</button>
       <button id="btn-mute" class="icon-btn" data-action="mute" aria-label="Mute">🔊</button>
       <button class="icon-btn" data-action="pause" aria-label="Pause">⏸</button>
     </div>
@@ -65,6 +66,7 @@
         <li><span>🐑</span>If a wolf grabs a sheep, you have a second to save it.</li>
       </ul>
       <button class="btn" data-action="play">Play</button>
+      <button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button>
       <p id="menu-best" class="small"></p>
     </div>
   </section>
@@ -76,6 +78,7 @@
       <p id="wave-reward" class="reward">+50 wool</p>
       <p class="small">More sheep are joining the flock, and more wolves are on their way.</p>
       <button class="btn" data-action="next">Next wave</button>
+      <button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button>
     </div>
   </section>
 
@@ -83,6 +86,7 @@
     <div class="panel">
       <h2>Paused</h2>
       <button class="btn" data-action="resume">Resume</button>
+      <button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button>
       <button class="btn btn-quiet" data-action="menu">Quit to menu</button>
     </div>
   </section>
@@ -93,9 +97,31 @@
       <p id="over-waves" class="big-stat">You survived 3 waves</p>
       <p id="over-stats" class="small"></p>
       <button class="btn" data-action="retry">Try again</button>
+      <button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button>
       <button class="btn btn-quiet" data-action="menu">Menu</button>
     </div>
   </section>
+
+  <section id="screen-bestiary" class="screen hidden">
+    <div class="panel panel-wide">
+      <div class="bestiary-head">
+        <h2>Bestiary</h2>
+        <span id="bestiary-count" class="small"></span>
+      </div>
+      <div class="bestiary-body">
+        <div class="bestiary-lists">
+          <h3>The flock</h3>
+          <div id="bestiary-flock" class="bestiary-grid"></div>
+          <h3>The wolves</h3>
+          <div id="bestiary-wolves" class="bestiary-grid"></div>
+        </div>
+        <div id="bestiary-detail" class="bestiary-detail"></div>
+      </div>
+      <button class="btn btn-quiet" data-action="close-bestiary">Back</button>
+    </div>
+  </section>
+
+  <div id="toast-layer"></div>
 
   <script type="module" src="src/main.js"></script>
 </body>

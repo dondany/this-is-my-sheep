@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { isThreatening } from './wolves.js';
+import { ENTRIES, ENTRY } from './bestiary.js';
 
 const $ = (id) => document.getElementById(id);
 const tmp = new THREE.Vector3();
@@ -86,6 +87,66 @@ export class UI {
     this.show('over');
   }
 
+  // --- Bestiary ------------------------------------------------------------
+
+  openBestiary(bestiary, focusId) {
+    this.bestiary = bestiary;
+    const found = ENTRIES.filter((e) => bestiary.has(e.id)).length;
+    $('bestiary-count').textContent = `${found} / ${ENTRIES.length} discovered`;
+    for (const side of ['flock', 'wolves']) {
+      const grid = $(`bestiary-${side}`);
+      grid.replaceChildren(
+        ...ENTRIES.filter((e) => e.side === side).map((e) => {
+          const known = bestiary.has(e.id);
+          const card = document.createElement('button');
+          card.className = `beast-card${known ? '' : ' locked'}`;
+          card.dataset.id = e.id;
+          card.innerHTML = `<img alt="" src="${bestiary.portrait(e.id)}"><span>${known ? e.name : '???'}</span>`;
+          card.addEventListener('click', () => this.showBeast(e.id));
+          return card;
+        })
+      );
+    }
+    this.showBeast(focusId ?? ENTRIES.find((e) => bestiary.has(e.id))?.id ?? ENTRIES[0].id);
+    this.show('bestiary');
+  }
+
+  showBeast(id) {
+    const e = ENTRY[id];
+    const known = this.bestiary.has(id);
+    document.querySelectorAll('.beast-card').forEach((c) => c.classList.toggle('selected', c.dataset.id === id));
+    const detail = $('bestiary-detail');
+    detail.classList.toggle('locked', !known);
+    detail.innerHTML = `
+      <img alt="" src="${this.bestiary.portrait(id)}">
+      <h3></h3>
+      <p class="beast-side"></p>
+      <p class="beast-text"></p>
+      <p class="beast-tip"></p>`;
+    detail.querySelector('h3').textContent = known ? e.name : '???';
+    detail.querySelector('.beast-side').textContent = e.side === 'flock' ? 'The flock' : 'The wolves';
+    detail.querySelector('.beast-text').textContent = known ? e.text : `Not met yet. Keep playing: it turns up from wave ${e.wave}.`;
+    detail.querySelector('.beast-tip').textContent = known ? e.tip : '';
+  }
+
+  // Small card sliding in from the corner when something new is unlocked.
+  toast(bestiary, id, onClick) {
+    const e = ENTRY[id];
+    const el = document.createElement('button');
+    el.className = 'toast';
+    el.innerHTML = `<img alt="" src="${bestiary.portrait(id)}"><span><small>New in the bestiary</small><strong></strong></span>`;
+    el.querySelector('strong').textContent = e.name;
+    el.addEventListener('click', () => {
+      el.remove();
+      onClick?.(id);
+    });
+    const layer = $('toast-layer');
+    while (layer.children.length >= 3) layer.firstChild.remove();
+    layer.appendChild(el);
+    setTimeout(() => el.classList.add('out'), 4000);
+    setTimeout(() => el.remove(), 4500);
+  }
+
   setBest(best) {
     $('menu-best').textContent = best ? `Best: wave ${best}` : '';
   }
@@ -127,6 +188,7 @@ export class UI {
       el.classList.toggle('runner', wolf.kind === 'runner');
       el.classList.toggle('brute', wolf.kind === 'brute');
       el.classList.toggle('alpha', wolf.kind === 'alpha');
+      el.classList.toggle('howler', wolf.kind === 'howler');
     }
     for (let i = used; i < this.indicators.length; i++) this.indicators[i].style.display = 'none';
   }

@@ -155,6 +155,19 @@ export class Sfx {
     this.noiseBurst({ dur: 0.5, gain: 0.06, filter: 'lowpass', freq: 300 });
   }
 
+  ding() {
+    if (!this.ready || !this.throttle('ding', 200)) return;
+    this.tone({ type: 'sine', freq: 1320, dur: 0.9, gain: 0.08, attack: 0.005 });
+    this.tone({ type: 'sine', freq: 2640, dur: 0.5, gain: 0.035, attack: 0.005 });
+    this.tone({ type: 'sine', freq: 1320, dur: 0.7, gain: 0.05, attack: 0.005, at: 0.18 });
+  }
+
+  bonk() {
+    if (!this.ready) return;
+    this.tone({ type: 'triangle', freq: 220, freqEnd: 90, dur: 0.18, gain: 0.25 });
+    this.noiseBurst({ dur: 0.08, gain: 0.2, filter: 'lowpass', freq: 900 });
+  }
+
   snort() {
     if (!this.ready || !this.throttle('snort', 300)) return;
     this.noiseBurst({ dur: 0.18, gain: 0.25, filter: 'bandpass', freq: 700, q: 2 });

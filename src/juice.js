@@ -124,6 +124,70 @@ export class Juice {
     this.shake(0.08, 160);
   }
 
+  sheepWoke(sheep) {
+    this.floatText('!', { follow: sheep, offsetY: 2.2, cls: 'warn', duration: 0.9 });
+    this.particles.dust(sheep.position, 8, 1);
+    this.sfx.bleat(true);
+  }
+
+  snore(sheep) {
+    this.floatText('z', { follow: sheep, offsetY: 1.6, cls: 'zzz', duration: 1.6 });
+  }
+
+  bell(sheep) {
+    this.ring(sheep.position, { from: 1, to: 10, duration: 0.9, color: 0xe0b040, opacity: 0.5 });
+    this.sfx.ding();
+  }
+
+  bellwetherLost(position) {
+    this.floatText('The flock loses heart…', { position, offsetY: 3.5, cls: 'danger', duration: 2 });
+  }
+
+  goatButt(goat, wolf) {
+    const p = tmp.copy(wolf.position).setY(1.2);
+    this.floatText('BONK!', { position: wolf.position, offsetY: 2.4, cls: 'bonk', duration: 1 });
+    this.floatText('💫', { follow: wolf, offsetY: 2.2, duration: 1.3 });
+    this.particles.sparkle(p, 10, [0xffe08a, 0xffffff]);
+    this.particles.dust(wolf.position, 8, 1);
+    this.shake(0.05, 120);
+    this.sfx.bonk();
+  }
+
+  howlStart(wolf) {
+    this.floatText('AWOOOO…', { follow: wolf, offsetY: 3, cls: 'danger', duration: 1.4 });
+    this.sfx.howl(1.1, true);
+  }
+
+  howl(wolf) {
+    this.ring(wolf.position, { from: 2, to: 36, duration: 1.1, color: 0x9d8fc4, opacity: 0.45 });
+    this.sfx.bleat(true);
+  }
+
+  feint(wolf) {
+    this.floatText('HEH!', { follow: wolf, offsetY: 2.4, cls: 'warn', duration: 1 });
+  }
+
+  pupsSplit(wolf) {
+    this.floatText('YIP!', { follow: wolf, offsetY: 1.8, cls: 'warn', duration: 0.8 });
+  }
+
+  pupCombo(wolf, points) {
+    this.floatText(`PUP PACK! +${points}`, { position: wolf.position, offsetY: 3, cls: 'big', duration: 1.5 });
+    this.particles.sparkle(tmp.copy(wolf.position).setY(1), 12);
+  }
+
+  disguiseRevealed(wolf, mode) {
+    const p = tmp.copy(wolf.position).setY(1);
+    this.particles.puff(p, 20);
+    if (mode === 'exposed') this.floatText('EXPOSED!', { follow: wolf, offsetY: 3, cls: 'good', duration: 1.3 });
+    else if (mode === 'attack') {
+      this.floatText("IT'S A WOLF!", { follow: wolf, offsetY: 3, cls: 'danger', duration: 1.6 });
+      this.flash('rgba(201, 87, 69, 0.22)');
+      this.shake(0.06, 150);
+      this.sfx.growl();
+    }
+  }
+
   lambOrphaned(lamb) {
     this.floatText('MAMA?!', { follow: lamb, offsetY: 1.8, cls: 'danger', duration: 1.4 });
     this.sfx.bleat(true, 1.6);
