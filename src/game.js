@@ -20,6 +20,7 @@ export const STATE = {
 };
 
 const POINTS = { scare: 15, save: 25, survivor: 5, perfect: 50 };
+const ZOOM = { min: 0.7, max: 1.5 }; // multiplier on the default camera distance
 const BEST_KEY = 'this-is-my-sheep.best';
 
 function readBest() {
@@ -59,6 +60,7 @@ export class Game {
     this.cfg = null;
     this.center = new THREE.Vector3();
     this.cameraFocus = new THREE.Vector3();
+    this.zoom = 1;
 
     // Shared context handed to the flock and wolf systems.
     this.ctx = {
@@ -83,6 +85,7 @@ export class Game {
         this.juice.clickMarker(this.dog.target);
       },
       onDrag: (p) => this.dog.setTarget(p),
+      onZoom: (factor) => this.zoomBy(factor),
     });
 
     this.bindUI();
@@ -114,6 +117,8 @@ export class Game {
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') this.togglePause();
+      if (e.key === '+' || e.key === '=') this.zoomBy(1 / 1.15);
+      if (e.key === '-' || e.key === '_') this.zoomBy(1.15);
     });
     const autoPause = () => {
       if (this.state === STATE.PLAYING || this.state === STATE.INTRO) this.togglePause();
@@ -276,6 +281,10 @@ export class Game {
     if (this.sheep.length === 0 && this.state === STATE.PLAYING) this.gameOver();
   }
 
+  zoomBy(factor) {
+    this.zoom = THREE.MathUtils.clamp(this.zoom * factor, ZOOM.min, ZOOM.max);
+  }
+
   // --- Loop ----------------------------------------------------------------
 
   frame() {
@@ -385,7 +394,7 @@ export class Game {
     // Follow the flock, leaning a little toward the dog so it rarely leaves the frame.
     const focus = this.cameraFocus.copy(this.center).lerp(this.dog.position, 0.25);
     focus.z -= 1.5; // nudge the view down a little so the HUD doesn't cover the flock
-    const distance = 35 + Math.min(this.sheep.length, SHEEP.cap) * 0.12;
+    const distance = (35 + Math.min(this.sheep.length, SHEEP.cap) * 0.12) * this.zoom;
     this.world.updateCamera(focus, distance, dt, this.juice.shakeOffset);
   }
 }
