@@ -430,6 +430,17 @@ h2 {
   font-size: 28px;
 }
 
+.indicator.alpha {
+  width: 54px;
+  height: 54px;
+  border-color: #d9a441;
+  box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.4);
+}
+
+.indicator.alpha .face {
+  font-size: 28px;
+}
+
 .fear-meter {
   position: absolute;
   left: 0;
@@ -446,6 +457,11 @@ h2 {
   height: 100%;
   background: var(--accent);
   transform-origin: left;
+}
+
+.float-text.warn {
+  font-size: 34px;
+  color: #ffcf7a;
 }
 
 .float-text.love {

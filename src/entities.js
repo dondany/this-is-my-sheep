@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { COLORS, DOG, WORLD, SHEEP_TYPES, WOLF_TYPES } from './config.js';
+import { COLORS, DOG, WORLD, SHEEP_TYPES, WOLF_TYPES, BLACK, ALPHA } from './config.js';
 import { GEO, mesh } from './materials.js';
 
 const TAU = Math.PI * 2;
@@ -90,14 +90,14 @@ export class Animal {
 
 const HORN = new THREE.TorusGeometry(0.15, 0.06, 6, 14, Math.PI * 1.6);
 
-// kind: 'normal' | 'wanderer' | 'ram' | 'lamb' (see SHEEP_TYPES)
+// kind: 'normal' | 'wanderer' | 'ram' | 'lamb' | 'black' (see SHEEP_TYPES)
 export class Sheep extends Animal {
   constructor(scene, kind = 'normal') {
     super(scene);
     this.kind = kind;
     this.type = SHEEP_TYPES[kind];
-    const wool = { wanderer: COLORS.wandererWool, lamb: COLORS.lambWool }[kind] ?? COLORS.sheep;
-    const face = kind === 'ram' ? COLORS.ramFace : COLORS.sheepFace;
+    const wool = { wanderer: COLORS.wandererWool, lamb: COLORS.lambWool, black: COLORS.blackWool }[kind] ?? COLORS.sheep;
+    const face = { ram: COLORS.ramFace, black: COLORS.blackFace }[kind] ?? COLORS.sheepFace;
 
     const body = (this.body = new THREE.Group());
     body.position.y = 0.78;
@@ -140,6 +140,12 @@ export class Sheep extends Animal {
     this.parent = null; // lamb → its mother
     this.child = null; // mother → her lamb
     this.orphan = false;
+    // Stampedes (black sheep lead, others follow)
+    this.nextStampede = kind === 'black' ? BLACK.interval[0] * (0.6 + Math.random() * 0.4) : Infinity;
+    this.windup = 0;
+    this.stampede = 0;
+    this.stampedeDir = new THREE.Vector3();
+    this.leader = null;
   }
 
   // Pop in with a little bounce.
@@ -162,6 +168,8 @@ export class Sheep extends Animal {
       else if (r < 0.6) this.lookYaw = (Math.random() - 0.5) * 1.6;
       else this.lookYaw = 0;
     }
+
+    if (this.windup > 0 && this.hop === 0) this.hop = 1; // stamping before a stampede
 
     // "Flop-flop-flop" walk bounce plus hops.
     let y = 0.78 + Math.abs(Math.sin(this.phase)) * 0.08 * moving;
@@ -372,9 +380,10 @@ const WOLF_LOOKS = {
   runner: { body: COLORS.runner, light: COLORS.runnerLight, eye: COLORS.wolfEye, girth: 0.82, ears: 1.5 },
   brute: { body: COLORS.brute, light: COLORS.bruteLight, eye: COLORS.bruteEye, girth: 1.15, ears: 0.8 },
   sneaky: { body: COLORS.sneaky, light: COLORS.sneakyLight, eye: COLORS.sneakyEye, girth: 0.95, ears: 0.8, legs: 0.65 },
+  alpha: { body: COLORS.alpha, light: COLORS.alphaMane, eye: COLORS.alphaEye, girth: 1.05, ears: 1.1 },
 };
 
-// kind: 'normal' | 'runner' | 'brute' | 'sneaky' (see WOLF_TYPES)
+// kind: 'normal' | 'runner' | 'brute' | 'sneaky' | 'alpha' (see WOLF_TYPES)
 export class Wolf extends Animal {
   constructor(scene, kind = 'normal') {
     super(scene);
@@ -413,6 +422,21 @@ export class Wolf extends Animal {
           body.add(mesh(GEO.box, COLORS.bruteScar, { position: [side * 0.29, 0.05, z], scale: [0.02, 0.32, 0.05], rotation: [0.5, 0, 0] }));
         }
       }
+    }
+
+    if (kind === 'alpha') {
+      // Pale mane around the neck and shoulders.
+      body.add(mesh(GEO.box, COLORS.alphaMane, { position: [0, 0.1, 0.3], scale: [0.7, 0.6, 0.34], rotation: [0.25, 0, 0], shadow: true }));
+      body.add(mesh(GEO.box, COLORS.alphaMane, { position: [0, -0.12, 0.55], scale: [0.5, 0.36, 0.3], rotation: [-0.3, Math.PI / 4, 0] }));
+      // Faint ring on the ground: scare the alpha and every wolf inside it runs too.
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.97, 1, 64).rotateX(-Math.PI / 2),
+        new THREE.MeshBasicMaterial({ color: COLORS.danger, transparent: true, opacity: 0.22, depthWrite: false })
+      );
+      ring.position.y = 0.04;
+      ring.scale.setScalar(ALPHA.panicRadius / this.type.scale);
+      ring.renderOrder = 1;
+      this.root.add(ring);
     }
 
     const head = (this.head = new THREE.Group());

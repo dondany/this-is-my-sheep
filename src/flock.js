@@ -1,4 +1,4 @@
-import { SHEEP, WORLD, RAM_CALM, LAMB } from './config.js';
+import { SHEEP, WORLD, RAM_CALM, LAMB, BLACK } from './config.js';
 import { angleTo } from './entities.js';
 
 const NEIGH2 = SHEEP.neighbourRadius ** 2;
@@ -19,6 +19,61 @@ function findMother(sheep, lamb) {
   return best;
 }
 
+// --- Black sheep stampedes -------------------------------------------------
+
+function startStampede(s, sheep, ctx) {
+  const ax = s.position.x - ctx.center.x;
+  const az = s.position.z - ctx.center.z;
+  // Charge outward from the flock, give or take.
+  const a = (Math.hypot(ax, az) > 0.5 ? Math.atan2(ax, az) : Math.random() * Math.PI * 2) + (Math.random() - 0.5);
+  s.stampedeDir.set(Math.sin(a), 0, Math.cos(a));
+  s.stampede = BLACK.duration;
+  const recruits = sheep
+    .filter((o) => o !== s && !o.grabbedBy && !o.leader && o.kind !== 'ram' && o.position.distanceTo(s.position) < BLACK.recruitRadius)
+    .sort((a, b) => a.position.distanceTo(s.position) - b.position.distanceTo(s.position))
+    .slice(0, BLACK.followers);
+  for (const o of recruits) {
+    o.leader = s;
+    o.fear = Math.max(o.fear, 0.6);
+  }
+  ctx.onStampede?.(s);
+}
+
+function endStampede(s, sheep, ctx, headedOff) {
+  s.stampede = 0;
+  s.windup = 0;
+  s.nextStampede = between(BLACK.interval);
+  for (const o of sheep) if (o.leader === s) o.leader = null;
+  if (headedOff) ctx.onStampedeStopped?.(s);
+}
+
+function updateStampedes(sheep, ctx, dt) {
+  for (const s of sheep) {
+    if (s.leader && (!s.leader.alive || s.leader.stampede <= 0)) s.leader = null;
+    if (s.kind !== 'black') continue;
+    const active = s.stampede > 0 || s.windup > 0;
+    if (s.grabbedBy || !ctx.stampedes) {
+      if (active) endStampede(s, sheep, ctx, false);
+      continue;
+    }
+    const dd = s.position.distanceTo(ctx.dog.position);
+    if (s.stampede > 0) {
+      s.stampede -= dt;
+      if (dd < BLACK.cutOffRadius) endStampede(s, sheep, ctx, true);
+      else if (s.stampede <= 0 || Math.hypot(s.position.x, s.position.z) > WORLD.playRadius - 2) endStampede(s, sheep, ctx, false);
+    } else if (s.windup > 0) {
+      s.windup -= dt;
+      if (s.windup <= 0) startStampede(s, sheep, ctx);
+    } else {
+      s.nextStampede -= dt;
+      if (s.nextStampede <= 0) {
+        s.windup = BLACK.windup;
+        ctx.onStampedeWarning?.(s);
+      }
+    }
+  }
+}
+
 export function flockCenter(sheep, out) {
   out.set(0, 0, 0);
   if (!sheep.length) return out;
@@ -28,13 +83,14 @@ export function flockCenter(sheep, out) {
 
 // Each sheep sums a few simple steering urges into a desired velocity and eases toward it:
 // wander + follow mother (lambs) + separation + alignment + cohesion + boundary + ram pull
-// + fear of dog + fear of wolves.
+// + fear of dog + fear of wolves. A stampede overrides all of that.
 // How strong each urge is depends on the sheep's type (SHEEP_TYPES in config.js).
 export function updateFlock(sheep, ctx, dt) {
   const { dog, wolves, shepherd, center } = ctx;
   const n = sheep.length;
   const baseRadius = SHEEP.flockRadius + Math.sqrt(n) * SHEEP.flockRadiusPerSqrt;
   const home = shepherd.position;
+  updateStampedes(sheep, ctx, dt);
 
   for (let i = 0; i < n; i++) {
     const s = sheep[i];
@@ -208,12 +264,30 @@ export function updateFlock(sheep, ctx, dt) {
       dz -= (pz / r) * k;
     }
 
+    // Stampede: the black sheep charges in a straight line; its followers run after it.
+    let stampeding = true;
+    if (s.stampede > 0) {
+      dx = s.stampedeDir.x * BLACK.speed;
+      dz = s.stampedeDir.z * BLACK.speed;
+    } else if (s.windup > 0) {
+      dx = dz = 0; // stamping on the spot
+    } else if (s.leader) {
+      const l = s.leader;
+      const lx = l.position.x - px;
+      const lz = l.position.z - pz;
+      const ld = Math.hypot(lx, lz) || 1e-3;
+      const pull = Math.min(ld, 4) * 1.2;
+      dx = dx * 0.3 + l.stampedeDir.x * BLACK.speed * 0.9 + (lx / ld) * pull;
+      dz = dz * 0.3 + l.stampedeDir.z * BLACK.speed * 0.9 + (lz / ld) * pull;
+      fear = Math.max(fear, 0.6);
+    } else stampeding = false;
+
     const wasCalm = s.fear < 0.5;
     s.fear = Math.min(1, Math.max(fear, s.fear - dt * SHEEP.calmRate));
     if (wasCalm && s.fear >= 0.5) ctx.onSheepPanic?.(s);
 
     const calmMax = walkSpeed * 1.6;
-    const maxSpeed = calmMax + Math.max(0, t.panicSpeed - calmMax) * s.fear;
+    const maxSpeed = stampeding ? BLACK.speed * 1.2 : calmMax + Math.max(0, t.panicSpeed - calmMax) * s.fear;
     const dl = Math.hypot(dx, dz);
     if (dl > maxSpeed) {
       dx *= maxSpeed / dl;

@@ -97,6 +97,33 @@ export class Juice {
     this.sfx.bleat(true, sheep.kind === 'lamb' ? 1.5 : 1);
   }
 
+  stampedeWarning(sheep) {
+    this.floatText('!', { follow: sheep, offsetY: 2.4, cls: 'warn', duration: 1.2 });
+    this.particles.dust(sheep.position, 5, 0.7);
+    this.sfx.snort();
+  }
+
+  stampede(sheep) {
+    this.particles.dust(sheep.position, 10, 1.2);
+    this.shake(0.03, 120);
+    this.sfx.bleat(true, 0.8);
+  }
+
+  stampedeStopped(sheep, points) {
+    this.floatText(`HEADED OFF! +${points}`, { position: sheep.position, offsetY: 2.2, cls: 'good', duration: 1.3 });
+    this.particles.sparkle(tmp.copy(sheep.position).setY(1), 8);
+  }
+
+  alphaCall(wolf) {
+    this.floatText('AWOOO!', { follow: wolf, offsetY: 3.2, cls: 'danger', duration: 1.4 });
+    this.sfx.howl(0.85, true);
+  }
+
+  packScattered(wolf, count) {
+    this.floatText(`PACK SCATTERED! ×${count + 1}`, { position: wolf.position, offsetY: 3.6, cls: 'big', duration: 1.6 });
+    this.shake(0.08, 160);
+  }
+
   lambOrphaned(lamb) {
     this.floatText('MAMA?!', { follow: lamb, offsetY: 1.8, cls: 'danger', duration: 1.4 });
     this.sfx.bleat(true, 1.6);

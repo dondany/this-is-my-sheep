@@ -1784,6 +1784,20 @@ behaviour hooks. The goal is to change *decisions*, not just numbers.
 -   Decision: protect lamb pairs, and choose between chasing a lost lamb
     and guarding the edge.
 
+## Black Sheep (wave 8+, one per flock)
+
+-   A regular sheep most of the time, but every 12-18 s it winds up for
+    1.2 s (stamping, snorting, "!") and then stampedes: it charges in a
+    straight line away from the flock at 4.5 u/s.
+-   Up to 3 sheep within 6 units (never the ram) join in and run after
+    it.
+-   The dog getting within 3.5 units of the black sheep heads it off
+    (+10 wool); otherwise the stampede lasts 6 s or until it reaches the
+    edge of the meadow, leaving a little group out in the open.
+-   Look: dark charcoal fleece, black face; hops while winding up.
+-   Decision: herding right now versus guarding the edge. Standing in
+    its path during the wind-up stops it before it starts.
+
 ## Old Ram (wave 5+, one per flock)
 
 -   Slow, mostly ignores the dog, barely panics at wolves (30%).
@@ -1814,6 +1828,21 @@ behaviour hooks. The goal is to change *decisions*, not just numbers.
 -   Decision: scan the edges instead of only reacting to arrows; the
     dog's position creates a blind spot.
 
+## Alpha wolf (wave 9+, one per wave)
+
+-   While an alpha is on the field, every other wolf stalks for half as
+    long.
+-   When the alpha moves in, it howls ("AWOOO!") and every prowling wolf
+    attacks at the same time.
+-   Scaring the alpha also scares every wolf within 10 units of it (a
+    faint red ring on the ground shows the range): "PACK SCATTERED!".
+    Wolves caught that way flee even if they are brutes, and any sheep
+    they were holding is saved.
+-   Look: bigger grey wolf with a pale mane, gold eyes, gold off-screen
+    indicator. Worth 50 wool.
+-   Decision: a priority target; catching it at the right moment breaks
+    a whole coordinated attack.
+
 ## Brute wolf (wave 6+)
 
 -   0.7× speed, but a single bark isn't enough: a fear meter fills while
@@ -1832,12 +1861,14 @@ wave 3-5   + 1 runner
 wave 6     + 1 runner, 1 brute
 wave 7-8   + 1 sneaky
 wave 8+    runners = min(5, (wave-2)/2), brutes = min(3, (wave-4)/2)
-wave 9+    sneaky  = min(3, (wave-5)/2)
+wave 9+    sneaky  = min(3, (wave-5)/2), + 1 alpha
 ```
 
 Herding: a sheep within the dog's fear radius also turns its wander
 direction away from the dog, so a dog placed behind a stray walks it home.
 
 The first wolf of each wave is always a normal one, so special wolves
-arrive mid-wave. The wave banner introduces each new type the first
+arrive mid-wave. New types are introduced one per wave: wanderer (2),
+runner (3), lamb (4), ram (5), brute (6), sneaky (7), black sheep (8),
+alpha (9). The wave banner introduces each new type the first
 time it appears.

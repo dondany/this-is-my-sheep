@@ -155,6 +155,12 @@ export class Sfx {
     this.noiseBurst({ dur: 0.5, gain: 0.06, filter: 'lowpass', freq: 300 });
   }
 
+  snort() {
+    if (!this.ready || !this.throttle('snort', 300)) return;
+    this.noiseBurst({ dur: 0.18, gain: 0.25, filter: 'bandpass', freq: 700, q: 2 });
+    this.noiseBurst({ dur: 0.14, gain: 0.2, filter: 'bandpass', freq: 600, q: 2, at: 0.25 });
+  }
+
   yelp() {
     if (!this.ready || !this.throttle('yelp', 150)) return;
     this.tone({ type: 'triangle', freq: 700, freqEnd: 1500, dur: 0.09, gain: 0.15 });
@@ -162,8 +168,8 @@ export class Sfx {
   }
 
   // pitch < 1 for bigger wolves, > 1 for smaller ones.
-  howl(pitch = 1) {
-    if (!this.ready || !this.throttle(`howl${pitch}`, 5000)) return;
+  howl(pitch = 1, force = false) {
+    if (!this.ready || (!this.throttle(`howl${pitch}`, 5000) && !force)) return;
     const gain = pitch < 1 ? 0.1 : 0.07;
     this.tone({ type: 'sine', freq: 330 * pitch, freqEnd: 560 * pitch, dur: 0.55, gain, attack: 0.2, vibrato: { rate: 5, depth: 8 } });
     this.tone({ type: 'sine', freq: 560 * pitch, freqEnd: 400 * pitch, dur: 1.4, gain, attack: 0.05, at: 0.5, vibrato: { rate: 5, depth: 10 } });

@@ -12,6 +12,8 @@ export const COLORS = {
   ramFace: 0x3b3029,
   horn: 0xd9c7a0,
   lambWool: 0xfffcf4,
+  blackWool: 0x3d3836,
+  blackFace: 0x1c1a19,
   eye: 0xfffaf0,
 
   dog: 0x222222,
@@ -30,6 +32,9 @@ export const COLORS = {
   sneaky: 0x3e4441,
   sneakyLight: 0x5d635f,
   sneakyEye: 0xc9b25a,
+  alpha: 0x55524d,
+  alphaMane: 0xd8d2c6,
+  alphaEye: 0xffd35c,
 
   wood: 0xa96f45,
   brown: 0x76513a,
@@ -140,6 +145,26 @@ export const SHEEP_TYPES = {
     lure: 0,
     wool: 1,
   },
+  // Starts stampedes (see BLACK); otherwise a regular sheep.
+  black: {
+    scale: 1.1,
+    walkSpeed: 1.3,
+    walkTime: [1, 3.5],
+    grazeTime: [2, 6],
+    fidget: 1.5,
+    cohesion: 0.3,
+    boundary: 0.8,
+    radiusScale: 1,
+    dogFearRadius: 4,
+    dogFear: 3.5,
+    panic: 1,
+    panicSpeed: 5.5,
+    grabTime: 1,
+    attractRadius: 0,
+    attract: 0,
+    lure: 0,
+    wool: 1,
+  },
   // Follows its mother everywhere. Wolves love lambs; they're worth double at the end of a wave.
   // If the mother is taken, it bolts off alone until the dog brings it back to the flock.
   lamb: {
@@ -161,6 +186,18 @@ export const SHEEP_TYPES = {
     lure: 4,
     wool: 2,
   },
+};
+
+// The troublemaker: every so often it charges off in a straight line and drags a few sheep with it.
+export const BLACK = {
+  interval: [12, 18], // seconds between stampedes
+  windup: 1.2, // stamping and snorting before it goes: time to get in the way
+  duration: 6, // max length of a stampede
+  speed: 4.5,
+  followers: 3,
+  recruitRadius: 6,
+  cutOffRadius: 3.5, // the dog this close to the black sheep ends the stampede
+  points: 10,
 };
 
 export const LAMB = {
@@ -244,6 +281,27 @@ export const WOLF_TYPES = {
     flank: true,
     points: 25,
   },
+  // Leads the pack: shorter stalking for everyone, attacks together on its howl.
+  // Scare it and the wolves around it run too (see ALPHA).
+  alpha: {
+    scale: 1.4,
+    speed: 1.05,
+    stalk: 1.2,
+    threatScale: 1,
+    fleeTime: 1.3,
+    courage: 0,
+    grabTime: 1,
+    stragglerBias: 1,
+    skittish: false,
+    shove: false,
+    leader: true,
+    points: 50,
+  },
+};
+
+export const ALPHA = {
+  stalk: 0.5, // other wolves' stalking time while an alpha is on the field
+  panicRadius: 10, // scaring the alpha also scares every wolf this close to it
 };
 
 export const SNEAKY = {
@@ -260,12 +318,15 @@ function shuffle(list) {
   return list;
 }
 
-// Which wolves make up a wave's pack: runners from wave 3, brutes from wave 6, sneaky from 7, mixed packs from 8.
+// Which wolves make up a wave's pack: runners from wave 3, brutes from wave 6, sneaky from 7,
+// mixed packs from 8, one alpha per wave from 9.
 export function wolfPack(wave, count) {
   const runners = wave < 3 ? 0 : wave < 8 ? 1 : Math.min(5, Math.floor((wave - 2) / 2));
   const brutes = wave < 6 ? 0 : wave < 8 ? 1 : Math.min(3, Math.floor((wave - 4) / 2));
   const sneaky = wave < 7 ? 0 : wave < 9 ? 1 : Math.min(3, Math.floor((wave - 5) / 2));
+  const alphas = wave < 9 ? 0 : 1;
   const pack = [];
+  for (let i = 0; i < alphas && pack.length < count; i++) pack.push('alpha');
   for (let i = 0; i < runners && pack.length < count; i++) pack.push('runner');
   for (let i = 0; i < brutes && pack.length < count; i++) pack.push('brute');
   for (let i = 0; i < sneaky && pack.length < count; i++) pack.push('sneaky');
@@ -286,6 +347,7 @@ export function waveConfig(wave) {
     wanderers: wave >= 2 ? 1 : 0, // of the new sheep
     ram: wave >= 5, // an Old Ram joins if the flock doesn't have one
     lambs: wave < 4 ? 0 : wave < 8 ? 1 : 2, // of the new sheep; each is paired with a mother
+    black: wave >= 8, // a Black Sheep joins if the flock doesn't have one
     wolves: Math.min(1 + wave, 15),
     duration: Math.min(40 + wave * 5, 90),
     spawnInterval: Math.max(2, 9 - wave * 0.6),

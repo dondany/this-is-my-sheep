@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SHEEP, WORLD, waveConfig } from './config.js';
+import { SHEEP, WORLD, BLACK, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Shepherd, angleTo } from './entities.js';
 import { updateFlock, flockCenter } from './flock.js';
@@ -29,6 +29,8 @@ const INTRODUCTIONS = {
   runner: 'Runners are fast. Watch the edges of the flock!',
   lamb: 'A lamb! It follows its mother. Wolves love lambs, but they pay double',
   sneaky: 'A Sneaky Wolf has no arrow. It circles round behind the dog!',
+  black: 'A Black Sheep joined. It starts stampedes: head it off with the dog!',
+  alpha: 'The Alpha leads the pack. Scare it and the wolves near it run too!',
   ram: 'The Old Ram joined. The flock gathers round him',
   brute: 'A Brute is coming. Stay close to scare it off!',
 };
@@ -86,6 +88,14 @@ export class Game {
       onWolfResist: (w) => this.juice.wolfResist(w),
       onLambOrphaned: (s) => this.juice.lambOrphaned(s),
       onLambReunited: (s) => this.juice.lambReunited(s),
+      onStampedeWarning: (s) => this.juice.stampedeWarning(s),
+      onStampede: (s) => this.juice.stampede(s),
+      onStampedeStopped: (s) => {
+        this.addWool(BLACK.points);
+        this.juice.stampedeStopped(s, BLACK.points);
+      },
+      onAlphaCall: (w) => this.juice.alphaCall(w),
+      onPackScattered: (w, count) => this.juice.packScattered(w, count),
       onWolfCharge: (w) => this.onWolfCharge(w),
       onWolfScared: (w, threatening) => this.onWolfScared(w, threatening),
       onSheepGrabbed: (s, w) => this.juice.sheepGrabbed(s),
@@ -103,7 +113,7 @@ export class Game {
     });
 
     this.bindUI();
-    this.spawnSheep(['ram', 'wanderer', 'wanderer', 'lamb', ...Array(9).fill('normal')], false);
+    this.spawnSheep(['ram', 'black', 'wanderer', 'wanderer', 'lamb', ...Array(8).fill('normal')], false);
     this.ui.setBest(this.best);
     this.ui.setMuted(this.sfx.muted);
     this.ui.show('menu');
@@ -145,6 +155,7 @@ export class Game {
     this.state = state;
     this.input.enabled = state === STATE.INTRO || state === STATE.PLAYING || state === STATE.WAVE_COMPLETE;
     this.ctx.huntingAllowed = state === STATE.PLAYING;
+    this.ctx.stampedes = state === STATE.PLAYING;
   }
 
   // --- Flow ----------------------------------------------------------------
@@ -174,6 +185,7 @@ export class Game {
     const kinds = Array(add).fill('normal');
     let k = 0;
     if (this.cfg.ram && !this.sheep.some((s) => s.kind === 'ram') && k < add) kinds[k++] = 'ram';
+    if (this.cfg.black && !this.sheep.some((s) => s.kind === 'black') && k < add) kinds[k++] = 'black';
     for (let i = 0; i < this.cfg.wanderers && k < add; i++) kinds[k++] = 'wanderer';
     for (let i = 0; i < this.cfg.lambs && k < add; i++) kinds[k++] = 'lamb';
     this.spawnSheep(kinds, this.wave > 1);
@@ -183,7 +195,7 @@ export class Game {
     this.nextWolfAt = 2;
     this.introTimer = 2.2;
     this.ui.show(null);
-    const newcomer = ['brute', 'sneaky', 'ram', 'lamb', 'runner', 'wanderer'].find((kind) => !this.seen.has(kind) && (kinds.includes(kind) || this.cfg.pack.includes(kind)));
+    const newcomer = ['alpha', 'black', 'brute', 'sneaky', 'ram', 'lamb', 'runner', 'wanderer'].find((kind) => !this.seen.has(kind) && (kinds.includes(kind) || this.cfg.pack.includes(kind)));
     for (const kind of [...kinds, ...this.cfg.pack]) this.seen.add(kind);
     const sub = newcomer ? INTRODUCTIONS[newcomer] : this.wave === 1 ? 'Click the meadow to move your dog' : `${this.cfg.wolves} wolves are coming`;
     this.ui.banner(`Wave ${this.wave}`, sub);
@@ -283,9 +295,9 @@ export class Game {
         ? Math.atan2(this.center.z - this.dog.position.z, this.center.x - this.dog.position.x)
         : this.wolvesSpawned * 2.4 + Math.random() * 1.2;
     const w = new Wolf(this.world.scene, kind).setPosition(Math.cos(base) * WORLD.spawnRadius, 0, Math.sin(base) * WORLD.spawnRadius);
-    toWander(w, this.ctx);
     this.wolves.push(w);
-    if (kind !== 'sneaky') this.sfx.howl({ brute: 0.7, runner: 1.25 }[kind] ?? 1);
+    toWander(w, this.ctx);
+    if (kind !== 'sneaky') this.sfx.howl({ brute: 0.7, runner: 1.25, alpha: 0.85 }[kind] ?? 1);
   }
 
   // --- Events --------------------------------------------------------------

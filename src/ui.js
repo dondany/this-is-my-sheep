@@ -126,6 +126,7 @@ export class UI {
       el.classList.toggle('danger', isThreatening(wolf));
       el.classList.toggle('runner', wolf.kind === 'runner');
       el.classList.toggle('brute', wolf.kind === 'brute');
+      el.classList.toggle('alpha', wolf.kind === 'alpha');
     }
     for (let i = used; i < this.indicators.length; i++) this.indicators[i].style.display = 'none';
   }

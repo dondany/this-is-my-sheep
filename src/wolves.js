@@ -1,4 +1,4 @@
-import { WOLF, WORLD, SNEAKY } from './config.js';
+import { WOLF, WORLD, SNEAKY, ALPHA } from './config.js';
 import { angleTo } from './entities.js';
 
 // Wolf states:
@@ -16,6 +16,8 @@ import { angleTo } from './entities.js';
 //           It also shoves sheep out of its way.
 //   sneaky  has no off-screen indicator until it's near the flock, and circles the edge until it's
 //           on the far side of the flock from the dog before moving in.
+//   alpha   while it's around, the others stalk for less time; when it attacks, every prowling
+//           wolf attacks with it. Scaring it scares all wolves within ALPHA.panicRadius too.
 
 const THREATENING = new Set(['APPROACH', 'CHASE', 'ATTACK']);
 
@@ -25,7 +27,9 @@ export function toWander(w, ctx) {
   w.target = null;
   w.orbitDir = Math.random() < 0.5 ? -1 : 1;
   const stalk = cfg ? cfg.stalkMin + Math.random() * (cfg.stalkMax - cfg.stalkMin) : 4;
-  w.stateTimer = stalk * w.type.stalk;
+  const alphaAround = ctx.wolves.some((o) => o.type.leader && o.state !== 'LEAVE');
+  const led = alphaAround && !w.type.leader ? ALPHA.stalk : 1;
+  w.stateTimer = stalk * w.type.stalk * led;
 }
 
 export function isThreatening(w) {
@@ -76,6 +80,20 @@ function scare(w, ctx, ddx, ddz, dd) {
   w.stateTimer = ctx.dog.stats.fleeTime * w.type.fleeTime;
   aimAway(w, ddx, ddz, dd);
   ctx.onWolfScared(w, threatening);
+
+  // The pack follows its leader's lead.
+  if (w.type.leader) {
+    let scattered = 0;
+    for (const o of ctx.wolves) {
+      if (o === w || o.state === 'FLEE' || o.state === 'LEAVE') continue;
+      if (o.position.distanceTo(w.position) > ALPHA.panicRadius) continue;
+      const ox = o.position.x - ctx.dog.position.x;
+      const oz = o.position.z - ctx.dog.position.z;
+      scare(o, ctx, ox, oz, Math.hypot(ox, oz) || 1e-3);
+      scattered++;
+    }
+    if (scattered) ctx.onPackScattered?.(w, scattered);
+  }
 }
 
 // A skittish wolf abandoning its chase: no freeze, no reward, just a quick retreat.
@@ -151,6 +169,11 @@ export function updateWolves(wolves, ctx, dt) {
         if (w.stateTimer <= 0 && inPosition && ctx.huntingAllowed && ctx.sheep.length) {
           w.state = 'APPROACH';
           w.retarget = 0;
+          if (T.leader) {
+            // The alpha's howl sends every prowling wolf in at once.
+            for (const o of wolves) if (o !== w && o.state === 'WANDER') o.stateTimer = Math.min(o.stateTimer, Math.random() * 0.8);
+            ctx.onAlphaCall?.(w);
+          }
         }
         break;
       }
