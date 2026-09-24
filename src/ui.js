@@ -96,7 +96,7 @@ export class UI {
     const h = window.innerHeight;
     let used = 0;
     for (const wolf of wolves) {
-      if (wolf.state === 'LEAVE' || wolf.gone) continue;
+      if (wolf.state === 'LEAVE' || wolf.gone || !wolf.revealed) continue;
       tmp.copy(wolf.position).setY(1).project(camera);
       let { x, y } = tmp;
       if (tmp.z > 1) {

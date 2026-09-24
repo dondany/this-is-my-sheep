@@ -131,9 +131,10 @@ export class Sfx {
     if (Math.random() < 0.5) woof(0.17);
   }
 
-  bleat(panic = false) {
+  // pitch > 1 for lambs.
+  bleat(panic = false, pitch = 1) {
     if (!this.ready || !this.throttle('bleat', panic ? 180 : 400)) return;
-    const f = (panic ? 560 : 430) * (0.85 + Math.random() * 0.3);
+    const f = (panic ? 560 : 430) * pitch * (0.85 + Math.random() * 0.3);
     this.tone({
       type: 'sawtooth',
       freq: f,

@@ -448,6 +448,11 @@ h2 {
   transform-origin: left;
 }
 
+.float-text.love {
+  font-size: 30px;
+  color: #f4a7bb;
+}
+
 .float-text.stray {
   font-size: 30px;
   color: #fff3b0;

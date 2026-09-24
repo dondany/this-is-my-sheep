@@ -27,6 +27,8 @@ const BEST_KEY = 'this-is-my-sheep.best';
 const INTRODUCTIONS = {
   wanderer: 'A Wanderer joined: it strays, but the dog herds it back easily',
   runner: 'Runners are fast. Watch the edges of the flock!',
+  lamb: 'A lamb! It follows its mother. Wolves love lambs, but they pay double',
+  sneaky: 'A Sneaky Wolf has no arrow. It circles round behind the dog!',
   ram: 'The Old Ram joined. The flock gathers round him',
   brute: 'A Brute is coming. Stay close to scare it off!',
 };
@@ -82,6 +84,8 @@ export class Game {
       onSheepPanic: (s) => this.juice.sheepPanic(s),
       onSheepStray: (s) => this.juice.sheepStray(s),
       onWolfResist: (w) => this.juice.wolfResist(w),
+      onLambOrphaned: (s) => this.juice.lambOrphaned(s),
+      onLambReunited: (s) => this.juice.lambReunited(s),
       onWolfCharge: (w) => this.onWolfCharge(w),
       onWolfScared: (w, threatening) => this.onWolfScared(w, threatening),
       onSheepGrabbed: (s, w) => this.juice.sheepGrabbed(s),
@@ -99,7 +103,7 @@ export class Game {
     });
 
     this.bindUI();
-    this.spawnSheep(['ram', 'wanderer', 'wanderer', ...Array(9).fill('normal')], false);
+    this.spawnSheep(['ram', 'wanderer', 'wanderer', 'lamb', ...Array(9).fill('normal')], false);
     this.ui.setBest(this.best);
     this.ui.setMuted(this.sfx.muted);
     this.ui.show('menu');
@@ -171,6 +175,7 @@ export class Game {
     let k = 0;
     if (this.cfg.ram && !this.sheep.some((s) => s.kind === 'ram') && k < add) kinds[k++] = 'ram';
     for (let i = 0; i < this.cfg.wanderers && k < add; i++) kinds[k++] = 'wanderer';
+    for (let i = 0; i < this.cfg.lambs && k < add; i++) kinds[k++] = 'lamb';
     this.spawnSheep(kinds, this.wave > 1);
     this.waveStartSheep = this.sheep.length;
     this.waveTime = 0;
@@ -178,7 +183,7 @@ export class Game {
     this.nextWolfAt = 2;
     this.introTimer = 2.2;
     this.ui.show(null);
-    const newcomer = ['brute', 'ram', 'runner', 'wanderer'].find((kind) => !this.seen.has(kind) && (kinds.includes(kind) || this.cfg.pack.includes(kind)));
+    const newcomer = ['brute', 'sneaky', 'ram', 'lamb', 'runner', 'wanderer'].find((kind) => !this.seen.has(kind) && (kinds.includes(kind) || this.cfg.pack.includes(kind)));
     for (const kind of [...kinds, ...this.cfg.pack]) this.seen.add(kind);
     const sub = newcomer ? INTRODUCTIONS[newcomer] : this.wave === 1 ? 'Click the meadow to move your dog' : `${this.cfg.wolves} wolves are coming`;
     this.ui.banner(`Wave ${this.wave}`, sub);
@@ -194,7 +199,8 @@ export class Game {
     }
     const survived = this.sheep.length;
     const perfect = survived === this.waveStartSheep;
-    const reward = survived * POINTS.survivor + (perfect ? POINTS.perfect : 0);
+    const survivorWool = this.sheep.reduce((sum, s) => sum + s.type.wool, 0) * POINTS.survivor;
+    const reward = survivorWool + (perfect ? POINTS.perfect : 0);
     this.wool += reward;
     this.juice.waveComplete(this.center);
     this.shepherd.play('clap', 2);
@@ -243,10 +249,22 @@ export class Game {
   // --- Spawning ------------------------------------------------------------
 
   spawnSheep(kinds, announce) {
-    for (const kind of kinds) {
+    // Adults first, so every lamb can be paired with a mother.
+    const ordered = [...kinds.filter((k) => k !== 'lamb'), ...kinds.filter((k) => k === 'lamb')];
+    for (let kind of ordered) {
+      let mother = null;
+      if (kind === 'lamb') {
+        mother = this.sheep.find((o) => o.kind === 'normal' && !o.child && !o.grabbedBy);
+        if (!mother) kind = 'normal';
+      }
       const a = Math.random() * Math.PI * 2;
       const r = 2.5 + Math.random() * (2 + Math.sqrt(this.sheep.length + kinds.length));
       const s = new Sheep(this.world.scene, kind).setPosition(Math.cos(a) * r, 0, Math.sin(a) * r);
+      if (mother) {
+        s.position.copy(mother.position).add(tmp.set(Math.random() - 0.5, 0, Math.random() - 0.5));
+        s.parent = mother;
+        mother.child = s;
+      }
       s.heading = Math.random() * Math.PI * 2;
       s.root.rotation.y = s.heading;
       if (announce) {
@@ -259,11 +277,15 @@ export class Game {
 
   spawnWolf(kind) {
     // Spread arrivals around the meadow rather than bunching on one side.
-    const base = this.wolvesSpawned * 2.4 + Math.random() * 1.2;
+    // Sneaky wolves slip in on the far side of the flock from the dog.
+    const base =
+      kind === 'sneaky'
+        ? Math.atan2(this.center.z - this.dog.position.z, this.center.x - this.dog.position.x)
+        : this.wolvesSpawned * 2.4 + Math.random() * 1.2;
     const w = new Wolf(this.world.scene, kind).setPosition(Math.cos(base) * WORLD.spawnRadius, 0, Math.sin(base) * WORLD.spawnRadius);
     toWander(w, this.ctx);
     this.wolves.push(w);
-    this.sfx.howl({ brute: 0.7, runner: 1.25 }[kind] ?? 1);
+    if (kind !== 'sneaky') this.sfx.howl({ brute: 0.7, runner: 1.25 }[kind] ?? 1);
   }
 
   // --- Events --------------------------------------------------------------
@@ -292,6 +314,7 @@ export class Game {
   }
 
   onSheepLost(sheep) {
+    if (sheep.parent) sheep.parent.child = null;
     const i = this.sheep.indexOf(sheep);
     if (i >= 0) this.sheep.splice(i, 1);
     sheep.destroy();

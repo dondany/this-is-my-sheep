@@ -1,9 +1,23 @@
-import { SHEEP, WORLD, RAM_CALM } from './config.js';
+import { SHEEP, WORLD, RAM_CALM, LAMB } from './config.js';
 import { angleTo } from './entities.js';
 
 const NEIGH2 = SHEEP.neighbourRadius ** 2;
 
 const between = ([min, max]) => min + Math.random() * (max - min);
+
+function findMother(sheep, lamb) {
+  let best = null;
+  let bestD = Infinity;
+  for (const o of sheep) {
+    if (o.kind !== 'normal' || o.child || o.grabbedBy) continue;
+    const d = o.position.distanceTo(lamb.position);
+    if (d < bestD) {
+      bestD = d;
+      best = o;
+    }
+  }
+  return best;
+}
 
 export function flockCenter(sheep, out) {
   out.set(0, 0, 0);
@@ -13,7 +27,8 @@ export function flockCenter(sheep, out) {
 }
 
 // Each sheep sums a few simple steering urges into a desired velocity and eases toward it:
-// wander + separation + alignment + cohesion + boundary + ram pull + fear of dog + fear of wolves.
+// wander + follow mother (lambs) + separation + alignment + cohesion + boundary + ram pull
+// + fear of dog + fear of wolves.
 // How strong each urge is depends on the sheep's type (SHEEP_TYPES in config.js).
 export function updateFlock(sheep, ctx, dt) {
   const { dog, wolves, shepherd, center } = ctx;
@@ -34,6 +49,32 @@ export function updateFlock(sheep, ctx, dt) {
     let dx = 0;
     let dz = 0;
 
+    // Lambs: lose the mother → bolt off alone; brought back to the flock → adopt a new one.
+    if (s.kind === 'lamb') {
+      if (s.parent && !s.parent.alive) {
+        s.parent = null;
+        s.orphan = true;
+        s.orphanOut = false; // it has to actually run off before it can be brought back
+        s.fear = 1;
+        s.wanderAngle = Math.atan2(px - center.x, pz - center.z); // away from the flock
+        ctx.onLambOrphaned?.(s);
+      } else if (s.orphan) {
+        const hd = Math.hypot(home.x - px, home.z - pz);
+        if (hd > baseRadius * 1.3) s.orphanOut = true;
+      }
+      if (s.orphan && s.orphanOut && Math.hypot(home.x - px, home.z - pz) < baseRadius) {
+        s.orphan = false;
+        s.parent = findMother(sheep, s);
+        if (s.parent) s.parent.child = s;
+        ctx.onLambReunited?.(s);
+      }
+    }
+    if (s.orphan) {
+      s.mode = 'walk';
+      s.modeTimer = 1;
+    }
+    const walkSpeed = s.orphan ? LAMB.orphanSpeed : t.walkSpeed;
+
     // Graze for a while, then take a stroll.
     s.modeTimer -= dt;
     if (s.modeTimer <= 0) {
@@ -48,8 +89,18 @@ export function updateFlock(sheep, ctx, dt) {
     }
     s.wanderAngle += (Math.random() - 0.5) * 3 * dt;
     if (s.mode === 'walk') {
-      dx += Math.sin(s.wanderAngle) * t.walkSpeed;
-      dz += Math.cos(s.wanderAngle) * t.walkSpeed;
+      dx += Math.sin(s.wanderAngle) * walkSpeed;
+      dz += Math.cos(s.wanderAngle) * walkSpeed;
+    }
+    if (s.parent) {
+      const fx = s.parent.position.x - px;
+      const fz = s.parent.position.z - pz;
+      const fd = Math.hypot(fx, fz);
+      if (fd > LAMB.followDistance) {
+        const pull = Math.min(fd - LAMB.followDistance, 3) * LAMB.follow;
+        dx += (fx / fd) * pull;
+        dz += (fz / fd) * pull;
+      }
     }
 
     // Separation and alignment with neighbours; the ram draws sheep toward it.
@@ -96,7 +147,7 @@ export function updateFlock(sheep, ctx, dt) {
     const cz = center.z - pz;
     const cd = Math.hypot(cx, cz);
     if (cd > 1e-3) {
-      const pull = Math.min(cd / radius, 1) * t.cohesion;
+      const pull = Math.min(cd / radius, 1) * (s.orphan ? 0 : t.cohesion);
       dx += (cx / cd) * pull;
       dz += (cz / cd) * pull;
     }
@@ -104,7 +155,7 @@ export function updateFlock(sheep, ctx, dt) {
     const hz = home.z - pz;
     const hd = Math.hypot(hx, hz);
     if (hd > radius) {
-      const pull = (hd - radius) * t.boundary;
+      const pull = (hd - radius) * (s.orphan ? LAMB.orphanBoundary : t.boundary);
       dx += (hx / hd) * pull;
       dz += (hz / hd) * pull;
     } else if (hd < 1.6 && hd > 1e-3) {
@@ -131,6 +182,7 @@ export function updateFlock(sheep, ctx, dt) {
       dx += (ddx / dd) * k * t.dogFear;
       dz += (ddz / dd) * k * t.dogFear;
       fear = k * 0.4;
+      s.wanderAngle = Math.atan2(ddx, ddz); // walk on away from the dog: that's what makes herding work
     }
     const panic = t.panic * (nearRam && !t.attract ? RAM_CALM : 1);
     s.wolfNear = false;
@@ -160,7 +212,7 @@ export function updateFlock(sheep, ctx, dt) {
     s.fear = Math.min(1, Math.max(fear, s.fear - dt * SHEEP.calmRate));
     if (wasCalm && s.fear >= 0.5) ctx.onSheepPanic?.(s);
 
-    const calmMax = t.walkSpeed * 1.6;
+    const calmMax = walkSpeed * 1.6;
     const maxSpeed = calmMax + Math.max(0, t.panicSpeed - calmMax) * s.fear;
     const dl = Math.hypot(dx, dz);
     if (dl > maxSpeed) {

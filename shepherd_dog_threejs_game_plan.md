@@ -1770,6 +1770,20 @@ behaviour hooks. The goal is to change *decisions*, not just numbers.
     pops up when it strays.
 -   Adds a second job for the dog: herding vs guarding.
 
+## Lamb (wave 4+, one per wave; two from wave 8)
+
+-   Paired with an adult sheep (its mother) and follows her, staying
+    about 1.4 units away.
+-   Wolves strongly prefer lambs (`lure`), and lambs are taken faster,
+    but each surviving lamb pays double wool at the end of a wave.
+-   If its mother is taken, the lamb bolts away from the flock
+    ("MAMA?!") with only a weak pull back home. Once the dog herds it
+    back inside the flock it adopts the nearest adult without a lamb (♥).
+-   Look: small, extra-white fleece, big head, hops a lot, high-pitched
+    bleat.
+-   Decision: protect lamb pairs, and choose between chasing a lost lamb
+    and guarding the edge.
+
 ## Old Ram (wave 5+, one per flock)
 
 -   Slow, mostly ignores the dog, barely panics at wolves (30%).
@@ -1788,6 +1802,18 @@ behaviour hooks. The goal is to change *decisions*, not just numbers.
 -   Look: small tan wolf with big ears and a heavy dust trail; its
     off-screen indicator pulses faster. Worth 20 wool.
 
+## Sneaky wolf (wave 7+)
+
+-   Spawns silently (no howl) on the side of the flock away from the dog.
+-   No off-screen indicator until it is within 15 units of the flock
+    (or chasing / attacking).
+-   While prowling it circles toward the side of the flock facing away
+    from the dog and only moves in once it's within ~40° of that spot
+    (or after waiting 6 s longer than its stalk time).
+-   Look: dark grey-green, short legs, head held low. Worth 25 wool.
+-   Decision: scan the edges instead of only reacting to arrows; the
+    dog's position creates a blind spot.
+
 ## Brute wolf (wave 6+)
 
 -   0.7× speed, but a single bark isn't enough: a fear meter fills while
@@ -1803,9 +1829,14 @@ behaviour hooks. The goal is to change *decisions*, not just numbers.
 ``` text
 wave 1-2   wolves only
 wave 3-5   + 1 runner
-wave 6-7   + 1 runner, 1 brute
+wave 6     + 1 runner, 1 brute
+wave 7-8   + 1 sneaky
 wave 8+    runners = min(5, (wave-2)/2), brutes = min(3, (wave-4)/2)
+wave 9+    sneaky  = min(3, (wave-5)/2)
 ```
+
+Herding: a sheep within the dog's fear radius also turns its wander
+direction away from the dog, so a dog placed behind a stray walks it home.
 
 The first wolf of each wave is always a normal one, so special wolves
 arrive mid-wave. The wave banner introduces each new type the first

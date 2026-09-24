@@ -14,12 +14,15 @@ The flock and the wolf pack get more varied as the waves go on. Each type is a s
 | --- | --- | --- | --- |
 | 🐑 | **Sheep** | 1 | Grazes, strolls, sticks with the flock. |
 | 🐑 | **Wanderer** (beige fleece) | 2, one per wave | Strays far from the flock (a "?" pops up) and attracts wolves, but notices the dog from twice as far and runs home easily. |
+| 🐑 | **Lamb** (small, big head) | 4, one or two per wave | Follows its mother. Wolves go for lambs first, but each surviving lamb pays double wool. If its mother is taken it bolts off alone ("MAMA?!"): herd it back to the flock and it adopts a new mother (♥). |
 | 🐏 | **Old Ram** (horns) | 5, one per flock | Big, slow, ignores the dog and barely panics. Nearby sheep gather round him and panic less. Wolves need twice as long to take him. If he's lost, a new ram joins next wave. |
 | 🐺 | **Wolf** | 1 | Prowls the tree line, goes for stragglers, flees from one bark. 15 wool. |
 | 🐺 | **Runner** (tan, big ears) | 3 | 1.6× faster, barely stalks, goes for the nearest sheep. Scared from further away, gives up a chase if the dog gets near its target, and comes back quickly. 20 wool. |
+| 🐺 | **Sneaky Wolf** (dark, low to the ground) | 7 | Silent (no howl) and has no off-screen arrow until it's about 15 units from the flock. Circles the tree line to the side of the flock away from the dog before it moves in. 25 wool. |
 | 🐺 | **Brute** (big, black, scarred) | 6 | Slow, and one bark isn't enough: keep the dog next to it for 1.5 s (fear meter over its head) and it flees. While resisting it backs off snarling and can't finish a grab. Shoves sheep aside and takes them faster. 40 wool. |
 
-From wave 8 packs mix several Runners and Brutes (`wolfPack()` in `src/config.js`). The wave banner
+Sheep walk on away from the dog when it comes close, which is what makes herding strays back work.
+From wave 8 packs mix several Runners, Brutes and Sneaky Wolves (`wolfPack()` in `src/config.js`). The wave banner
 introduces each new type the first time it appears.
 
 ## Run locally

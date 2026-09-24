@@ -1,4 +1,5 @@
-import { WOLF, WORLD } from './config.js';
+import { WOLF, WORLD, SNEAKY } from './config.js';
+import { angleTo } from './entities.js';
 
 // Wolf states:
 //   WANDER   prowl along the edge of the meadow
@@ -13,6 +14,8 @@ import { WOLF, WORLD } from './config.js';
 //   brute   has a fear meter (`courage`): the dog must stay close for a while before it flees.
 //           While resisting it backs off slowly, and a grab in progress is put on hold.
 //           It also shoves sheep out of its way.
+//   sneaky  has no off-screen indicator until it's near the flock, and circles the edge until it's
+//           on the far side of the flock from the dog before moving in.
 
 const THREATENING = new Set(['APPROACH', 'CHASE', 'ATTACK']);
 
@@ -37,7 +40,7 @@ function pickTarget(w, ctx) {
     if (s.grabbedBy) continue;
     const d = w.position.distanceTo(s.position);
     const straggle = s.position.distanceTo(ctx.center);
-    const score = d - straggle * bias + Math.random() * 2;
+    const score = d - straggle * bias - s.type.lure + Math.random() * 2;
     if (score < bestScore) {
       bestScore = score;
       best = s;
@@ -100,6 +103,8 @@ export function updateWolves(wolves, ctx, dt) {
     let vz = 0;
     let snap = false; // stop dead instead of easing
 
+    w.revealed = !T.hidden || w.state === 'CHASE' || w.state === 'ATTACK' || (w.state === 'APPROACH' && w.position.distanceTo(ctx.center) < SNEAKY.revealDistance);
+
     // The dog's threat radius beats everything else. Brave wolves hold out until their fear meter fills.
     const canScare = w.state !== 'FLEE' && w.state !== 'LEAVE';
     const inThreat = canScare && dd < dog.stats.threatRadius * T.threatScale;
@@ -120,8 +125,20 @@ export function updateWolves(wolves, ctx, dt) {
         const r = Math.hypot(px, pz) || 1;
         const ox = px / r;
         const oz = pz / r;
-        vx = -oz * w.orbitDir * WOLF.wanderSpeed;
-        vz = ox * w.orbitDir * WOLF.wanderSpeed;
+        // Flankers circle toward the side of the flock facing away from the dog.
+        let inPosition = true;
+        let orbitSpeed = WOLF.wanderSpeed;
+        if (T.flank) {
+          const cx = ctx.center.x - dog.position.x;
+          const cz = ctx.center.z - dog.position.z;
+          const behind = Math.atan2(cz, cx);
+          const off = angleTo(Math.atan2(pz, px), behind);
+          w.orbitDir = off >= 0 ? 1 : -1;
+          inPosition = Math.abs(off) < SNEAKY.flankAngle || w.stateTimer < -SNEAKY.giveUpFlank;
+          orbitSpeed = inPosition ? WOLF.wanderSpeed * 0.3 : WOLF.wanderSpeed * 1.6;
+        }
+        vx = -oz * w.orbitDir * orbitSpeed;
+        vz = ox * w.orbitDir * orbitSpeed;
         const radial = (WORLD.lurkRadius - r) * 1.2;
         vx += ox * radial;
         vz += oz * radial;
@@ -131,7 +148,7 @@ export function updateWolves(wolves, ctx, dt) {
           vx *= max / vl;
           vz *= max / vl;
         }
-        if (w.stateTimer <= 0 && ctx.huntingAllowed && ctx.sheep.length) {
+        if (w.stateTimer <= 0 && inPosition && ctx.huntingAllowed && ctx.sheep.length) {
           w.state = 'APPROACH';
           w.retarget = 0;
         }

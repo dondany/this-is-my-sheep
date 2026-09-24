@@ -11,6 +11,7 @@ export const COLORS = {
   wandererWool: 0xd9c9ae,
   ramFace: 0x3b3029,
   horn: 0xd9c7a0,
+  lambWool: 0xfffcf4,
   eye: 0xfffaf0,
 
   dog: 0x222222,
@@ -26,6 +27,9 @@ export const COLORS = {
   bruteLight: 0x4d4844,
   bruteScar: 0x7a716a,
   bruteEye: 0xff7a3d,
+  sneaky: 0x3e4441,
+  sneakyLight: 0x5d635f,
+  sneakyEye: 0xc9b25a,
 
   wood: 0xa96f45,
   brown: 0x76513a,
@@ -93,6 +97,8 @@ export const SHEEP_TYPES = {
     grabTime: 1, // multiplier on how long a wolf needs to take it
     attractRadius: 0,
     attract: 0,
+    lure: 0, // how much more wolves want it
+    wool: 1, // survivor reward multiplier at the end of a wave
   },
   // Curious and easily distracted: drifts off, but a quick pass by the dog sends it home.
   wanderer: {
@@ -111,6 +117,8 @@ export const SHEEP_TYPES = {
     grabTime: 1,
     attractRadius: 0,
     attract: 0,
+    lure: 0,
+    wool: 1,
   },
   // Big, calm and stubborn. Anchors the flock and keeps nearby sheep calmer.
   ram: {
@@ -129,7 +137,37 @@ export const SHEEP_TYPES = {
     grabTime: 2,
     attractRadius: 7,
     attract: 0.6,
+    lure: 0,
+    wool: 1,
   },
+  // Follows its mother everywhere. Wolves love lambs; they're worth double at the end of a wave.
+  // If the mother is taken, it bolts off alone until the dog brings it back to the flock.
+  lamb: {
+    scale: 0.7,
+    walkSpeed: 1.4,
+    walkTime: [0.5, 1.5],
+    grazeTime: [1, 3],
+    fidget: 2,
+    cohesion: 0.2,
+    boundary: 0.8,
+    radiusScale: 1,
+    dogFearRadius: 4,
+    dogFear: 3.5,
+    panic: 1.2,
+    panicSpeed: 6,
+    grabTime: 0.6,
+    attractRadius: 0,
+    attract: 0,
+    lure: 4,
+    wool: 2,
+  },
+};
+
+export const LAMB = {
+  followDistance: 1.4, // how close it stays to its mother
+  follow: 1.5,
+  orphanSpeed: 2.4, // wandering speed while lost
+  orphanBoundary: 0.12, // much weaker pull back to the flock while lost
 };
 
 export const RAM_CALM = 0.6; // wolf panic multiplier for sheep near the ram
@@ -190,6 +228,28 @@ export const WOLF_TYPES = {
     shove: true,
     points: 40,
   },
+  // Dark and low: no off-screen arrow until it's close, and it circles round to the side away from the dog.
+  sneaky: {
+    scale: 1.1,
+    speed: 1.05,
+    stalk: 1.3,
+    threatScale: 1,
+    fleeTime: 1,
+    courage: 0,
+    grabTime: 1,
+    stragglerBias: 1,
+    skittish: false,
+    shove: false,
+    hidden: true,
+    flank: true,
+    points: 25,
+  },
+};
+
+export const SNEAKY = {
+  revealDistance: 15, // its indicator appears once it's this close to the flock
+  flankAngle: 0.7, // radians: how close to "directly behind the flock" before it attacks
+  giveUpFlank: 6, // seconds past its stalk time before it attacks from wherever it is
 };
 
 function shuffle(list) {
@@ -200,13 +260,15 @@ function shuffle(list) {
   return list;
 }
 
-// Which wolves make up a wave's pack: runners from wave 3, brutes from wave 6, mixed packs from 8.
+// Which wolves make up a wave's pack: runners from wave 3, brutes from wave 6, sneaky from 7, mixed packs from 8.
 export function wolfPack(wave, count) {
   const runners = wave < 3 ? 0 : wave < 8 ? 1 : Math.min(5, Math.floor((wave - 2) / 2));
   const brutes = wave < 6 ? 0 : wave < 8 ? 1 : Math.min(3, Math.floor((wave - 4) / 2));
+  const sneaky = wave < 7 ? 0 : wave < 9 ? 1 : Math.min(3, Math.floor((wave - 5) / 2));
   const pack = [];
   for (let i = 0; i < runners && pack.length < count; i++) pack.push('runner');
   for (let i = 0; i < brutes && pack.length < count; i++) pack.push('brute');
+  for (let i = 0; i < sneaky && pack.length < count; i++) pack.push('sneaky');
   while (pack.length < count) pack.push('normal');
   shuffle(pack);
   // Lead with a normal wolf so the special ones arrive mid-wave.
@@ -223,6 +285,7 @@ export function waveConfig(wave) {
     newSheep: wave === 1 ? 10 : 4,
     wanderers: wave >= 2 ? 1 : 0, // of the new sheep
     ram: wave >= 5, // an Old Ram joins if the flock doesn't have one
+    lambs: wave < 4 ? 0 : wave < 8 ? 1 : 2, // of the new sheep; each is paired with a mother
     wolves: Math.min(1 + wave, 15),
     duration: Math.min(40 + wave * 5, 90),
     spawnInterval: Math.max(2, 9 - wave * 0.6),

@@ -94,7 +94,18 @@ export class Juice {
 
   sheepPanic(sheep) {
     this.particles.dust(sheep.position, 4, 0.8);
-    this.sfx.bleat(true);
+    this.sfx.bleat(true, sheep.kind === 'lamb' ? 1.5 : 1);
+  }
+
+  lambOrphaned(lamb) {
+    this.floatText('MAMA?!', { follow: lamb, offsetY: 1.8, cls: 'danger', duration: 1.4 });
+    this.sfx.bleat(true, 1.6);
+  }
+
+  lambReunited(lamb) {
+    this.floatText('♥', { follow: lamb, offsetY: 1.8, cls: 'love', duration: 1.2 });
+    this.particles.sparkle(tmp.copy(lamb.position).setY(0.8), 8, [0xe8a0b4, 0xfff0d0, 0xffffff]);
+    this.sfx.bleat(false, 1.5);
   }
 
   sheepStray(sheep) {

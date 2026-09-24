@@ -90,13 +90,13 @@ export class Animal {
 
 const HORN = new THREE.TorusGeometry(0.15, 0.06, 6, 14, Math.PI * 1.6);
 
-// kind: 'normal' | 'wanderer' | 'ram' (see SHEEP_TYPES)
+// kind: 'normal' | 'wanderer' | 'ram' | 'lamb' (see SHEEP_TYPES)
 export class Sheep extends Animal {
   constructor(scene, kind = 'normal') {
     super(scene);
     this.kind = kind;
     this.type = SHEEP_TYPES[kind];
-    const wool = kind === 'wanderer' ? COLORS.wandererWool : COLORS.sheep;
+    const wool = { wanderer: COLORS.wandererWool, lamb: COLORS.lambWool }[kind] ?? COLORS.sheep;
     const face = kind === 'ram' ? COLORS.ramFace : COLORS.sheepFace;
 
     const body = (this.body = new THREE.Group());
@@ -119,6 +119,8 @@ export class Sheep extends Animal {
       }
     }
 
+    if (kind === 'lamb') head.scale.setScalar(1.3); // babies have big heads
+
     this.legs = addLegs(this.root, face, { x: 0.24, zFront: 0.32, zBack: -0.32, y: 0.5, length: 0.5, width: 0.075 });
     this.root.scale.setScalar(this.type.scale);
 
@@ -135,6 +137,9 @@ export class Sheep extends Animal {
     this.spawnScale = 1;
     this.strayed = false;
     this.wolfNear = false;
+    this.parent = null; // lamb → its mother
+    this.child = null; // mother → her lamb
+    this.orphan = false;
   }
 
   // Pop in with a little bounce.
@@ -153,7 +158,7 @@ export class Sheep extends Animal {
     if (this.idleTimer <= 0) {
       this.idleTimer = (2 + Math.random() * 5) / this.type.fidget;
       const r = Math.random();
-      if (r < 0.15) this.hop = 1;
+      if (r < (this.kind === 'lamb' ? 0.45 : 0.15)) this.hop = 1;
       else if (r < 0.6) this.lookYaw = (Math.random() - 0.5) * 1.6;
       else this.lookYaw = 0;
     }
@@ -366,9 +371,10 @@ const WOLF_LOOKS = {
   normal: { body: COLORS.wolf, light: COLORS.wolfLight, eye: COLORS.wolfEye, girth: 1, ears: 1 },
   runner: { body: COLORS.runner, light: COLORS.runnerLight, eye: COLORS.wolfEye, girth: 0.82, ears: 1.5 },
   brute: { body: COLORS.brute, light: COLORS.bruteLight, eye: COLORS.bruteEye, girth: 1.15, ears: 0.8 },
+  sneaky: { body: COLORS.sneaky, light: COLORS.sneakyLight, eye: COLORS.sneakyEye, girth: 0.95, ears: 0.8, legs: 0.65 },
 };
 
-// kind: 'normal' | 'runner' | 'brute' (see WOLF_TYPES)
+// kind: 'normal' | 'runner' | 'brute' | 'sneaky' (see WOLF_TYPES)
 export class Wolf extends Animal {
   constructor(scene, kind = 'normal') {
     super(scene);
@@ -376,6 +382,7 @@ export class Wolf extends Animal {
     this.type = WOLF_TYPES[kind];
     this.fear = 0; // brute's fear meter, fills while the dog stays close
     this.resisting = false;
+    this.revealed = true; // false hides the off-screen indicator (sneaky wolves)
     this.state = 'WANDER';
     this.stateTimer = 0;
     this.target = null;
@@ -390,8 +397,11 @@ export class Wolf extends Animal {
     // Angular silhouette: boxes and 4-sided cones.
     const look = WOLF_LOOKS[kind];
     const g = look.girth;
+    const legs = look.legs ?? 1; // shorter legs = lower to the ground
+    this.bodyY = 0.95 - 0.8 * (1 - legs);
+    this.prowl = kind === 'sneaky' ? 0.2 : 0; // extra head-down
     const body = (this.body = new THREE.Group());
-    body.position.y = 0.95;
+    body.position.y = this.bodyY;
     this.root.add(body);
     body.add(mesh(GEO.box, look.body, { position: [0, 0, -0.05], scale: [0.5 * g, 0.46 * g, 1.15], shadow: true }));
     body.add(mesh(GEO.box, look.body, { position: [0, 0.06, 0.35], scale: [0.58 * g, 0.58 * g, 0.5], rotation: [0.15, 0, 0], shadow: true }));
@@ -422,7 +432,7 @@ export class Wolf extends Animal {
     body.add(tail);
     tail.add(mesh(GEO.tail, look.body, { scale: [0.13 * g, 0.8, 0.13 * g] }));
 
-    this.legs = addLegs(this.root, look.body, { x: 0.17 * g, zFront: 0.4, zBack: -0.45, y: 0.8, length: 0.8, width: 0.13 * g, geometry: GEO.boxLeg });
+    this.legs = addLegs(this.root, look.body, { x: 0.17 * g, zFront: 0.4, zBack: -0.45, y: 0.8 * legs, length: 0.8 * legs, width: 0.13 * g, geometry: GEO.boxLeg });
     this.root.scale.setScalar(this.type.scale);
   }
 
@@ -435,14 +445,14 @@ export class Wolf extends Animal {
     const st = this.resisting ? 'RESIST' : this.state;
     let hop = 0;
     if (st === 'FLEE' && this.pause > 0) hop = Math.sin((this.pause / 0.14) * Math.PI) * 0.35;
-    this.body.position.y = 0.95 + Math.abs(Math.sin(this.phase)) * 0.08 * run + hop;
+    this.body.position.y = this.bodyY + Math.abs(Math.sin(this.phase)) * 0.08 * run + hop;
     this.body.rotation.y = st === 'ATTACK' ? Math.sin(time * 30) * 0.15 : 0;
     // Snarling in place: small fast shudder.
     this.body.rotation.z = st === 'RESIST' ? Math.sin(time * 38) * 0.05 : 0;
 
     // Head low while stalking, up while fleeing. Tail tucked when scared.
     const dip = { WANDER: 0.1, APPROACH: 0.3, CHASE: 0.15, ATTACK: 0.45, RESIST: 0.35, FLEE: -0.25, LEAVE: 0 }[st] ?? 0;
-    this.headDip = damp(this.headDip, dip, 8, dt);
+    this.headDip = damp(this.headDip, dip + (st === 'FLEE' ? 0 : this.prowl), 8, dt);
     this.head.rotation.x = this.headDip;
     const tail = { FLEE: 0.35, CHASE: 1.6, ATTACK: 1.7, RESIST: 1.9, APPROACH: 1.0 }[st] ?? 1.2;
     this.tailLift = damp(this.tailLift, tail, 8, dt);
