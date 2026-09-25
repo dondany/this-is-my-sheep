@@ -6,6 +6,16 @@ Click the meadow to send the dog running; wolves that get too close to it turn t
 Design doc: [`shepherd_dog_threejs_game_plan.md`](shepherd_dog_threejs_game_plan.md) ·
 What's next: [`FUTURE_IDEAS.md`](FUTURE_IDEAS.md)
 
+## Controls
+
+| Input | Action |
+| --- | --- |
+| Click / tap the meadow | Send the dog there (hold and drag to steer) |
+| Right-click, Space, or the 🐕 button | **Big Bark**: every wolf within 12 units flees, brutes included, but sheep within 6 units get startled too. 15 s cooldown, shown on the button |
+| Scroll, pinch, `+` / `-` | Zoom |
+| Esc / P | Pause |
+| B | Bestiary |
+
 ## Animals
 
 The flock and the wolf pack get more varied as the waves go on: one new flock-side and one new
@@ -51,7 +61,7 @@ newcomers each wave.
 - **Close calls:** rescuing a sheep with less than 0.4 s of grab time left triggers 0.6 s of
   slow motion, a camera push-in and "CLOSE ONE!".
 - **Combos:** scares within 2.5 s of each other chain up: "COMBO ×N" grows with the chain, pays
-  +5 wool per step (×2 = +5, ×3 = +10, …), plays a rising chime, and a badge under the top bar
+  +5 wool per step (×2 = +5, ×3 = +10, …, capped at +30 from ×7), plays a rising chime, and a badge under the top bar
   shows the chain and how long you have to extend it.
 
 All the numbers are in `FEEL` at the top of `src/game.js`.
@@ -69,6 +79,7 @@ Rare cards (gold border) come up about a third as often.
 | 📣 Loud Bark | Dog | Threat radius +12% | 5 |
 | 😱 Scary Bark | Dog | Scared wolves run 20% longer | 3 |
 | 🦴 Brave Heart | Dog | Brutes give up 25% sooner | 3 |
+| 🌬️ Deep Lungs | Dog | Big Bark recharges 20% faster | 3 |
 | 🎶 Calming Song | Shepherd | Sheep panic 15% less around wolves | 3 |
 | 🪄 Herding Instinct | Shepherd | Flock cohesion +20% | 3 |
 | 🧶 Thick Fleece | Flock | Wolves need 20% longer to take a sheep | 5 |

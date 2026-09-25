@@ -132,6 +132,13 @@ export class Sfx {
   }
 
   // pitch > 1 for lambs.
+  bigBark() {
+    if (!this.ready) return;
+    this.tone({ type: 'sawtooth', freq: 300, freqEnd: 90, dur: 0.35, gain: 0.45, attack: 0.01, filter: 'lowpass', filterFreq: 1100 });
+    this.tone({ type: 'square', freq: 150, freqEnd: 60, dur: 0.4, gain: 0.2, attack: 0.01, filter: 'lowpass', filterFreq: 600 });
+    this.noiseBurst({ dur: 0.25, gain: 0.35, filter: 'lowpass', freq: 1200 });
+  }
+
   bleat(panic = false, pitch = 1) {
     if (!this.ready || !this.throttle('bleat', panic ? 180 : 400)) return;
     const f = (panic ? 560 : 430) * pitch * (0.85 + Math.random() * 0.3);

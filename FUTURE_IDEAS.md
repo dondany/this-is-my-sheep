@@ -11,8 +11,12 @@ The upgrade shop is in (see the README). Ideas not built yet: fence posts along 
 meadow, and cosmetic unlocks (dog hats, other breeds) bought with lifetime wool.
 
 ## Balance
-- Waves 10+ get very hard very fast (brutes, sneaky wolves and the alpha together). Consider a
-  gentler pack growth, or letting upgrades carry the late game.
+- Waves 10+ get very hard very fast (brutes, sneaky wolves and the alpha together). Upgrades and
+  the Big Bark now carry a good player through (a bot that buys everything keeps ~95% of the flock
+  to wave 10). Needs checking with real players: it may now be too easy for skilled ones.
+- Late-wave wool income is high (a perfect bot earns ~4,000 a wave by wave 10 and can max every
+  upgrade, ~16,000 wool in total). Wolves keep returning after a scare, so each one can be scored
+  many times. Options: fewer points for re-scaring the same wolf, or a wool cap per wave.
 - Wanderers, black sheep and golden fleeces are usually lost within a wave or two when nobody herds
   them. That may be fine; worth watching in real play.
 

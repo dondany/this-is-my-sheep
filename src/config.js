@@ -83,6 +83,14 @@ export const DOG = {
 };
 
 // Shared flocking constants; per-type values live in SHEEP_TYPES.
+// The dog's special move: right-click, Space, or the HUD button.
+export const BIG_BARK = {
+  radius: 12, // every wolf this close flees, brutes included
+  cooldown: 15,
+  startleRadius: 6, // sheep this close to the dog get startled too
+  hitstop: 0.12,
+};
+
 export const SHEEP = {
   cap: 80,
   separationRadius: 1.6,

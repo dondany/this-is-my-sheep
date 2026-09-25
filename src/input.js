@@ -3,7 +3,7 @@ import * as THREE from 'three';
 // Mouse/touch → point on the ground plane (y = 0). Press sets a target; holding and dragging steers.
 // Wheel, trackpad pinch and two-finger pinch zoom; onZoom gets a distance multiplier (> 1 = zoom out).
 export class MouseController {
-  constructor(element, camera, { onPress, onDrag, onZoom }) {
+  constructor(element, camera, { onPress, onDrag, onZoom, onAltPress }) {
     this.element = element;
     this.camera = camera;
     this.raycaster = new THREE.Raycaster();
@@ -17,6 +17,10 @@ export class MouseController {
     element.addEventListener('contextmenu', (e) => e.preventDefault());
 
     element.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button === 2) {
+        if (this.enabled) onAltPress?.();
+        return;
+      }
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       element.setPointerCapture(e.pointerId);
       this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });

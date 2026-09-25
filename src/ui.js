@@ -74,6 +74,22 @@ export class UI {
     if (count >= 2) $('hud-combo-bar').style.transform = `scaleX(${left})`;
   }
 
+  // ready: 0 → just used, 1 → available
+  setBigBark(ready) {
+    this.set('bigbark', Math.round(ready * 100) / 100, (v) => {
+      const btn = $('btn-bigbark');
+      btn.style.setProperty('--p', v);
+      btn.classList.toggle('ready', v >= 1);
+    });
+  }
+
+  denyBigBark() {
+    const btn = $('btn-bigbark');
+    btn.classList.remove('deny');
+    void btn.offsetWidth;
+    btn.classList.add('deny');
+  }
+
   setMuted(muted) {
     this.el.mute.textContent = muted ? '🔇' : '🔊';
     this.el.mute.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');

@@ -7,6 +7,7 @@ export const UPGRADES = [
   { id: 'loud', group: 'dog', icon: '📣', name: 'Loud Bark', text: 'Scares wolves from 12% further away.', max: 5, cost: 165 },
   { id: 'scary', group: 'dog', icon: '😱', name: 'Scary Bark', text: 'Scared wolves run 20% longer before coming back.', max: 3, cost: 135 },
   { id: 'brave', group: 'dog', icon: '🦴', name: 'Brave Heart', text: 'Brutes give up 25% sooner.', max: 3, cost: 180 },
+  { id: 'lungs', group: 'dog', icon: '🌬️', name: 'Deep Lungs', text: 'The Big Bark recharges 20% faster.', max: 3, cost: 150 },
   { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', text: 'A young dog joins you and guards the flock on its own.', max: 1, cost: 525, rare: true },
   // --- Shepherd
   { id: 'calm', group: 'shepherd', icon: '🎶', name: 'Calming Song', text: 'Sheep panic 15% less around wolves.', max: 3, cost: 150 },
@@ -44,6 +45,7 @@ export function modifiers(levels) {
     grab: 1 + 0.2 * l('fleece'),
     extraSheep: 2 * l('more'),
     lambs: l('lambing'),
+    bigBarkCooldown: 0.8 ** l('lungs'),
     whistle: l('whistle') ? 25 - 5 * l('whistle') : 0, // seconds between whistles (0 = none)
     scarecrows: l('scarecrow'),
     helper: l('helper') > 0,

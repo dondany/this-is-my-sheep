@@ -125,8 +125,22 @@ export class Juice {
     this.shake(0.08, 160);
   }
 
+  bigBark(dog, radius, scared) {
+    this.ring(dog.position, { from: 1, to: radius, duration: 0.5, color: COLORS.ui, opacity: 1 });
+    this.ring(dog.position, { from: 0.5, to: radius * 0.7, duration: 0.4, color: COLORS.accent, opacity: 0.8 });
+    this.floatText('WOOOF!!', { follow: dog, offsetY: 2, cls: 'big', duration: 1, size: 48 });
+    if (scared > 1) this.floatText(`×${scared} SCATTERED!`, { follow: dog, offsetY: 5.6, cls: 'good', duration: 1.3 });
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      this.particles.dust(tmp.set(dog.position.x + Math.cos(a) * 1.5, 0.2, dog.position.z + Math.sin(a) * 1.5), 2, 1.3);
+    }
+    this.flash('rgba(255, 240, 208, 0.3)');
+    this.shake(0.15, 250);
+    this.sfx.bigBark();
+  }
+
   combo(dog, count, bonus) {
-    this.floatText(`COMBO ×${count}! +${bonus}`, { follow: dog, offsetY: 3.4, cls: 'combo', duration: 1.2, size: Math.min(22 + count * 4, 44) });
+    this.floatText(`COMBO ×${count}! +${bonus}`, { follow: dog, offsetY: 3.9, cls: 'combo', duration: 1.2, size: Math.min(22 + count * 4, 44) });
     this.particles.sparkle(tmp.copy(dog.position).setY(1.5), 4 + count * 2, [0xfff3b0, COLORS.accent, 0xffffff]);
     this.sfx.combo(count);
   }

@@ -41,6 +41,15 @@ export function toWander(w, ctx) {
   w.feinted = false;
 }
 
+// Scare a wolf no matter what (the Big Bark): brutes don't get to resist.
+export function forceScare(w, ctx, by) {
+  if (w.state === 'FLEE' || w.state === 'LEAVE' || w.gone) return false;
+  const dx = w.position.x - by.position.x;
+  const dz = w.position.z - by.position.z;
+  scare(w, ctx, dx, dz, Math.hypot(dx, dz) || 1e-3, by);
+  return true;
+}
+
 // Goat head-butt: dazed for a moment, and it lets go of any sheep it was holding.
 export function stunWolf(w, ctx, seconds) {
   if (w.state === 'ATTACK' && w.target?.grabbedBy === w) {

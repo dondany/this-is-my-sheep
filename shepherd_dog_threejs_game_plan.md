@@ -2047,9 +2047,32 @@ end-of-wave screen.
     0.4 s of the wolf's grab timer left gives 0.6 real seconds of slow
     motion (time × 0.25), a camera push-in of 10% and "CLOSE ONE!".
 -   Combo: every scored scare within 2.5 s of the previous one extends
-    the chain. From ×2 each step pays 5 × (n - 1) bonus wool, shows
+    the chain. From ×2 each step pays 5 × (n - 1) bonus wool (capped at
+    30 from ×7, so long chains in busy late waves don't break the
+    economy), shows
     "COMBO ×N! +bonus" with the text growing, and a chime that rises a
     whole tone per step. Scares by the helper dog and scarecrows count
     too. A HUD badge under the top bar shows ×N and a draining timer.
 -   Tuning lives in `FEEL` at the top of `src/game.js`.
+
+------------------------------------------------------------------------
+
+# 64. Big Bark (implemented)
+
+The dog's one active ability, for when a pack converges.
+
+-   Input: right-click (mouse), Space, or a round 🐕 button in the
+    bottom-right corner (the touch control).
+-   Every wolf within 12 units of the dog flees immediately, brutes
+    included (`forceScare` skips their fear meter). Scares score and
+    chain combos as usual.
+-   Trade-off: sheep within 6 units are startled and pushed away, and a
+    sleepy sheep nearby wakes up.
+-   Juice: 120 ms hit-stop, a double shockwave ring, "WOOOF!!",
+    "×N SCATTERED!", ring of dust, flash, strong screen shake, a deep
+    synthesized bark.
+-   15 s cooldown, shown as a sweep on the button, which glows orange
+    when ready and shakes if pressed too early. The Deep Lungs upgrade
+    makes it recharge 20% faster per level (max 3).
+-   Tuning: `BIG_BARK` in `src/config.js`.
 

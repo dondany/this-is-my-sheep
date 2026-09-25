@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { DOG, SHEEP, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, waveConfig } from './config.js';
+import { DOG, SHEEP, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
 import { updateFlock, updateGoat, flockCenter } from './flock.js';
-import { updateWolves, toWander, isThreatening, stunWolf } from './wolves.js';
+import { updateWolves, toWander, isThreatening, stunWolf, forceScare } from './wolves.js';
 import { ParticleSystem } from './particles.js';
 import { Juice } from './juice.js';
 import { Sfx } from './audio.js';
@@ -36,6 +36,7 @@ const FEEL = {
   punch: 0.1, // camera push-in on a close call (fraction of the distance)
   comboWindow: 2.5, // seconds to land the next scare
   comboBonus: 5, // extra wool per combo step
+  comboMaxSteps: 6, // the bonus stops growing at ×7 (the chain can keep counting)
 };
 const BEST_KEY = 'this-is-my-sheep.best';
 
@@ -89,6 +90,7 @@ export class Game {
     this.slowmo = 0;
     this.punch = 0;
     this.combo = { count: 0, timer: 0 };
+    this.bigBarkTimer = 0; // cooldown left
 
     // Shared context handed to the flock and wolf systems.
     this.ctx = {
@@ -152,6 +154,7 @@ export class Game {
       },
       onDrag: (p) => this.dog.setTarget(p),
       onZoom: (factor) => this.zoomBy(factor),
+      onAltPress: () => this.bigBark(),
     });
 
     this.bindUI();
@@ -182,6 +185,7 @@ export class Game {
     });
     ui.on('bestiary', () => this.openBestiary());
     ui.on('reroll', () => this.reroll());
+    ui.on('bigbark', () => this.bigBark());
     ui.onBuy = (id) => this.buy(id);
     ui.on('close-bestiary', () => this.closeBestiary());
 
@@ -189,6 +193,10 @@ export class Game {
       if (this.bestiaryReturn !== undefined && (e.key === 'Escape' || e.key === 'b' || e.key === 'B')) this.closeBestiary();
       else if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') this.togglePause();
       else if (e.key === 'b' || e.key === 'B') this.openBestiary();
+      if (e.key === ' ' && this.input.enabled) {
+        e.preventDefault();
+        this.bigBark();
+      }
       if (e.key === '+' || e.key === '=') this.zoomBy(1 / 1.15);
       if (e.key === '-' || e.key === '_') this.zoomBy(1.15);
     });
@@ -355,6 +363,7 @@ export class Game {
     this.wave = 0;
     this.wool = 0;
     this.levels = {};
+    this.bigBarkTimer = 0;
     this.helper?.destroy();
     this.helper = null;
     this.ctx.guards.length = 1;
@@ -601,6 +610,31 @@ export class Game {
     }
   }
 
+  // Scares every wolf around the dog, brutes included, but startles nearby sheep too.
+  bigBark() {
+    if (!this.input.enabled) return;
+    if (this.bigBarkTimer > 0) return this.ui.denyBigBark();
+    this.bigBarkTimer = BIG_BARK.cooldown * this.ctx.mods.bigBarkCooldown;
+    const dog = this.dog;
+    dog.barkAnim = 1;
+    dog.barkTimer = dog.stats.barkCooldown; // the normal bark waits its turn
+    let scared = 0;
+    for (const w of this.wolves) {
+      if (w.position.distanceTo(dog.position) < BIG_BARK.radius && forceScare(w, this.ctx, dog)) scared++;
+    }
+    for (const s of this.sheep) {
+      const d = s.position.distanceTo(dog.position);
+      if (d < BIG_BARK.startleRadius && d > 1e-3 && !s.grabbedBy) {
+        s.fear = Math.max(s.fear, 0.7);
+        s.velocity.x += ((s.position.x - dog.position.x) / d) * 3;
+        s.velocity.z += ((s.position.z - dog.position.z) / d) * 3;
+        if (s.asleep) s.asleep = false;
+      }
+    }
+    this.freeze(BIG_BARK.hitstop);
+    this.juice.bigBark(dog, BIG_BARK.radius, scared);
+  }
+
   freeze(seconds) {
     this.hitstop = Math.max(this.hitstop, seconds);
   }
@@ -611,7 +645,7 @@ export class Game {
     c.count = c.timer > 0 ? c.count + 1 : 1;
     c.timer = FEEL.comboWindow;
     if (c.count < 2) return;
-    const bonus = FEEL.comboBonus * (c.count - 1);
+    const bonus = FEEL.comboBonus * Math.min(c.count - 1, FEEL.comboMaxSteps);
     this.addWool(bonus);
     this.juice.combo(this.dog, c.count, bonus);
   }
@@ -695,6 +729,8 @@ export class Game {
     this.juice.updateFloats(dt);
     this.ui.updateIndicators(this.wolves, this.world.camera);
     this.ui.updateFearMeters(this.wolves, this.world.camera, this.ctx.mods.courage);
+    this.bigBarkTimer = Math.max(0, this.bigBarkTimer - dt);
+    this.ui.setBigBark(1 - this.bigBarkTimer / (BIG_BARK.cooldown * this.ctx.mods.bigBarkCooldown));
     const c = this.combo;
     c.timer = Math.max(0, c.timer - dt);
     if (!c.timer) c.count = 0;
