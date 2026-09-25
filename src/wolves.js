@@ -216,7 +216,7 @@ export function updateWolves(wolves, ctx, dt) {
     let vz = 0;
     let snap = false; // stop dead instead of easing
 
-    w.revealed = !T.hidden || w.state === 'CHASE' || w.state === 'ATTACK' || (w.state === 'APPROACH' && w.position.distanceTo(ctx.center) < SNEAKY.revealDistance);
+    w.revealed = !T.hidden || w.state === 'CHASE' || w.state === 'ATTACK' || (w.state === 'APPROACH' && w.position.distanceTo(ctx.center) < SNEAKY.revealDistance * ctx.mods.reveal);
 
     // A dog's threat radius beats everything else. Brave wolves hold out until their fear meter fills.
     const canScare = w.state !== 'FLEE' && w.state !== 'LEAVE';

@@ -295,8 +295,8 @@ export const SCARECROW = {
 };
 
 export const HELPER = {
-  speed: 0.8, // relative to the player's dog
-  threat: 0.7,
+  // Speed and threat radius relative to the player's dog come from upgrades (mods.helperSpeed etc.).
+  barkCooldown: 0.6,
   guardRadius: 7, // patrols this far from the shepherd (plus a bit for big flocks)
   reactRadius: 16, // goes after threatening wolves this close to the flock
 };

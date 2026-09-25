@@ -1215,3 +1215,33 @@ h2 {
   margin-top: 8px;
   padding: 10px 20px;
 }
+
+/* Four shop cards: three upgrades and one livestock */
+.panel-shop {
+  width: min(760px, 100%);
+}
+
+.shop-cards {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.upgrade-card {
+  padding: 8px 6px 10px;
+}
+
+.upgrade-text {
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .shop-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .shop-cards {
+    grid-template-columns: 1fr;
+  }
+}

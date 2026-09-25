@@ -1,29 +1,38 @@
 // Upgrades bought with wool between waves. Each one has levels; `modifiers()` turns the levels
-// owned into the multipliers the rest of the game reads (ctx.mods).
+// owned into the multipliers the rest of the game reads (ctx.mods). `requires` keeps a card out of
+// the draw until another upgrade is owned.
 
 export const UPGRADES = [
   // --- Dog
   { id: 'swift', group: 'dog', icon: '⚡', name: 'Swift Paws', text: 'The dog runs and turns 10% faster.', max: 5, cost: 4 },
-  { id: 'loud', group: 'dog', icon: '📣', name: 'Loud Bark', text: 'Scares wolves from 12% further away.', max: 5, cost: 4 },
+  { id: 'loud', group: 'dog', icon: '📣', name: 'Loud Bark', text: 'Bark range +12%: wolves get scared from further away.', max: 5, cost: 4 },
   { id: 'scary', group: 'dog', icon: '😱', name: 'Scary Bark', text: 'Scared wolves run 20% longer before coming back.', max: 3, cost: 3 },
   { id: 'brave', group: 'dog', icon: '🦴', name: 'Brave Heart', text: 'Brutes give up 25% sooner.', max: 3, cost: 4 },
   { id: 'lungs', group: 'dog', icon: '🌬️', name: 'Deep Lungs', text: 'The Big Bark recharges 20% faster.', max: 3, cost: 4 },
-  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', text: 'A young dog joins you and guards the flock on its own.', max: 1, cost: 15, rare: true },
+  { id: 'booming', group: 'dog', icon: '💥', name: 'Booming Bark', text: 'The Big Bark reaches 15% further.', max: 3, cost: 4 },
+  { id: 'nose', group: 'dog', icon: '👃', name: 'Nose for Wolves', text: 'Sneaky wolves show up sooner, and a wolf in sheep\'s clothing is sniffed out twice as fast.', max: 2, cost: 3 },
+  { id: 'fetch', group: 'dog', icon: '🎾', name: 'Fetch!', text: 'Bounty tufts last 50% longer and are easier to grab.', max: 2, cost: 3 },
+  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', text: 'A young dog joins you and guards the flock on its own. Slow at first: train it with pup upgrades.', max: 1, cost: 30, rare: true },
+  { id: 'pupSpeed', group: 'dog', icon: '🐾', name: 'Pup Training', text: 'The second dog runs 10% faster (of your dog\'s speed).', max: 4, cost: 4, requires: 'helper' },
+  { id: 'pupBark', group: 'dog', icon: '🔊', name: "Pup's Bark", text: 'The second dog scares wolves from further away.', max: 3, cost: 4, requires: 'helper' },
   // --- Shepherd
   { id: 'calm', group: 'shepherd', icon: '🎶', name: 'Calming Song', text: 'Sheep panic 15% less around wolves.', max: 3, cost: 3 },
   { id: 'herding', group: 'shepherd', icon: '🪄', name: 'Herding Instinct', text: 'The flock sticks together 20% more tightly.', max: 3, cost: 3 },
   { id: 'whistle', group: 'shepherd', icon: '📯', name: "Shepherd's Whistle", text: 'The shepherd whistles the whole flock back to him every 20 s (5 s sooner per level).', max: 3, cost: 10, rare: true },
+  { id: 'crook', group: 'shepherd', icon: '🦯', name: "Shepherd's Crook", text: 'The shepherd swats wolves that come within 3 units of him (+1 per level).', max: 3, cost: 5 },
   { id: 'scarecrow', group: 'shepherd', icon: '🌾', name: 'Scarecrow', text: 'Place a scarecrow that scares off ordinary wolves (not brutes) that come close.', max: 2, cost: 10, rare: true },
   // --- Flock
   { id: 'fleece', group: 'flock', icon: '🧶', name: 'Thick Fleece', text: 'Wolves need 20% longer to take a sheep.', max: 5, cost: 4 },
   { id: 'more', group: 'flock', icon: '🐑', name: 'Bigger Flock', text: '+2 sheep join every wave.', max: 3, cost: 3 },
   { id: 'lambing', group: 'flock', icon: '🍼', name: 'Lambing Season', text: '+1 lamb every wave (they pay double).', max: 2, cost: 3 },
+  { id: 'shears', group: 'flock', icon: '✂️', name: 'Sharp Shears', text: '+10% wool from shearing.', max: 3, cost: 5 },
+  { id: 'piggy', group: 'flock', icon: '🐷', name: 'Piggy Bank', text: 'Interest on unspent wool can go 2 higher.', max: 2, cost: 4 },
 ];
 
 export const UPGRADE = Object.fromEntries(UPGRADES.map((u) => [u.id, u]));
 
 export const SHOP = {
-  cards: 3,
+  cards: 4, // three upgrades and one livestock card
   levelCostGrowth: 1, // level n costs base × (n + 1)
   reroll: 1, // first reroll of a wave; each further reroll costs this much more
   rareWeight: 0.35, // how often rare cards come up relative to common ones
@@ -49,12 +58,22 @@ export function modifiers(levels) {
     whistle: l('whistle') ? 25 - 5 * l('whistle') : 0, // seconds between whistles (0 = none)
     scarecrows: l('scarecrow'),
     helper: l('helper') > 0,
+    helperSpeed: 0.6 + 0.1 * l('pupSpeed'), // fraction of the player's dog
+    helperThreat: 0.6 + 0.1 * l('pupBark'),
+    bigBarkRadius: 1 + 0.15 * l('booming'),
+    reveal: 1 + 0.5 * l('nose'), // sneaky wolves' reveal distance
+    sniff: 0.5 ** l('nose'), // time to expose a disguise
+    tuftLife: 1 + 0.5 * l('fetch'),
+    tuftRadius: 1 + 0.3 * l('fetch'),
+    crook: l('crook') ? 2 + l('crook') : 0, // shepherd's swat radius (0 = none)
+    shears: 1 + 0.1 * l('shears'),
+    interest: 2 * l('piggy'), // extra interest cap
   };
 }
 
 // Up to `n` different upgrades that aren't maxed out yet, rare ones less often.
 export function drawCards(levels, n = SHOP.cards) {
-  const pool = UPGRADES.filter((u) => (levels[u.id] ?? 0) < u.max);
+  const pool = UPGRADES.filter((u) => (levels[u.id] ?? 0) < u.max && (!u.requires || levels[u.requires]));
   const cards = [];
   while (cards.length < n && pool.length) {
     const weights = pool.map((u) => (u.rare ? SHOP.rareWeight : 1));

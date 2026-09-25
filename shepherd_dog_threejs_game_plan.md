@@ -2115,3 +2115,23 @@ that keep score and money separate.
     of the next wave. The card shows the bestiary portrait and "Shorn
     for N a wave".
 
+------------------------------------------------------------------------
+
+# 66. More Upgrades (implemented)
+
+The shop now shows four cards (three upgrades, one livestock) from a
+pool of 21 upgrades:
+
+-   Dog: Booming Bark (Big Bark radius +15%), Nose for Wolves (sneaky
+    reveal distance ×1.5 per level, disguise sniff time halved), Fetch!
+    (tufts last 50% longer, pickup radius +30%).
+-   Second Dog is now 30 wool and starts slow (60% of the dog's speed
+    and bark range). Pup Training (+10% speed, max 4) and Pup's Bark
+    (+10% range, max 3) only appear once it's owned (`requires`).
+-   Shepherd's Crook: the shepherd joins `ctx.guards` with a 3/4/5-unit
+    threat radius and swats wolves that get that close.
+-   Flock/economy: Sharp Shears (+10% shearing wool), Piggy Bank
+    (interest cap +2).
+-   Livestock bought in the shop spawns before the wave's regular
+    sheep, so it's never lost to the flock cap.
+

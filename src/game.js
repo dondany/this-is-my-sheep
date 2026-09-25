@@ -284,12 +284,18 @@ export class Game {
     if (this.helper) {
       const s = this.dog.stats;
       Object.assign(this.helper.stats, {
-        maxSpeed: s.maxSpeed * HELPER.speed,
-        acceleration: s.acceleration * HELPER.speed,
-        threatRadius: s.threatRadius * HELPER.threat,
+        maxSpeed: s.maxSpeed * mods.helperSpeed,
+        acceleration: s.acceleration * mods.helperSpeed,
+        turnSpeed: s.turnSpeed * mods.helperSpeed,
+        threatRadius: s.threatRadius * mods.helperThreat,
+        barkCooldown: HELPER.barkCooldown,
         fleeTime: s.fleeTime,
       });
     }
+    // Shepherd's Crook: the shepherd becomes a (short-range) guard too.
+    this.shepherd.stats.threatRadius = mods.crook;
+    const guards = this.ctx.guards;
+    if (mods.crook && !guards.includes(this.shepherd)) guards.push(this.shepherd);
     this.ui.hint(this.scarecrowsToPlace() > 0 && this.state !== STATE.WAVE_COMPLETE ? '🌾 Click the meadow to place your scarecrow' : null);
   }
 
@@ -428,7 +434,7 @@ export class Game {
     this.tufts.length = 0;
     this.helper?.destroy();
     this.helper = null;
-    this.ctx.guards.length = 1;
+    this.ctx.guards.length = 1; // just the player's dog
     for (const sc of this.scarecrows) sc.destroy();
     this.scarecrows.length = 0;
     this.applyUpgrades();
@@ -441,7 +447,12 @@ export class Game {
     const cfg = (this.cfg = this.ctx.cfg = waveConfig(this.wave));
     this.ctx.cohesionScale = 1;
 
-    // Special sheep first, then plain ones, up to the flock cap.
+    // Livestock bought in the shop comes first: it's paid for.
+    const bought = this.pendingAnimals.splice(0);
+    this.spawnSheep(bought.filter((k) => k !== 'goat'), true);
+    if (bought.includes('goat') && !this.goat) cfg.goat = true;
+
+    // Then special sheep, then plain ones, up to the flock cap.
     const has = (kind) => this.sheep.some((s) => s.kind === kind);
     const kinds = [];
     for (const kind of ['ram', 'black', 'bellwether']) if (cfg[kind] && !has(kind)) kinds.push(kind);
@@ -453,10 +464,6 @@ export class Game {
     for (let i = 0; i < cfg.newSheep + (this.wave > 1 ? mods.extraSheep : 0); i++) kinds.push('normal');
     this.spawnSheep(kinds.slice(0, Math.max(0, SHEEP.cap - this.flockSize())), this.wave > 1);
     for (let i = 0; i < cfg.disguised; i++) this.spawnDisguise();
-    // Livestock bought in the shop.
-    const bought = this.pendingAnimals.splice(0);
-    this.spawnSheep(bought.filter((k) => k !== 'goat'), true);
-    if (bought.includes('goat') && !this.goat) cfg.goat = true;
     if (cfg.goat && !this.goat) {
       this.goat = new Goat(this.world.scene).setPosition(this.center.x + 6, 0, this.center.z - 4);
       this.juice.newSheep(this.goat);
@@ -502,10 +509,10 @@ export class Game {
     }
     // Shearing Day: every surviving sheep pays its wool, calm ones a little extra.
     const flock = this.sheep.filter((s) => !s.type.fake);
-    const sheared = flock.reduce((sum, s) => sum + s.type.wool, 0);
+    const sheared = Math.floor(flock.reduce((sum, s) => sum + s.type.wool, 0) * this.ctx.mods.shears);
     const calm = Math.floor(flock.filter((s) => !s.wasGrabbed && s.stress < SHEARING.calmStress).length * SHEARING.calmBonus);
     const perfect = flock.length === this.waveStartSheep ? SHEARING.perfect : 0;
-    const interest = Math.min(Math.floor(this.wool / SHEARING.interestPer), SHEARING.interestMax);
+    const interest = Math.min(Math.floor(this.wool / SHEARING.interestPer), SHEARING.interestMax + this.ctx.mods.interest);
     const reward = sheared + calm + perfect + interest;
     this.wool += reward;
     this.juice.waveComplete(this.center);
@@ -684,6 +691,9 @@ export class Game {
     if (by instanceof Scarecrow) {
       by.wobble = 1;
       this.juice.scarecrowScare(by);
+    } else if (by === this.shepherd) {
+      this.shepherd.play('swat', 0.5, wolf.position);
+      this.juice.crook(this.shepherd);
     } else if (by?.bark()) this.juice.bark(by);
     const points = threatening && this.state === STATE.PLAYING ? wolf.type.points : 0;
     this.addScore(points);
@@ -692,7 +702,7 @@ export class Game {
       this.addCombo(wolf);
       this.dropBounty(wolf);
     }
-    const praise = by instanceof Scarecrow ? 'SCARED OFF!' : by === this.helper ? 'GOOD PUP!' : 'GOOD DOG!';
+    const praise = by instanceof Scarecrow ? 'SCARED OFF!' : by === this.helper ? 'GOOD PUP!' : by === this.shepherd ? 'NICE SWING!' : 'GOOD DOG!';
     this.juice.wolfScared(wolf, points, praise);
   }
 
@@ -715,9 +725,10 @@ export class Game {
     const dog = this.dog;
     dog.barkAnim = 1;
     dog.barkTimer = dog.stats.barkCooldown; // the normal bark waits its turn
+    const radius = BIG_BARK.radius * this.ctx.mods.bigBarkRadius;
     let scared = 0;
     for (const w of this.wolves) {
-      if (w.position.distanceTo(dog.position) < BIG_BARK.radius && forceScare(w, this.ctx, dog)) scared++;
+      if (w.position.distanceTo(dog.position) < radius && forceScare(w, this.ctx, dog)) scared++;
     }
     for (const s of this.sheep) {
       const d = s.position.distanceTo(dog.position);
@@ -729,7 +740,7 @@ export class Game {
       }
     }
     this.freeze(BIG_BARK.hitstop);
-    this.juice.bigBark(dog, BIG_BARK.radius, scared);
+    this.juice.bigBark(dog, radius, scared);
   }
 
   // The first time a big wolf is scared off it leaves a tuft of fur behind.
@@ -738,7 +749,7 @@ export class Game {
     if (!value || wolf.bountyDropped) return;
     wolf.bountyDropped = true;
     const color = { brute: COLORS.brute, alpha: COLORS.alphaMane, trickster: COLORS.fox }[wolf.kind];
-    const t = new Tuft(this.world.scene, color, value, BOUNTY.life).setPosition(wolf.position.x, 0, wolf.position.z);
+    const t = new Tuft(this.world.scene, color, value, BOUNTY.life * this.ctx.mods.tuftLife).setPosition(wolf.position.x, 0, wolf.position.z);
     this.tufts.push(t);
     this.juice.tuftDropped(t);
   }
@@ -747,7 +758,7 @@ export class Game {
     for (let i = this.tufts.length - 1; i >= 0; i--) {
       const t = this.tufts[i];
       t.animate(dt, this.time, BOUNTY.blink);
-      const picked = t.position.distanceTo(this.dog.position) < BOUNTY.pickupRadius;
+      const picked = t.position.distanceTo(this.dog.position) < BOUNTY.pickupRadius * this.ctx.mods.tuftRadius;
       if (picked) {
         this.addWool(t.value);
         this.waveBounty += t.value;
@@ -879,7 +890,7 @@ export class Game {
       s.revealIn -= dt;
       const near = s.position.distanceTo(this.dog.position) < DISGUISE.sniffRadius;
       s.sniff = near ? s.sniff + dt : 0;
-      if (s.sniff >= DISGUISE.sniffTime) this.revealDisguise(s, 'exposed');
+      if (s.sniff >= DISGUISE.sniffTime * this.ctx.mods.sniff) this.revealDisguise(s, 'exposed');
       else if (s.revealIn <= 0) this.revealDisguise(s, 'attack');
     }
   }

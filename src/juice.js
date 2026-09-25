@@ -171,6 +171,12 @@ export class Juice {
     this.flash('rgba(255, 240, 208, 0.35)');
   }
 
+  crook(shepherd) {
+    this.floatText('BONK!', { follow: shepherd, offsetY: 3.6, cls: 'bonk', duration: 0.9 });
+    this.ring(shepherd.position, { from: 0.5, to: shepherd.stats.threatRadius, duration: 0.35, color: COLORS.wood, opacity: 0.8 });
+    this.sfx.bonk();
+  }
+
   whistle(shepherd) {
     this.ring(shepherd.position, { from: 1, to: 14, duration: 0.8, color: COLORS.accent, opacity: 0.6 });
     this.floatText('♪ FWEET!', { follow: shepherd, offsetY: 3.6, cls: 'good', duration: 1.2 });

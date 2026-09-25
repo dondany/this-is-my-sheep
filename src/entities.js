@@ -561,6 +561,7 @@ export class Shepherd extends Animal {
     super(scene);
     this.action = 'idle';
     this.actionTimer = 3;
+    this.stats = { threatRadius: 0 }; // > 0 once the Shepherd's Crook upgrade is bought
     this.pointTarget = null;
     this.hatLift = 0;
 
@@ -644,6 +645,14 @@ export class Shepherd extends Animal {
         lz = 2.7;
         this.hatLift = Math.sin(Math.min(1, 1 - this.actionTimer / 1.2) * Math.PI) * 0.18;
         break;
+      case 'swat': {
+        // Swing the crook at a wolf that came too close.
+        const t = 1 - Math.max(0, this.actionTimer) / 0.5;
+        rx = -0.3 - Math.sin(t * Math.PI) * 1.8;
+        rz = 0.4;
+        if (this.pointTarget) face = Math.atan2(this.pointTarget.x - this.position.x, this.pointTarget.z - this.position.z);
+        break;
+      }
       case 'whistle':
         // Fingers to the mouth.
         lx = -2.5;

@@ -93,7 +93,7 @@ The end-of-wave screen breaks the total down. Tuning: `SHEARING` and `BOUNTY` in
 
 ## Upgrades
 
-Wool buys upgrades on the end-of-wave screen: three random cards (two upgrades and one animal),
+Wool buys upgrades on the end-of-wave screen: four random cards (three upgrades and one animal),
 each with a price; buy any you can afford, or reroll the cards (1 wool, +1 per extra reroll that
 wave). Level n of an upgrade
 costs its base price × (n + 1), and everything resets when a run ends. Rare cards (gold border)
@@ -102,16 +102,24 @@ come up about a third as often.
 | Card | Group | Base price | Effect per level | Max |
 | --- | --- | --- | --- | --- |
 | ⚡ Swift Paws | Dog | 4 | Dog runs and turns 10% faster | 5 |
-| 📣 Loud Bark | Dog | 4 | Threat radius +12% | 5 |
+| 📣 Loud Bark | Dog | 4 | Bark range +12% | 5 |
 | 😱 Scary Bark | Dog | 3 | Scared wolves run 20% longer | 3 |
 | 🦴 Brave Heart | Dog | 4 | Brutes give up 25% sooner | 3 |
 | 🌬️ Deep Lungs | Dog | 4 | Big Bark recharges 20% faster | 3 |
+| 💥 Booming Bark | Dog | 4 | Big Bark reaches 15% further | 3 |
+| 👃 Nose for Wolves | Dog | 3 | Sneaky wolves are revealed from 50% further away; a disguise is sniffed out twice as fast | 2 |
+| 🎾 Fetch! | Dog | 3 | Bounty tufts last 50% longer and can be grabbed from 30% further | 2 |
+| 🦯 Shepherd's Crook | Shepherd | 5 | The shepherd swats wolves within 3 / 4 / 5 units of him ("BONK!") | 3 |
+| ✂️ Sharp Shears | Flock | 5 | +10% wool from shearing | 3 |
+| 🐷 Piggy Bank | Flock | 4 | Interest cap +2 | 2 |
 | 🎶 Calming Song | Shepherd | 3 | Sheep panic 15% less around wolves | 3 |
 | 🪄 Herding Instinct | Shepherd | 3 | Flock cohesion +20% | 3 |
 | 🧶 Thick Fleece | Flock | 4 | Wolves need 20% longer to take a sheep | 5 |
 | 🐑 Bigger Flock | Flock | 3 | +2 sheep every wave | 3 |
 | 🍼 Lambing Season | Flock | 3 | +1 lamb every wave | 2 |
-| 🐕 Second Dog *(rare)* | Dog | 15 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock (80% speed, 70% threat radius) | 1 |
+| 🐕 Second Dog *(rare)* | Dog | 30 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock. Starts slow: 60% of your dog's speed and bark range | 1 |
+| 🐾 Pup Training *(needs Second Dog)* | Dog | 4 | Second dog +10% speed (up to 100% of yours) | 4 |
+| 🔊 Pup's Bark *(needs Second Dog)* | Dog | 4 | Second dog +10% bark range (up to 90% of yours) | 3 |
 | 📯 Shepherd's Whistle *(rare)* | Shepherd | 10 | Every 20 / 15 / 10 s the shepherd whistles and every sheep heads back to him | 3 |
 | 🌾 Scarecrow *(rare)* | Shepherd | 10 | Click the meadow to place it; ordinary wolves within 4.5 units get scared (brutes ignore it). Stays for the rest of the run | 2 |
 
