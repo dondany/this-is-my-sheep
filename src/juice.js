@@ -171,6 +171,10 @@ export class Juice {
     this.flash('rgba(255, 240, 208, 0.35)');
   }
 
+  shepherdMoves(shepherd) {
+    this.floatText('This way, girls!', { follow: shepherd, offsetY: 3.8, cls: 'good', duration: 1.8 });
+  }
+
   crook(shepherd) {
     this.floatText('BONK!', { follow: shepherd, offsetY: 3.6, cls: 'bonk', duration: 0.9 });
     this.ring(shepherd.position, { from: 0.5, to: shepherd.stats.threatRadius, duration: 0.35, color: COLORS.wood, opacity: 0.8 });

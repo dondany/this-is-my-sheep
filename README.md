@@ -51,6 +51,10 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early (★ 40). |
 
 Sheep walk on away from the dog when it comes close, which is what makes herding strays back work.
+The flock doesn't stay put: every 20–35 s the shepherd leads it to a new grazing spot ("This way,
+girls!"), grazing sheep spread out, and sheep grow uneasy around a dog that parks among them (the
+longer it sits still, the further they keep away), so camping in the middle of the flock doesn't
+work.
 Later waves mix several of each (`wolfPack()` in `src/config.js`). The wave banner names the
 newcomers each wave.
 

@@ -2135,3 +2135,28 @@ pool of 21 upgrades:
 -   Livestock bought in the shop spawns before the wave's regular
     sheep, so it's never lost to the flock cap.
 
+------------------------------------------------------------------------
+
+# 67. A Flock That Moves (implemented)
+
+Playtest finding: the flock clumped in one spot and a dog parked in the
+middle covered every sheep with its bark radius. Three changes:
+
+-   **Roaming shepherd:** during a wave, every 20-35 s the shepherd
+    walks (1.3 u/s) to a new spot at least 6 units away and within 14
+    of the middle of the meadow ("This way, girls!"). The flock's soft
+    boundary is centred on him, so the whole flock drifts after him.
+    `ROAM` in `src/config.js`.
+-   **Looser grazing:** sheep that are both grazing keep 1.5× the usual
+    separation; plain sheep stroll more often (walk 1.5-4 s, graze
+    1.5-5 s) with weaker cohesion (0.25); the flock radius is
+    5 + 1.1 × √count.
+-   **Dog pressure:** each sheep builds unease while the dog is slower
+    than 3 u/s within 1.8× its fear radius, reaching full unease after
+    5 s; its fear radius grows up to 1.8×. A parked dog pushes the flock
+    outward into a ring the wolves can pick at.
+-   Bot comparison (waves 1-7): a dog parked on the flock centre went
+    from keeping 9/10 → 6/10 in wave 1 and collapses by wave 3; a dog
+    that does nothing now loses the game in wave 3; an active bot still
+    keeps ~85-100% of the flock.
+

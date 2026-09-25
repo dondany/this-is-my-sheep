@@ -100,6 +100,15 @@ export const BOUNTY = {
   pickupRadius: 1.6,
 };
 
+// During a wave the shepherd leads the flock to new grazing spots now and then, so the flock
+// (and the dog's guard position) keeps moving.
+export const ROAM = {
+  interval: [20, 35], // seconds between moves
+  speed: 1.3,
+  minMove: 6, // each new spot is at least this far from the last
+  maxRadius: 14, // and within this distance of the middle of the meadow
+};
+
 // Shared flocking constants; per-type values live in SHEEP_TYPES.
 // The dog's special move: right-click, Space, or the HUD button.
 export const BIG_BARK = {
@@ -112,11 +121,18 @@ export const BIG_BARK = {
 export const SHEEP = {
   cap: 80,
   separationRadius: 1.6,
+  grazeSpacing: 1.5, // grazing sheep want this much more room than walking ones
   separation: 2.2,
   neighbourRadius: 4,
   alignment: 0.3,
-  flockRadius: 4, // soft boundary around the shepherd: base + sqrt(count) * perSqrt
-  flockRadiusPerSqrt: 0.9,
+  flockRadius: 5, // soft boundary around the shepherd: base + sqrt(count) * perSqrt
+  flockRadiusPerSqrt: 1.1,
+  // A dog that parks among the sheep makes them uneasy: the longer it sits still near them, the
+  // further they keep away (up to `pressureMax` × their usual distance).
+  pressureRange: 1.8, // × dogFearRadius
+  pressureSpeed: 3, // the dog counts as "parked" below this speed
+  pressureTime: 5, // seconds to reach full unease
+  pressureMax: 1.8,
   wolfFearRadius: 7,
   wolfFear: 6,
   calmRate: 0.5,
@@ -127,10 +143,10 @@ export const SHEEP_TYPES = {
   normal: {
     scale: 1.15,
     walkSpeed: 1.3,
-    walkTime: [1, 3.5],
-    grazeTime: [2, 7],
+    walkTime: [1.5, 4],
+    grazeTime: [1.5, 5],
     fidget: 1, // how often it looks around / hops
-    cohesion: 0.35,
+    cohesion: 0.25,
     boundary: 0.8,
     radiusScale: 1, // soft boundary around the shepherd
     dogFearRadius: 4,

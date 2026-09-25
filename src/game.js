@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { DOG, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -92,6 +92,7 @@ export class Game {
     this.pendingAnimals = []; // livestock bought in the shop, joining next wave
     this.waveBounty = 0;
     this.whistleTimer = 0;
+    this.roamTimer = 0;
     this.hitstop = 0;
     this.slowmo = 0;
     this.punch = 0;
@@ -313,6 +314,22 @@ export class Game {
     this.applyUpgrades(); // refreshes the placement hint
   }
 
+  // The shepherd leads the flock to a new grazing spot.
+  roam() {
+    this.roamTimer = between(ROAM.interval);
+    const from = this.shepherd.position;
+    for (let tries = 0; tries < 20; tries++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()) * ROAM.maxRadius;
+      const x = Math.cos(a) * r;
+      const z = Math.sin(a) * r;
+      if (Math.hypot(x - from.x, z - from.z) < ROAM.minMove) continue;
+      this.shepherd.walkTarget = { x, z };
+      this.juice.shepherdMoves(this.shepherd);
+      return;
+    }
+  }
+
   whistle() {
     for (const s of this.sheep) {
       if (s.grabbedBy || s.asleep) continue;
@@ -424,6 +441,8 @@ export class Game {
     this.dog.setPosition(0, 0, 7);
     this.dog.velocity.set(0, 0, 0);
     this.dog.hasTarget = false;
+    this.shepherd.setPosition(0, 0, 0);
+    this.shepherd.walkTarget = null;
     this.wave = 0;
     this.wool = 0;
     this.score = 0;
@@ -494,6 +513,7 @@ export class Game {
           : `${cfg.wolves} wolves are coming`;
     this.ui.banner(`Wave ${this.wave}`, sub);
     this.whistleTimer = this.ctx.mods.whistle;
+    this.roamTimer = between(ROAM.interval) * 0.6;
     this.setState(STATE.INTRO);
     this.applyUpgrades(); // shows the scarecrow placement hint if one is waiting
   }
@@ -841,6 +861,7 @@ export class Game {
           this.nextWolfAt += this.cfg.spawnInterval;
         }
         this.updateDisguises(dt);
+        if ((this.roamTimer -= dt) <= 0) this.roam();
         if (this.ctx.mods.whistle && (this.whistleTimer -= dt) <= 0) {
           this.whistleTimer = this.ctx.mods.whistle;
           this.whistle();

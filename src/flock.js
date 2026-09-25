@@ -313,7 +313,9 @@ export function updateFlock(sheep, ctx, dt) {
       const d2 = ox * ox + oz * oz;
       if (d2 < 1e-6) continue;
       // Bigger sheep need more room: scale the separation by both sizes (normal + normal = 1×).
-      const sep = (SHEEP.separationRadius * (t.scale + o.type.scale)) / 2.3;
+      // Grazing sheep spread out more.
+      const graze = s.mode === 'graze' && o.mode === 'graze' ? SHEEP.grazeSpacing : 1;
+      const sep = (SHEEP.separationRadius * graze * (t.scale + o.type.scale)) / 2.3;
       if (d2 < sep * sep) {
         const d = Math.sqrt(d2);
         const push = (1 - d / sep) * SHEEP.separation;
@@ -383,8 +385,12 @@ export function updateFlock(sheep, ctx, dt) {
     const ddx = px - dog.position.x;
     const ddz = pz - dog.position.z;
     const dd = Math.hypot(ddx, ddz) || 1e-3;
-    if (dd < t.dogFearRadius) {
-      const k = 1 - dd / t.dogFearRadius;
+    // Unease builds while the dog sits still nearby, widening the distance the sheep keep.
+    const parked = dog.speed < SHEEP.pressureSpeed && dd < t.dogFearRadius * SHEEP.pressureRange;
+    s.pressure = Math.max(0, Math.min(1, (s.pressure ?? 0) + (parked ? dt : -dt * 0.5) / SHEEP.pressureTime));
+    const fearRadius = t.dogFearRadius * (1 + (SHEEP.pressureMax - 1) * s.pressure);
+    if (dd < fearRadius) {
+      const k = 1 - dd / fearRadius;
       dx += (ddx / dd) * k * t.dogFear;
       dz += (ddz / dd) * k * t.dogFear;
       fear = k * 0.4;

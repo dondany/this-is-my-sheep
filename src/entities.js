@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { COLORS, DOG, WORLD, SHEEP_TYPES, WOLF_TYPES, BLACK, ALPHA, GOAT } from './config.js';
+import { COLORS, DOG, WORLD, SHEEP_TYPES, WOLF_TYPES, BLACK, ALPHA, GOAT, ROAM } from './config.js';
 import { GEO, mesh } from './materials.js';
 
 const TAU = Math.PI * 2;
@@ -563,6 +563,7 @@ export class Shepherd extends Animal {
     this.actionTimer = 3;
     this.stats = { threatRadius: 0 }; // > 0 once the Shepherd's Crook upgrade is bought
     this.pointTarget = null;
+    this.walkTarget = null; // leading the flock to a new grazing spot
     this.hatLift = 0;
 
     this.legs = [-1, 1].map((side) => {
@@ -675,6 +676,26 @@ export class Shepherd extends Animal {
     right.rotation.z = damp(right.rotation.z, rz, 10, dt);
     left.rotation.x = damp(left.rotation.x, lx, 10, dt);
     left.rotation.z = damp(left.rotation.z, lz, 10, dt);
+    // Walking to a new grazing spot: face the way he's going unless he's busy with a wolf.
+    let walking = 0;
+    if (this.walkTarget) {
+      const wx = this.walkTarget.x - this.position.x;
+      const wz = this.walkTarget.z - this.position.z;
+      const wd = Math.hypot(wx, wz);
+      if (wd < 0.2) this.walkTarget = null;
+      else {
+        walking = 1;
+        const step = Math.min(wd, ROAM.speed * dt);
+        this.position.x += (wx / wd) * step;
+        this.position.z += (wz / wd) * step;
+        if (this.action !== 'point' && this.action !== 'swat') face = Math.atan2(wx, wz);
+      }
+    }
+    this.phase += dt * 5 * walking;
+    const stride = Math.sin(this.phase) * 0.45 * walking;
+    this.legs[0].rotation.x = damp(this.legs[0].rotation.x, stride, 12, dt);
+    this.legs[1].rotation.x = damp(this.legs[1].rotation.x, -stride, 12, dt);
+
     this.turnToward(face, 3, dt);
 
     this.hat.position.y = 0.2 + this.hatLift;
