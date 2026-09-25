@@ -2202,3 +2202,17 @@ average     +10      +72      +55       526      505     28 / 63
     3.5 s (was 5), stun 2 s (was 1.3), and a 2.5-unit knockback; it
     stays within about 11 units of the flock.
 
+------------------------------------------------------------------------
+
+# 70. Bark Range Progression (implemented)
+
+-   The dog's threat radius starts at 2.5 (half the old 5). Loud Bark
+    adds +1 per level for 6 levels, up to 8.5 (1.7× the old radius);
+    base price 6, and it's drawn at twice the normal weight
+    (`weight: 2`) since it's the core early purchase.
+-   The second dog has its own bark range (5 × 0.6 = 3, up to 4.5 with
+    Pup's Bark), independent of the player's dog.
+-   Bots over 12 waves: the strong bot is barely affected (flock 30-36,
+    549 wool earned); the average bot starts losing sheep from wave 2,
+    peaks around 22 sheep and earns ~310 wool. Skill matters more.
+

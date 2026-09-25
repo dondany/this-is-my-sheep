@@ -5,7 +5,7 @@
 export const UPGRADES = [
   // --- Dog
   { id: 'swift', group: 'dog', icon: '⚡', name: 'Swift Paws', text: 'The dog runs and turns 10% faster.', max: 5, cost: 8 },
-  { id: 'loud', group: 'dog', icon: '📣', name: 'Loud Bark', text: 'Bark range +12%: wolves get scared from further away.', max: 5, cost: 8 },
+  { id: 'loud', group: 'dog', icon: '📣', name: 'Loud Bark', text: 'Bark range +1: wolves get scared from further away (2.5 at the start, up to 8.5).', max: 6, cost: 6, weight: 2 },
   { id: 'scary', group: 'dog', icon: '😱', name: 'Scary Bark', text: 'Scared wolves run 20% longer before coming back.', max: 3, cost: 6 },
   { id: 'brave', group: 'dog', icon: '🦴', name: 'Brave Heart', text: 'Brutes give up 25% sooner.', max: 3, cost: 8 },
   { id: 'lungs', group: 'dog', icon: '🌬️', name: 'Deep Lungs', text: 'The Big Bark recharges 20% faster.', max: 3, cost: 8 },
@@ -46,7 +46,7 @@ export function modifiers(levels) {
   const l = (id) => levels[id] ?? 0;
   return {
     dogSpeed: 1 + 0.1 * l('swift'),
-    threat: 1 + 0.12 * l('loud'),
+    barkRange: l('loud'), // added to DOG.threatRadius
     flee: 1 + 0.2 * l('scary'),
     courage: 0.75 ** l('brave'),
     panic: 0.85 ** l('calm'),
@@ -76,7 +76,7 @@ export function drawCards(levels, n = SHOP.cards) {
   const pool = UPGRADES.filter((u) => (levels[u.id] ?? 0) < u.max && (!u.requires || levels[u.requires]));
   const cards = [];
   while (cards.length < n && pool.length) {
-    const weights = pool.map((u) => (u.rare ? SHOP.rareWeight : 1));
+    const weights = pool.map((u) => u.weight ?? (u.rare ? SHOP.rareWeight : 1));
     let r = Math.random() * weights.reduce((a, b) => a + b, 0);
     let i = 0;
     while (r > weights[i]) r -= weights[i++];

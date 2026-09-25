@@ -285,7 +285,7 @@ export class Game {
       maxSpeed: DOG.maxSpeed * mods.dogSpeed,
       acceleration: DOG.acceleration * mods.dogSpeed,
       turnSpeed: DOG.turnSpeed * mods.dogSpeed,
-      threatRadius: DOG.threatRadius * mods.threat,
+      threatRadius: DOG.threatRadius + mods.barkRange,
       fleeTime: DOG.fleeTime * mods.flee,
     });
     if (mods.helper && !this.helper) {
@@ -300,7 +300,7 @@ export class Game {
         maxSpeed: s.maxSpeed * mods.helperSpeed,
         acceleration: s.acceleration * mods.helperSpeed,
         turnSpeed: s.turnSpeed * mods.helperSpeed,
-        threatRadius: s.threatRadius * mods.helperThreat,
+        threatRadius: HELPER.threatRadius * mods.helperThreat,
         barkCooldown: HELPER.barkCooldown,
         fleeTime: s.fleeTime,
       });

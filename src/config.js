@@ -77,7 +77,7 @@ export const DOG = {
   maxSpeed: 13,
   acceleration: 55,
   turnSpeed: 14,
-  threatRadius: 5, // wolves inside this radius get scared
+  threatRadius: 2.5, // wolves inside this radius get scared; Loud Bark adds +1 per level (up to 8.5)
   barkCooldown: 0.45,
   fleeTime: 2.2, // how long scared wolves keep running ("bark power")
 };
@@ -322,7 +322,8 @@ export const SCARECROW = {
 };
 
 export const HELPER = {
-  // Speed and threat radius relative to the player's dog come from upgrades (mods.helperSpeed etc.).
+  // Speed (relative to the player's dog) and bark range come from upgrades (mods.helperSpeed etc.).
+  threatRadius: 5, // × mods.helperThreat: 3 when bought, up to 4.5 with Pup's Bark
   barkCooldown: 0.6,
   guardRadius: 7, // patrols this far from the shepherd (plus a bit for big flocks)
   reactRadius: 16, // goes after threatening wolves this close to the flock
