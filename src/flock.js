@@ -1,4 +1,4 @@
-import { SHEEP, WORLD, RAM_CALM, LAMB, BLACK, SLEEPY, BELL, GOAT, BUMP } from './config.js';
+import { DOG, SHEEP, WORLD, RAM_CALM, LAMB, BLACK, SLEEPY, BELL, GOAT, BUMP } from './config.js';
 import { angleTo } from './entities.js';
 
 const NEIGH2 = SHEEP.neighbourRadius ** 2;
@@ -190,6 +190,8 @@ export function updateFlock(sheep, ctx, dt) {
   const mods = ctx.mods;
   // Drops once the bellwether is lost; Herding Instinct raises it.
   const cohesionScale = (ctx.cohesionScale ?? 1) * mods.cohesion;
+  // Sheep react to the dog from further away as its reach grows (half as far at the start).
+  const reach = dog.stats.threatRadius / DOG.baseReach;
   updateStampedes(sheep, ctx, dt);
 
   for (let i = 0; i < n; i++) {
@@ -401,9 +403,10 @@ export function updateFlock(sheep, ctx, dt) {
     }
 
     // Unease builds while the dog sits still nearby, widening the distance the sheep keep.
-    const parked = dog.speed < SHEEP.pressureSpeed && dd < t.dogFearRadius * SHEEP.pressureRange;
+    const dogFearRadius = t.dogFearRadius * reach;
+    const parked = dog.speed < SHEEP.pressureSpeed && dd < dogFearRadius * SHEEP.pressureRange;
     s.pressure = Math.max(0, Math.min(1, (s.pressure ?? 0) + (parked ? dt : -dt * 0.5) / SHEEP.pressureTime));
-    const fearRadius = t.dogFearRadius * (1 + (SHEEP.pressureMax - 1) * s.pressure);
+    const fearRadius = dogFearRadius * (1 + (SHEEP.pressureMax - 1) * s.pressure);
     if (dd < fearRadius) {
       const k = 1 - dd / fearRadius;
       dx += (ddx / dd) * k * t.dogFear;

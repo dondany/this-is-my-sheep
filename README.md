@@ -112,7 +112,7 @@ come up about a third as often.
 | Card | Group | Base price | Effect per level | Max |
 | --- | --- | --- | --- | --- |
 | ⚡ Swift Paws | Dog | 8 | Dog runs and turns 10% faster | 5 |
-| 📣 Loud Bark | Dog | 6 | Bark range +1: 2.5 at the start, up to 8.5. Offered twice as often as other cards | 6 |
+| 🎯 Dog's Reach | Dog | 6 | The dog's reach +1 (the ring around it): wolves inside it get scared, and sheep react to the dog from proportionally further away. 2.5 at the start, up to 8.5. Offered twice as often as other cards | 6 |
 | 😱 Scary Bark | Dog | 6 | Scared wolves run 20% longer | 3 |
 | 🦴 Brave Heart | Dog | 8 | Brutes give up 25% sooner | 3 |
 | 🌬️ Deep Lungs | Dog | 8 | Big Bark recharges 20% faster | 3 |
@@ -127,9 +127,9 @@ come up about a third as often.
 | 🧶 Thick Fleece | Flock | 8 | Wolves need 20% longer to take a sheep | 5 |
 | 🐑 Bigger Flock | Flock | 6 | +1 sheep every wave | 3 |
 | 🍼 Lambing Season | Flock | 6 | +1 lamb every wave | 2 |
-| 🐕 Second Dog *(rare)* | Dog | 40 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock. Starts slow: 60% of your dog's speed, bark range 3 | 1 |
+| 🐕 Second Dog *(rare)* | Dog | 40 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock. Starts slow: 60% of your dog's speed, reach 3 | 1 |
 | 🐾 Pup Training *(needs Second Dog)* | Dog | 8 | Second dog +10% speed (up to 100% of yours) | 4 |
-| 🔊 Pup's Bark *(needs Second Dog)* | Dog | 8 | Second dog bark range +0.5 (3 → 4.5) | 3 |
+| 🔊 Pup's Bark *(needs Second Dog)* | Dog | 8 | Second dog's reach +0.5 (3 → 4.5) | 3 |
 | 📯 Shepherd's Whistle *(rare)* | Shepherd | 20 | Every 20 / 15 / 10 s the shepherd whistles and every sheep heads back to him | 3 |
 | 🌾 Scarecrow *(rare)* | Shepherd | 20 | Click the meadow to place it; ordinary wolves within 4.5 units get scared (brutes ignore it). Stays for the rest of the run | 2 |
 

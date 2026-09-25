@@ -2227,11 +2227,22 @@ average     +10      +72      +55       526      505     28 / 63
     close calls, brutes, howlers, tufts, goat butts, stampedes...,
     saved in localStorage) and this run's records (`run`: wave reached,
     best combo, best Big Bark, biggest flock, golden fleece streak, best
-    wave's wool, max interest, Loud Bark maxed).
+    wave's wool, max interest, Dog's Reach maxed).
 -   The game calls `achievements.add()` / `best()` at the matching
     events and `check()` every 0.5 s during play, at the end of each
     wave, after buying and at game over. New unlocks show a gold card
     in the corner ("Achievement unlocked") that opens the list.
 -   Screen: 🏆 button on the menu, pause, end-of-wave and game-over
     screens; locked achievements are greyed out but their goal is shown.
+
+## Dog's Reach (follow-up)
+
+-   "Bark range" was a confusing name: this is the dog's reach, the
+    faint ring around it (not the Big Bark, which stays at 12). The
+    upgrade is renamed Loud Bark → Dog's Reach (🎯), and the matching
+    achievement is now "Long Reach".
+-   The reach now also drives how far sheep react to the dog: each
+    type's `dogFearRadius` is scaled by reach / 5 (`DOG.baseReach`), so
+    at the start sheep react from half as far and herding needs a
+    closer pass; at max reach they react from 1.7× as far.
 
