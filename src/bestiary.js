@@ -26,7 +26,7 @@ export const ENTRIES = [
     id: 'lamb',
     side: 'flock',
     name: 'Lamb',
-    text: 'Follows its mother everywhere. Wolves go for lambs first, but every lamb that survives a wave pays double wool.',
+    text: 'Follows its mother everywhere. Wolves go for lambs first, but every lamb that survives a wave is shorn for double wool.',
     tip: 'If its mother is taken it runs off alone. Get behind it and walk it home, and it will adopt a new mother.',
     make: (scene) => {
       const mother = new Sheep(scene).setPosition(-0.9, 0, -0.6);
@@ -46,7 +46,7 @@ export const ENTRIES = [
     side: 'flock',
     name: 'Old Ram',
     text: 'Big, calm and stubborn. Ignores the dog, barely panics, and the sheep around him stay calmer.',
-    tip: 'Wolves need twice as long to take him. Losing him makes the flock jumpier.',
+    tip: 'Wolves need twice as long to take him, and he is shorn for 3 wool. Losing him makes the flock jumpier.',
     make: (scene) => [new Sheep(scene, 'ram')],
   },
   {
@@ -54,7 +54,7 @@ export const ENTRIES = [
     side: 'flock',
     name: 'Golden Fleece',
     text: 'A rare sheep with a shining coat. Every wolf in the meadow wants it.',
-    tip: 'Worth 100 wool at the end of each wave it survives.',
+    tip: 'Shorn for 10 wool at the end of each wave it survives.',
     make: (scene) => [new Sheep(scene, 'golden')],
   },
   {
@@ -86,7 +86,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Wolf',
     text: 'Prowls the tree line, then goes for the sheep at the edge of the flock.',
-    tip: 'Get close and it runs. 15 wool.',
+    tip: 'Get close and it runs. ★ 15.',
     make: (scene) => [new Wolf(scene)],
   },
   {
@@ -106,7 +106,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Runner',
     text: 'Small and very fast. It barely stalks and goes straight for the nearest sheep.',
-    tip: 'It gives up if the dog gets close to its target, but it comes back quickly. 20 wool.',
+    tip: 'It gives up if the dog gets close to its target, but it comes back quickly. ★ 20.',
     make: (scene) => [new Wolf(scene, 'runner')],
   },
   {
@@ -114,7 +114,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Howler',
     text: 'Never attacks. It sits just inside the tree line and howls, and the flock panics and scatters.',
-    tip: 'Chase it off before the other wolves take advantage. 20 wool.',
+    tip: 'Chase it off before the other wolves take advantage. ★ 20.',
     make: (scene) => {
       const w = new Wolf(scene, 'howler');
       w.howling = 1;
@@ -126,7 +126,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Sneaky Wolf',
     text: 'Silent and low to the ground. No arrow warns you until it is close to the flock.',
-    tip: 'It circles round to the side of the flock away from the dog. Watch your blind spot. 25 wool.',
+    tip: 'It circles round to the side of the flock away from the dog. Watch your blind spot. ★ 25.',
     make: (scene) => [new Wolf(scene, 'sneaky')],
   },
   {
@@ -134,7 +134,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Brute',
     text: 'Big, slow and scarred. One bark is not enough to scare it.',
-    tip: "Stay next to it until its fear meter fills. It can't finish a grab while you do. 40 wool.",
+    tip: "Stay next to it until its fear meter fills. It can't finish a grab while you do. ★ 40.",
     make: (scene) => [new Wolf(scene, 'brute')],
   },
   {
@@ -142,7 +142,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Trickster',
     text: 'A fox-like wolf that feints: it charges one side of the flock, then switches to the far side once the dog commits.',
-    tip: "Don't over-commit. Wait until it is really going in. 30 wool.",
+    tip: "Don't over-commit. Wait until it is really going in. ★ 30.",
     make: (scene) => [new Wolf(scene, 'trickster')],
   },
   {
@@ -150,7 +150,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Alpha',
     text: 'Leads the pack. While it is around the others attack sooner, and its howl sends them in together.',
-    tip: 'Scare it and every wolf inside its ring runs too. 50 wool.',
+    tip: 'Scare it and every wolf inside its ring runs too. ★ 50.',
     make: (scene) => [new Wolf(scene, 'alpha')],
   },
   {
@@ -158,7 +158,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: "Wolf in Sheep's Clothing",
     text: 'Hides in the flock looking like a sheep, then throws off the fleece and grabs the nearest one.',
-    tip: 'Look for the grey tail, grey legs and flat walk. Run the dog next to it to expose it early. 40 wool.',
+    tip: 'Look for the grey tail, grey legs and flat walk. Run the dog next to it to expose it early. ★ 40.',
     make: (scene) => [new Sheep(scene, 'disguised')],
   },
 ];

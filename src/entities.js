@@ -166,6 +166,8 @@ export class Sheep extends Animal {
     this.asleep = kind === 'sleepy';
     this.sleepPose = this.asleep ? 1 : 0;
     this.wakeTimer = 0;
+    this.stress = 0; // seconds spent panicking this wave
+    this.wasGrabbed = false; // this wave
     this.regroup = 0; // seconds left being called by a bellwether
     this.regroupTo = null;
     this.bellSwing = 0;

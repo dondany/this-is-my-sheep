@@ -38,9 +38,13 @@
         <div class="hud-label">Wave <span id="hud-wave" class="hud-value">01</span></div>
         <div class="meter"><div id="hud-timer-bar" class="meter-fill timer"></div></div>
       </div>
-      <div class="hud-wool">
+      <div class="hud-wool" title="Wool: sheared from the flock after each wave, spent on upgrades">
         <span class="hud-icon">🧶</span>
         <span id="hud-wool" class="hud-value">0</span>
+      </div>
+      <div class="hud-score" title="Score">
+        <span class="hud-icon hud-star">★</span>
+        <span id="hud-score" class="hud-value">0</span>
       </div>
     </div>
     <div id="hud-combo" class="hud-combo hidden">
@@ -84,7 +88,8 @@
   <section id="screen-wave" class="screen hidden">
     <div class="panel panel-shop">
       <h2 id="wave-title">Wave 1 complete!</h2>
-      <p class="wave-summary"><span id="wave-sheep" class="big-stat">🐑 10 / 10</span> <span id="wave-reward" class="reward">+50 wool</span></p>
+      <p class="wave-summary"><span id="wave-sheep" class="big-stat">🐑 10 / 10</span> <span id="wave-score" class="reward">★ +0</span></p>
+      <ul id="wave-breakdown" class="breakdown"></ul>
       <div class="shop">
         <div class="shop-head">
           <h3>Spend your wool</h3>
@@ -110,7 +115,8 @@
   <section id="screen-over" class="screen hidden">
     <div class="panel">
       <h2>The wolves got the flock</h2>
-      <p id="over-waves" class="big-stat">You survived 3 waves</p>
+      <p id="over-score" class="big-stat">★ 0</p>
+      <p id="over-waves" class="reward">You survived 3 waves</p>
       <p id="over-stats" class="small"></p>
       <button class="btn" data-action="retry">Try again</button>
       <button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button>

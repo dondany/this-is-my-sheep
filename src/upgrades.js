@@ -3,34 +3,34 @@
 
 export const UPGRADES = [
   // --- Dog
-  { id: 'swift', group: 'dog', icon: '⚡', name: 'Swift Paws', text: 'The dog runs and turns 10% faster.', max: 5, cost: 150 },
-  { id: 'loud', group: 'dog', icon: '📣', name: 'Loud Bark', text: 'Scares wolves from 12% further away.', max: 5, cost: 165 },
-  { id: 'scary', group: 'dog', icon: '😱', name: 'Scary Bark', text: 'Scared wolves run 20% longer before coming back.', max: 3, cost: 135 },
-  { id: 'brave', group: 'dog', icon: '🦴', name: 'Brave Heart', text: 'Brutes give up 25% sooner.', max: 3, cost: 180 },
-  { id: 'lungs', group: 'dog', icon: '🌬️', name: 'Deep Lungs', text: 'The Big Bark recharges 20% faster.', max: 3, cost: 150 },
-  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', text: 'A young dog joins you and guards the flock on its own.', max: 1, cost: 525, rare: true },
+  { id: 'swift', group: 'dog', icon: '⚡', name: 'Swift Paws', text: 'The dog runs and turns 10% faster.', max: 5, cost: 4 },
+  { id: 'loud', group: 'dog', icon: '📣', name: 'Loud Bark', text: 'Scares wolves from 12% further away.', max: 5, cost: 4 },
+  { id: 'scary', group: 'dog', icon: '😱', name: 'Scary Bark', text: 'Scared wolves run 20% longer before coming back.', max: 3, cost: 3 },
+  { id: 'brave', group: 'dog', icon: '🦴', name: 'Brave Heart', text: 'Brutes give up 25% sooner.', max: 3, cost: 4 },
+  { id: 'lungs', group: 'dog', icon: '🌬️', name: 'Deep Lungs', text: 'The Big Bark recharges 20% faster.', max: 3, cost: 4 },
+  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', text: 'A young dog joins you and guards the flock on its own.', max: 1, cost: 15, rare: true },
   // --- Shepherd
-  { id: 'calm', group: 'shepherd', icon: '🎶', name: 'Calming Song', text: 'Sheep panic 15% less around wolves.', max: 3, cost: 150 },
-  { id: 'herding', group: 'shepherd', icon: '🪄', name: 'Herding Instinct', text: 'The flock sticks together 20% more tightly.', max: 3, cost: 135 },
-  { id: 'whistle', group: 'shepherd', icon: '📯', name: "Shepherd's Whistle", text: 'The shepherd whistles the whole flock back to him every 20 s (5 s sooner per level).', max: 3, cost: 330, rare: true },
-  { id: 'scarecrow', group: 'shepherd', icon: '🌾', name: 'Scarecrow', text: 'Place a scarecrow that scares off ordinary wolves (not brutes) that come close.', max: 2, cost: 300, rare: true },
+  { id: 'calm', group: 'shepherd', icon: '🎶', name: 'Calming Song', text: 'Sheep panic 15% less around wolves.', max: 3, cost: 3 },
+  { id: 'herding', group: 'shepherd', icon: '🪄', name: 'Herding Instinct', text: 'The flock sticks together 20% more tightly.', max: 3, cost: 3 },
+  { id: 'whistle', group: 'shepherd', icon: '📯', name: "Shepherd's Whistle", text: 'The shepherd whistles the whole flock back to him every 20 s (5 s sooner per level).', max: 3, cost: 10, rare: true },
+  { id: 'scarecrow', group: 'shepherd', icon: '🌾', name: 'Scarecrow', text: 'Place a scarecrow that scares off ordinary wolves (not brutes) that come close.', max: 2, cost: 10, rare: true },
   // --- Flock
-  { id: 'fleece', group: 'flock', icon: '🧶', name: 'Thick Fleece', text: 'Wolves need 20% longer to take a sheep.', max: 5, cost: 150 },
-  { id: 'more', group: 'flock', icon: '🐑', name: 'Bigger Flock', text: '+2 sheep join every wave.', max: 3, cost: 120 },
-  { id: 'lambing', group: 'flock', icon: '🍼', name: 'Lambing Season', text: '+1 lamb every wave (they pay double).', max: 2, cost: 135 },
+  { id: 'fleece', group: 'flock', icon: '🧶', name: 'Thick Fleece', text: 'Wolves need 20% longer to take a sheep.', max: 5, cost: 4 },
+  { id: 'more', group: 'flock', icon: '🐑', name: 'Bigger Flock', text: '+2 sheep join every wave.', max: 3, cost: 3 },
+  { id: 'lambing', group: 'flock', icon: '🍼', name: 'Lambing Season', text: '+1 lamb every wave (they pay double).', max: 2, cost: 3 },
 ];
 
 export const UPGRADE = Object.fromEntries(UPGRADES.map((u) => [u.id, u]));
 
 export const SHOP = {
   cards: 3,
-  levelCostGrowth: 1, // each level costs the base price more than the last
-  reroll: 25, // first reroll of a wave; each further reroll costs this much more
+  levelCostGrowth: 1, // level n costs base × (n + 1)
+  reroll: 1, // first reroll of a wave; each further reroll costs this much more
   rareWeight: 0.35, // how often rare cards come up relative to common ones
 };
 
 export function cost(upgrade, level) {
-  return Math.round((upgrade.cost * (1 + SHOP.levelCostGrowth * level)) / 5) * 5;
+  return Math.round(upgrade.cost * (1 + SHOP.levelCostGrowth * level));
 }
 
 export function modifiers(levels) {

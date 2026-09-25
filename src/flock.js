@@ -434,6 +434,7 @@ export function updateFlock(sheep, ctx, dt) {
 
     const wasCalm = s.fear < 0.5;
     s.fear = Math.min(1, Math.max(fear, s.fear - dt * SHEEP.calmRate));
+    if (s.fear > 0.5) s.stress += dt; // too much panic costs the calm bonus at shearing time
     if (wasCalm && s.fear >= 0.5) ctx.onSheepPanic?.(s);
 
     const calmMax = walkSpeed * 1.6;

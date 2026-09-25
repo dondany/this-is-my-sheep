@@ -82,6 +82,16 @@ export const DOG = {
   fleeTime: 2.2, // how long scared wolves keep running ("bark power")
 };
 
+// Shearing Day: wool comes from the flock. At the end of each wave every surviving sheep is sheared
+// for its type's `wool`, plus a calm bonus; scaring wolves only earns score.
+export const SHEARING = {
+  calmBonus: 0.5, // extra wool per calm sheep (never grabbed, never panicked for long), rounded down
+  calmStress: 2, // seconds of panic a sheep can take and still count as calm
+  perfect: 2, // bonus when no sheep was lost
+  interestPer: 5, // +1 wool for every this much left unspent at the end of a wave...
+  interestMax: 3, // ...up to this much
+};
+
 // Shared flocking constants; per-type values live in SHEEP_TYPES.
 // The dog's special move: right-click, Space, or the HUD button.
 export const BIG_BARK = {
@@ -123,7 +133,7 @@ export const SHEEP_TYPES = {
     attractRadius: 0,
     attract: 0,
     lure: 0, // how much more wolves want it
-    wool: 1, // survivor reward multiplier at the end of a wave
+    wool: 1, // sheared at the end of each wave it survives
   },
   // Curious and easily distracted: drifts off, but a quick pass by the dog sends it home.
   wanderer: {
@@ -163,7 +173,7 @@ export const SHEEP_TYPES = {
     attractRadius: 7,
     attract: 0.6,
     lure: 0,
-    wool: 1,
+    wool: 3,
   },
   // Starts stampedes (see BLACK); otherwise a regular sheep.
   black: {
@@ -225,11 +235,11 @@ Object.assign(SHEEP_TYPES, {
   // Dozes on the spot: won't wander off, but won't flee from wolves either.
   sleepy: { ...SHEEP_TYPES.normal, fidget: 0.4, lure: 2 },
   // Rare. Every wolf wants it; worth a fortune if it survives the wave.
-  golden: { ...SHEEP_TYPES.normal, lure: 8, wool: 50 }, // 50 × 2 survivor wool = 100
+  golden: { ...SHEEP_TYPES.normal, lure: 8, wool: 10 },
   // Rings its bell to regroup the sheep around it.
-  bellwether: { ...SHEEP_TYPES.normal, scale: 1.2, cohesion: 0.45, radiusScale: 0.8, panic: 0.8 },
+  bellwether: { ...SHEEP_TYPES.normal, scale: 1.2, cohesion: 0.45, radiusScale: 0.8, panic: 0.8, wool: 2 },
   // A wolf in a sheepskin. Not a real sheep: wolves ignore it and it doesn't count.
-  disguised: { ...SHEEP_TYPES.normal, fake: true, fidget: 0.6 },
+  disguised: { ...SHEEP_TYPES.normal, fake: true, fidget: 0.6, wool: 0 },
 });
 
 export const SLEEPY = {

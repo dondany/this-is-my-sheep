@@ -139,6 +139,12 @@ export class Juice {
     this.sfx.bigBark();
   }
 
+  // Shearing Day: a tuft of wool flies off every surviving sheep.
+  shearing(flock, shepherd, reward) {
+    for (const s of flock) this.particles.puff(tmp.copy(s.position).setY(1.2), 3);
+    this.floatText(`🧶 +${reward}`, { follow: shepherd, offsetY: 4.5, cls: 'big', duration: 2.2 });
+  }
+
   combo(dog, count, bonus) {
     this.floatText(`COMBO ×${count}! +${bonus}`, { follow: dog, offsetY: 3.9, cls: 'combo', duration: 1.2, size: Math.min(22 + count * 4, 44) });
     this.particles.sparkle(tmp.copy(dog.position).setY(1.5), 4 + count * 2, [0xfff3b0, COLORS.accent, 0xffffff]);

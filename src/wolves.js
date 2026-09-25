@@ -403,6 +403,7 @@ export function updateWolves(wolves, ctx, dt) {
           w.state = 'ATTACK';
           w.stateTimer = WOLF.grabTime * T.grabTime * s.type.grabTime * ctx.mods.grab;
           s.grabbedBy = w;
+          s.wasGrabbed = true;
           ctx.onSheepGrabbed(s, w);
         } else if (td > WOLF.chaseDistance * 1.8) {
           w.state = 'APPROACH';

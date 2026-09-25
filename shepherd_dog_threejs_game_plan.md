@@ -2026,7 +2026,7 @@ end-of-wave screen.
     scared by it ("BOO!", "SCARED OFF! +15"). Brutes ignore it. Sheep
     walk around it. Scarecrows last for the rest of the run.
 
-## Economy
+## Economy (superseded by section 65)
 
 -   Base prices 120-180 wool for common cards, 300-525 for rare ones;
     level n costs base × (1 + n).
@@ -2075,4 +2075,27 @@ The dog's one active ability, for when a pack converges.
     when ready and shakes if pressed too early. The Deep Lungs upgrade
     makes it recharge 20% faster per level (max 3).
 -   Tuning: `BIG_BARK` in `src/config.js`.
+
+------------------------------------------------------------------------
+
+# 65. Shearing Day Economy (implemented)
+
+Replaces the first upgrade economy, where scaring wolves paid wool and
+a strong player could farm it (wolves come back after every scare).
+Inspired by Balatro / TFT (small numbers, interest) and arcade games
+that keep score and money separate.
+
+-   **Score** (★) comes from everything that used to pay wool: wolf
+    scares (★ 5-50 by type), rescues (★ 25), combos (+10 per step,
+    capped at +90), stampede head-offs, pup-pack bonuses. Best score is
+    saved.
+-   **Wool** comes only from shearing the survivors at the end of a
+    wave: `wool` per sheep type (1 normal; 2 lamb and bellwether; 3 old
+    ram; 10 golden fleece), plus +1 per 2 calm sheep (never grabbed,
+    under 2 s of panic this wave), +2 for a perfect flock, and interest
+    of +1 per 5 unspent wool (max +3).
+-   Prices are small: common upgrades 3-4 wool base, rare 10-15, level
+    n costs base × (n + 1); rerolls cost 1 (+1 each).
+-   Bot numbers: 17 wool after wave 1, ~60 by wave 5, ~110 per wave
+    once the flock hits its cap of 80.
 

@@ -1110,3 +1110,46 @@ h2 {
     display: none;
   }
 }
+
+/* --- Score and shearing breakdown ------------------------------------------ */
+
+.hud-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-star {
+  color: #e5a33b;
+  text-shadow: 0 2px 0 var(--ink);
+}
+
+.breakdown {
+  margin: 0 auto 12px;
+  padding: 8px 14px;
+  max-width: 380px;
+  list-style: none;
+  background: var(--paper-2);
+  border-radius: 14px;
+  font-size: 15px;
+}
+
+.breakdown li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 0;
+}
+
+.breakdown li span:last-child {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.breakdown .total {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 2px dashed rgba(74, 52, 38, 0.25);
+  font-size: 17px;
+  font-weight: 700;
+}

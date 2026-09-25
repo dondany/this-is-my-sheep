@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { DOG, SHEEP, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, waveConfig } from './config.js';
+import { DOG, SHEEP, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -22,7 +22,9 @@ export const STATE = {
   GAME_OVER: 'GAME_OVER',
 };
 
-const POINTS = { save: 25, survivor: 2, perfect: 50 }; // scaring a wolf pays WOLF_TYPES[kind].points
+// Score is for bragging; wool (from shearing, see SHEARING) is what you spend.
+// Scaring a wolf scores WOLF_TYPES[kind].points.
+const SCORE = { save: 25, comboStep: 10, comboMaxSteps: 9 }; // combo bonus tops out at +90
 const ZOOM = { min: 0.7, max: 1.5 }; // multiplier on the default camera distance
 
 // Game feel: a tiny freeze when a wolf is scared, slow motion for a last-second rescue,
@@ -35,14 +37,13 @@ const FEEL = {
   slowmoScale: 0.25,
   punch: 0.1, // camera push-in on a close call (fraction of the distance)
   comboWindow: 2.5, // seconds to land the next scare
-  comboBonus: 5, // extra wool per combo step
-  comboMaxSteps: 6, // the bonus stops growing at ×7 (the chain can keep counting)
 };
 const BEST_KEY = 'this-is-my-sheep.best';
+const BEST_SCORE_KEY = 'this-is-my-sheep.bestScore';
 
-function readBest() {
+function readNumber(key) {
   try {
-    return Number(localStorage.getItem(BEST_KEY)) || 0;
+    return Number(localStorage.getItem(key)) || 0;
   } catch {
     return 0;
   }
@@ -76,7 +77,9 @@ export class Game {
     this.time = 0;
     this.wave = 0;
     this.wool = 0;
-    this.best = readBest();
+    this.score = 0;
+    this.best = readNumber(BEST_KEY);
+    this.bestScore = readNumber(BEST_SCORE_KEY);
     this.cfg = null;
     this.center = new THREE.Vector3();
     this.cameraFocus = new THREE.Vector3();
@@ -115,7 +118,7 @@ export class Game {
       onStampedeWarning: (s) => this.juice.stampedeWarning(s),
       onStampede: (s) => this.juice.stampede(s),
       onStampedeStopped: (s) => {
-        this.addWool(BLACK.points);
+        this.addScore(BLACK.points);
         this.juice.stampedeStopped(s, BLACK.points);
       },
       onSheepWoke: (s) => this.juice.sheepWoke(s),
@@ -131,7 +134,7 @@ export class Game {
       onFeint: (w) => this.juice.feint(w),
       onPupsSplit: (w) => this.juice.pupsSplit(w),
       onPupCombo: (w) => {
-        this.addWool(PUPS.comboPoints);
+        this.addScore(PUPS.comboPoints);
         this.juice.pupCombo(w, PUPS.comboPoints);
       },
       onAlphaCall: (w) => this.juice.alphaCall(w),
@@ -159,7 +162,7 @@ export class Game {
 
     this.bindUI();
     this.spawnSheep(['ram', 'black', 'bellwether', 'wanderer', 'sleepy', 'lamb', ...Array(7).fill('normal')], false);
-    this.ui.setBest(this.best);
+    this.ui.setBest(this.best, this.bestScore);
     this.ui.setMuted(this.sfx.muted);
     this.ui.show('menu');
 
@@ -241,7 +244,7 @@ export class Game {
     const panelDue = this.panelTimer <= 0;
     this.ui.show({ [STATE.MENU]: 'menu', [STATE.PAUSED]: 'pause' }[this.state] ?? null);
     if (panelDue && this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ wave: this.wave, best: this.best, wool: this.wool });
+    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ wave: this.wave, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore });
   }
 
   // Unlock anything on the field that hasn't been seen before (sneaky wolves once they show up,
@@ -362,6 +365,7 @@ export class Game {
     this.dog.hasTarget = false;
     this.wave = 0;
     this.wool = 0;
+    this.score = 0;
     this.levels = {};
     this.bigBarkTimer = 0;
     this.helper?.destroy();
@@ -397,6 +401,11 @@ export class Game {
     }
 
     this.waveStartSheep = this.flockSize();
+    this.waveStartScore = this.score;
+    for (const s of this.sheep) {
+      s.stress = 0;
+      s.wasGrabbed = false;
+    }
     this.waveTime = 0;
     this.wolvesSpawned = 0;
     this.nextWolfAt = 2;
@@ -428,23 +437,42 @@ export class Game {
       w.howling = 0;
       if (w.state !== 'FLEE') w.state = 'LEAVE';
     }
-    const survived = this.flockSize();
-    const perfect = survived === this.waveStartSheep;
-    const survivorWool = this.sheep.reduce((sum, s) => sum + (s.type.fake ? 0 : s.type.wool), 0) * POINTS.survivor;
-    const reward = survivorWool + (perfect ? POINTS.perfect : 0);
+    // Shearing Day: every surviving sheep pays its wool, calm ones a little extra.
+    const flock = this.sheep.filter((s) => !s.type.fake);
+    const sheared = flock.reduce((sum, s) => sum + s.type.wool, 0);
+    const calm = Math.floor(flock.filter((s) => !s.wasGrabbed && s.stress < SHEARING.calmStress).length * SHEARING.calmBonus);
+    const perfect = flock.length === this.waveStartSheep ? SHEARING.perfect : 0;
+    const interest = Math.min(Math.floor(this.wool / SHEARING.interestPer), SHEARING.interestMax);
+    const reward = sheared + calm + perfect + interest;
     this.wool += reward;
     this.juice.waveComplete(this.center);
+    this.juice.shearing(flock, this.shepherd, reward);
     this.shepherd.play('clap', 2);
     this.panelTimer = 1.8;
-    this.pendingPanel = { wave: this.wave, survived, total: this.waveStartSheep, reward, perfect };
+    this.pendingPanel = {
+      wave: this.wave,
+      survived: flock.length,
+      total: this.waveStartSheep,
+      lines: [
+        [`Shearing: ${flock.length} sheep`, sheared],
+        ['Calm sheep bonus', calm],
+        ['Perfect flock', perfect],
+        [`Interest (1 per ${SHEARING.interestPer} saved)`, interest],
+      ],
+      reward,
+      score: this.score - this.waveStartScore,
+    };
     this.openShop();
   }
 
   gameOver() {
     this.setState(STATE.GAME_OVER);
     this.best = Math.max(this.best, this.wave - 1);
+    this.newBestScore = this.score > this.bestScore;
+    this.bestScore = Math.max(this.bestScore, this.score);
     try {
       localStorage.setItem(BEST_KEY, String(this.best));
+      localStorage.setItem(BEST_SCORE_KEY, String(this.bestScore));
     } catch {}
     this.sfx.gameOver();
     this.panelTimer = 1.5;
@@ -459,7 +487,7 @@ export class Game {
     if (this.sheep.length < 8) this.spawnSheep(Array(12 - this.sheep.length).fill('normal'), false);
     for (const s of this.sheep) s.grabbedBy = null;
     this.ui.setHudVisible(false);
-    this.ui.setBest(this.best);
+    this.ui.setBest(this.best, this.bestScore);
     this.ui.show('menu');
     this.setState(STATE.MENU);
     this.sfx.suspend(false);
@@ -577,6 +605,10 @@ export class Game {
     this.wool += amount;
   }
 
+  addScore(amount) {
+    this.score += amount;
+  }
+
   onWolfCharge(wolf) {
     this.juice.wolfCharge(wolf);
     if (wolf.position.distanceTo(this.shepherd.position) < 18 && this.shepherd.action !== 'point') {
@@ -590,7 +622,7 @@ export class Game {
       this.juice.scarecrowScare(by);
     } else if (by?.bark()) this.juice.bark(by);
     const points = threatening && this.state === STATE.PLAYING ? wolf.type.points : 0;
-    this.addWool(points);
+    this.addScore(points);
     if (points) {
       this.freeze(FEEL.hitstop);
       this.addCombo(wolf);
@@ -600,8 +632,8 @@ export class Game {
   }
 
   onSheepSaved(sheep, wolf) {
-    this.addWool(POINTS.save);
-    this.juice.sheepSaved(sheep, POINTS.save);
+    this.addScore(SCORE.save);
+    this.juice.sheepSaved(sheep, SCORE.save);
     // Saved in the nick of time: slow motion and a little camera push.
     if (wolf?.stateTimer < FEEL.closeCall && this.state === STATE.PLAYING) {
       this.slowmo = FEEL.slowmo;
@@ -645,8 +677,8 @@ export class Game {
     c.count = c.timer > 0 ? c.count + 1 : 1;
     c.timer = FEEL.comboWindow;
     if (c.count < 2) return;
-    const bonus = FEEL.comboBonus * Math.min(c.count - 1, FEEL.comboMaxSteps);
-    this.addWool(bonus);
+    const bonus = SCORE.comboStep * Math.min(c.count - 1, SCORE.comboMaxSteps);
+    this.addScore(bonus);
     this.juice.combo(this.dog, c.count, bonus);
   }
 
@@ -717,7 +749,7 @@ export class Game {
           this.panelTimer -= dt;
           if (this.panelTimer <= 0 && this.bestiaryReturn === undefined) {
             if (this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-            else this.ui.showGameOver({ wave: this.wave, best: this.best, wool: this.wool });
+            else this.ui.showGameOver({ wave: this.wave, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore });
           }
         }
         break;
@@ -742,6 +774,7 @@ export class Game {
         wave: this.wave,
         timeLeft: this.cfg ? Math.max(0, 1 - this.waveTime / this.cfg.duration) : 1,
         wool: this.wool,
+        score: this.score,
       });
     }
   }

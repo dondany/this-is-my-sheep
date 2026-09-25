@@ -14,9 +14,9 @@ meadow, and cosmetic unlocks (dog hats, other breeds) bought with lifetime wool.
 - Waves 10+ get very hard very fast (brutes, sneaky wolves and the alpha together). Upgrades and
   the Big Bark now carry a good player through (a bot that buys everything keeps ~95% of the flock
   to wave 10). Needs checking with real players: it may now be too easy for skilled ones.
-- Late-wave wool income is high (a perfect bot earns ~4,000 a wave by wave 10 and can max every
-  upgrade, ~16,000 wool in total). Wolves keep returning after a scare, so each one can be scored
-  many times. Options: fewer points for re-scaring the same wolf, or a wool cap per wave.
+- Economy: wool now only comes from shearing (see the README). Late waves still pay ~110 wool per
+  wave once the flock is at its cap of 80, which is more than the shop can absorb; watch this in
+  real play.
 - Wanderers, black sheep and golden fleeces are usually lost within a wave or two when nobody herds
   them. That may be fine; worth watching in real play.
 

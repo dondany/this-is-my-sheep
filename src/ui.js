@@ -20,6 +20,7 @@ export class UI {
       wave: $('hud-wave'),
       timerBar: $('hud-timer-bar'),
       wool: $('hud-wool'),
+      score: $('hud-score'),
       mute: $('btn-mute'),
       banner: $('banner'),
       indicatorLayer: $('indicator-layer'),
@@ -50,7 +51,8 @@ export class UI {
     apply(value);
   }
 
-  setHud({ sheep, sheepMax, wave, timeLeft, wool }) {
+  setHud({ sheep, sheepMax, wave, timeLeft, wool, score }) {
+    this.set('score', score, (v) => (this.el.score.textContent = v));
     this.set('sheep', `${sheep} / ${sheepMax}`, (v) => (this.el.sheep.textContent = v));
     this.set('sheepBar', sheepMax ? sheep / sheepMax : 1, (v) => {
       this.el.sheepBar.style.transform = `scaleX(${v})`;
@@ -104,10 +106,23 @@ export class UI {
     el.classList.add('show');
   }
 
-  showWaveComplete({ wave, survived, total, reward, perfect }) {
+  showWaveComplete({ wave, survived, total, lines, reward, score }) {
     $('wave-title').textContent = `Wave ${wave} complete!`;
     $('wave-sheep').textContent = `🐑 ${survived} / ${total}`;
-    $('wave-reward').textContent = `+${reward} wool${perfect ? ' · perfect flock!' : ''}`;
+    $('wave-score').textContent = `★ +${score}`;
+    const rows = lines
+      .filter(([, amount]) => amount > 0)
+      .map(([label, amount]) => {
+        const li = document.createElement('li');
+        li.innerHTML = '<span></span><span></span>';
+        li.firstChild.textContent = label;
+        li.lastChild.textContent = `+${amount}`;
+        return li;
+      });
+    const sum = document.createElement('li');
+    sum.className = 'total';
+    sum.innerHTML = `<span>Wool this wave</span><span>🧶 +${reward}</span>`;
+    $('wave-breakdown').replaceChildren(...rows, sum);
     this.show('wave');
   }
 
@@ -147,9 +162,10 @@ export class UI {
     if (!cards.length) $('shop-cards').textContent = 'Everything is maxed out. Good dog!';
   }
 
-  showGameOver({ wave, best, wool }) {
+  showGameOver({ wave, best, score, bestScore, newBest }) {
+    $('over-score').textContent = `★ ${score}${newBest ? ' · new best!' : ''}`;
     $('over-waves').textContent = wave - 1 === 1 ? 'You survived 1 wave' : `You survived ${wave - 1} waves`;
-    $('over-stats').textContent = `🧶 ${wool} wool · best: wave ${best}`;
+    $('over-stats').textContent = `Best: ★ ${bestScore} · wave ${best}`;
     this.show('over');
   }
 
@@ -220,8 +236,8 @@ export class UI {
     if (text) el.textContent = text;
   }
 
-  setBest(best) {
-    $('menu-best').textContent = best ? `Best: wave ${best}` : '';
+  setBest(best, bestScore) {
+    $('menu-best').textContent = best || bestScore ? `Best: ★ ${bestScore} · wave ${best}` : '';
   }
 
   // Arrows at the screen edge pointing at off-screen wolves.

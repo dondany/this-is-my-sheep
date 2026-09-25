@@ -30,9 +30,9 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🐑 | **Wanderer** (beige fleece) | 2, one per wave | Strays far from the flock (a "?" pops up) and attracts wolves, but notices the dog from twice as far and runs home easily. |
 | 🐑 | **Lamb** (small, big head) | 3, one or two per wave | Follows its mother. Wolves go for lambs first, but each surviving lamb pays double wool. If its mother is taken it bolts off alone ("MAMA?!"): herd it back to the flock and it adopts a new mother (♥). |
 | 🐑 | **Sleepy Sheep** (lies down, eyes shut) | 4, one per wave | Dozes on the spot: never wanders, but never flees from wolves either, and wolves like an easy target. The dog running past wakes it with a start, scattering the sheep around it. It nods off again after 20–30 s. |
-| 🐏 | **Old Ram** (horns) | 5, one per flock | Big, slow, ignores the dog and barely panics. Nearby sheep gather round him and panic less. Wolves need twice as long to take him. If he's lost, a new ram joins next wave. |
-| 🐑 | **Golden Fleece** (gold, sparkles) | 6, then sometimes | Rare. Every wolf prefers it. Worth 100 wool at the end of each wave it survives. |
-| 🐑 | **Black Sheep** (dark fleece) | 7, one per flock | Every 12–18 s it stamps and snorts ("!"), then stampedes away from the flock, dragging up to 3 sheep along. Get the dog close to head it off (+10 wool); otherwise it runs for 6 s or to the edge of the meadow. |
+| 🐏 | **Old Ram** (horns) | 5, one per flock | Big, slow, ignores the dog and barely panics. Nearby sheep gather round him and panic less. Wolves need twice as long to take him, and he's shorn for 3 wool. If he's lost, a new ram joins next wave. |
+| 🐑 | **Golden Fleece** (gold, sparkles) | 6, then sometimes | Rare. Every wolf prefers it. Shorn for 10 wool at the end of each wave it survives. |
+| 🐑 | **Black Sheep** (dark fleece) | 7, one per flock | Every 12–18 s it stamps and snorts ("!"), then stampedes away from the flock, dragging up to 3 sheep along. Get the dog close to head it off (★ +10); otherwise it runs for 6 s or to the edge of the meadow. |
 | 🐑 | **Bellwether** (collar and bell) | 8, one per flock | Rings its bell every 5–7 s and sheep within 10 units regroup around it. If a wolf takes it, the whole flock loses cohesion for the rest of the wave. |
 | 🐐 | **Goat** | 9, one per game | Not a sheep. Ambles wherever it likes and head-butts wolves that come within 7 units ("BONK!"): they're dazed for 1.3 s and drop any sheep they were holding. Wolves ignore it. |
 
@@ -40,15 +40,15 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 
 | | Type | From wave | Behaviour |
 | --- | --- | --- | --- |
-| 🐺 | **Wolf** | 1 | Prowls the tree line, goes for stragglers, flees from one bark. 15 wool. |
-| 🐺 | **Pup Pack** (three tiny wolves) | 2 | Arrive and hunt as a group. Each pup is weak (5 wool, slow to take a sheep), and they split up once the dog has been within 8 units for a moment, so dash through them. Scare all three within 0.6 s for a +30 bonus. They regroup later. |
-| 🐺 | **Runner** (tan, big ears) | 3 | 1.6× faster, barely stalks, goes for the nearest sheep. Scared from further away, gives up a chase if the dog gets near its target, and comes back quickly. 20 wool. |
-| 🐺 | **Howler** (blue-grey) | 4 | Never attacks. Prowls just inside the tree line and every 6–9 s sits back and howls: the whole flock panics and scatters away from it. Chase it off (20 wool). |
-| 🐺 | **Sneaky Wolf** (dark, low to the ground) | 5 | Silent (no howl) and has no off-screen arrow until it's about 15 units from the flock. Circles the tree line to the side of the flock away from the dog before it moves in. 25 wool. |
-| 🐺 | **Brute** (big, black, scarred) | 6 | Slow, and one bark isn't enough: keep the dog next to it for 1.5 s (fear meter over its head) and it flees. While resisting it backs off snarling and can't finish a grab. Shoves sheep aside and takes them faster. 40 wool. |
-| 🦊 | **Trickster** (orange, fox-like) | 7 | Feints: once the dog is running at it, it switches to the sheep furthest from the dog ("HEH!"). Fragile: scared from further away. 30 wool. |
-| 🐺 | **Alpha** (big, pale mane, ring on the ground) | 8, one per wave | While it's around, the other wolves stalk half as long; when it attacks it howls and every prowling wolf attacks with it. Scare it and every wolf inside its ring (10 units) flees too. 50 wool. |
-| 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early (40 wool). |
+| 🐺 | **Wolf** | 1 | Prowls the tree line, goes for stragglers, flees from one bark. ★ 15. |
+| 🐺 | **Pup Pack** (three tiny wolves) | 2 | Arrive and hunt as a group. Each pup is weak (★ 5, slow to take a sheep), and they split up once the dog has been within 8 units for a moment, so dash through them. Scare all three within 0.6 s for a ★ +30 bonus. They regroup later. |
+| 🐺 | **Runner** (tan, big ears) | 3 | 1.6× faster, barely stalks, goes for the nearest sheep. Scared from further away, gives up a chase if the dog gets near its target, and comes back quickly. ★ 20. |
+| 🐺 | **Howler** (blue-grey) | 4 | Never attacks. Prowls just inside the tree line and every 6–9 s sits back and howls: the whole flock panics and scatters away from it. Chase it off (★ 20). |
+| 🐺 | **Sneaky Wolf** (dark, low to the ground) | 5 | Silent (no howl) and has no off-screen arrow until it's about 15 units from the flock. Circles the tree line to the side of the flock away from the dog before it moves in. ★ 25. |
+| 🐺 | **Brute** (big, black, scarred) | 6 | Slow, and one bark isn't enough: keep the dog next to it for 1.5 s (fear meter over its head) and it flees. While resisting it backs off snarling and can't finish a grab. Shoves sheep aside and takes them faster. ★ 40. |
+| 🦊 | **Trickster** (orange, fox-like) | 7 | Feints: once the dog is running at it, it switches to the sheep furthest from the dog ("HEH!"). Fragile: scared from further away. ★ 30. |
+| 🐺 | **Alpha** (big, pale mane, ring on the ground) | 8, one per wave | While it's around, the other wolves stalk half as long; when it attacks it howls and every prowling wolf attacks with it. Scare it and every wolf inside its ring (10 units) flees too. ★ 50. |
+| 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early (★ 40). |
 
 Sheep walk on away from the dog when it comes close, which is what makes herding strays back work.
 Later waves mix several of each (`wolfPack()` in `src/config.js`). The wave banner names the
@@ -60,34 +60,55 @@ newcomers each wave.
   pack scatters).
 - **Close calls:** rescuing a sheep with less than 0.4 s of grab time left triggers 0.6 s of
   slow motion, a camera push-in and "CLOSE ONE!".
-- **Combos:** scares within 2.5 s of each other chain up: "COMBO ×N" grows with the chain, pays
-  +5 wool per step (×2 = +5, ×3 = +10, …, capped at +30 from ×7), plays a rising chime, and a badge under the top bar
-  shows the chain and how long you have to extend it.
+- **Combos:** scares within 2.5 s of each other chain up: "COMBO ×N" grows with the chain, scores
+  +10 per step (×2 = +10, ×3 = +20, …, capped at +90), plays a rising chime, and a badge under
+  the top bar shows the chain and how long you have to extend it.
 
 All the numbers are in `FEEL` at the top of `src/game.js`.
+
+## Economy: Shearing Day
+
+Two separate numbers:
+
+- **★ Score** is for bragging: scaring wolves (★ 5–50 by type), rescues (★ 25), combos, heading off
+  stampedes and so on. Your best score is saved and shown on the menu and game-over screens.
+- **🧶 Wool** is what you spend, and it only comes from the flock. At the end of each wave the
+  shepherd shears every surviving sheep:
+
+| Source | Wool |
+| --- | --- |
+| Sheep, wanderer, sleepy, black sheep | 1 each |
+| Lamb, bellwether | 2 each |
+| Old Ram | 3 |
+| Golden Fleece | 10 |
+| Calm bonus: sheep never grabbed and not panicking for more than 2 s | +1 per 2 calm sheep |
+| Perfect flock (nobody lost) | +2 |
+| Interest: wool you didn't spend | +1 per 5, up to +3 |
+
+The end-of-wave screen breaks the total down. Tuning: `SHEARING` in `src/config.js`.
 
 ## Upgrades
 
 Wool buys upgrades on the end-of-wave screen: three random cards, each with a price; buy any you
-can afford, or reroll the cards (25 wool, +25 per extra reroll that wave). Upgrades have levels,
-each level adds the base price again (base, 2×, 3×…), and everything resets when a run ends.
-Rare cards (gold border) come up about a third as often.
+can afford, or reroll the cards (1 wool, +1 per extra reroll that wave). Level n of an upgrade
+costs its base price × (n + 1), and everything resets when a run ends. Rare cards (gold border)
+come up about a third as often.
 
-| Card | Group | Effect per level | Max |
-| --- | --- | --- | --- |
-| ⚡ Swift Paws | Dog | Dog runs and turns 10% faster | 5 |
-| 📣 Loud Bark | Dog | Threat radius +12% | 5 |
-| 😱 Scary Bark | Dog | Scared wolves run 20% longer | 3 |
-| 🦴 Brave Heart | Dog | Brutes give up 25% sooner | 3 |
-| 🌬️ Deep Lungs | Dog | Big Bark recharges 20% faster | 3 |
-| 🎶 Calming Song | Shepherd | Sheep panic 15% less around wolves | 3 |
-| 🪄 Herding Instinct | Shepherd | Flock cohesion +20% | 3 |
-| 🧶 Thick Fleece | Flock | Wolves need 20% longer to take a sheep | 5 |
-| 🐑 Bigger Flock | Flock | +2 sheep every wave | 3 |
-| 🍼 Lambing Season | Flock | +1 lamb every wave | 2 |
-| 🐕 Second Dog *(rare)* | Dog | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock (80% speed, 70% threat radius) | 1 |
-| 📯 Shepherd's Whistle *(rare)* | Shepherd | Every 20 / 15 / 10 s the shepherd whistles and every sheep heads back to him | 3 |
-| 🌾 Scarecrow *(rare)* | Shepherd | Click the meadow to place it; ordinary wolves within 4.5 units get scared (brutes ignore it). Stays for the rest of the run | 2 |
+| Card | Group | Base price | Effect per level | Max |
+| --- | --- | --- | --- | --- |
+| ⚡ Swift Paws | Dog | 4 | Dog runs and turns 10% faster | 5 |
+| 📣 Loud Bark | Dog | 4 | Threat radius +12% | 5 |
+| 😱 Scary Bark | Dog | 3 | Scared wolves run 20% longer | 3 |
+| 🦴 Brave Heart | Dog | 4 | Brutes give up 25% sooner | 3 |
+| 🌬️ Deep Lungs | Dog | 4 | Big Bark recharges 20% faster | 3 |
+| 🎶 Calming Song | Shepherd | 3 | Sheep panic 15% less around wolves | 3 |
+| 🪄 Herding Instinct | Shepherd | 3 | Flock cohesion +20% | 3 |
+| 🧶 Thick Fleece | Flock | 4 | Wolves need 20% longer to take a sheep | 5 |
+| 🐑 Bigger Flock | Flock | 3 | +2 sheep every wave | 3 |
+| 🍼 Lambing Season | Flock | 3 | +1 lamb every wave | 2 |
+| 🐕 Second Dog *(rare)* | Dog | 15 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock (80% speed, 70% threat radius) | 1 |
+| 📯 Shepherd's Whistle *(rare)* | Shepherd | 10 | Every 20 / 15 / 10 s the shepherd whistles and every sheep heads back to him | 3 |
+| 🌾 Scarecrow *(rare)* | Shepherd | 10 | Click the meadow to place it; ordinary wolves within 4.5 units get scared (brutes ignore it). Stays for the rest of the run | 2 |
 
 Definitions, prices and the card draw live in `src/upgrades.js`; `modifiers()` turns levels into
 the multipliers the game reads (`ctx.mods`).
