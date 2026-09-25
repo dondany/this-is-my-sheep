@@ -296,11 +296,13 @@ export const GOLDEN = {
 
 export const GOAT = {
   walkSpeed: 2,
-  chargeSpeed: 6,
-  sightRadius: 7, // goes for wolves this close
-  buttRadius: 1.6,
-  cooldown: 5,
-  stun: 1.3,
+  chargeSpeed: 8,
+  sightRadius: 10, // goes for wolves this close
+  buttRadius: 1.8,
+  cooldown: 3.5,
+  stun: 2,
+  knockback: 2.5, // a head-butt shoves the wolf this far
+  leash: 11, // wanders at most about this far from the flock
 };
 
 export const DISGUISE = {
@@ -484,7 +486,8 @@ export const FIRST_WAVE = {
   golden: 6, brute: 6,
   black: 7, trickster: 7,
   bellwether: 8, alpha: 8,
-  goat: 9, disguised: 9,
+  disguised: 9,
+  goat: 3, // only ever bought in the shop (livestock card), from this wave on
 };
 
 // Which wolves make up a wave's pack ('pups' is a group of three pups taking one slot).
@@ -527,7 +530,6 @@ export function waveConfig(wave) {
     ram: wave >= FIRST_WAVE.ram ? 1 : 0,
     black: wave < FIRST_WAVE.black ? 0 : wave < 10 ? 1 : 2,
     bellwether: wave >= FIRST_WAVE.bellwether ? 1 : 0,
-    goat: wave >= FIRST_WAVE.goat, // one per game
     disguised: wave >= FIRST_WAVE.disguised ? 1 : 0,
     wolves: Math.min(1 + wave, 15),
     duration: Math.min(40 + wave * 5, 90),

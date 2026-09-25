@@ -153,9 +153,9 @@ export function updateGoat(g, ctx, dt) {
     const cx = center.x - g.position.x;
     const cz = center.z - g.position.z;
     const cd = Math.hypot(cx, cz);
-    if (cd > 16) {
-      dx += (cx / cd) * (cd - 16) * 0.3;
-      dz += (cz / cd) * (cd - 16) * 0.3;
+    if (cd > GOAT.leash) {
+      dx += (cx / cd) * (cd - GOAT.leash) * 0.4;
+      dz += (cz / cd) * (cd - GOAT.leash) * 0.4;
     }
   }
   const r = Math.hypot(g.position.x, g.position.z);

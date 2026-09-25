@@ -69,7 +69,7 @@ export class Game {
     this.shepherd = new Shepherd(scene);
     this.dog = new Dog(scene).setPosition(0, 0, 7);
     this.dog.onArrive = (p) => this.juice.dogArrival(p);
-    this.sheep = []; // includes any wolf in sheep's clothing; see flockSize()
+    this.sheep = []; // includes any wolf in sheep's clothing; see sheepCount() / flockSize()
     this.wolves = [];
     this.goat = null;
 
@@ -132,6 +132,12 @@ export class Game {
       onBell: (s) => this.juice.bell(s),
       onGoatButt: (g, w) => {
         stunWolf(w, this.ctx, GOAT.stun);
+        // Knock the wolf back, away from the goat.
+        const kx = w.position.x - g.position.x;
+        const kz = w.position.z - g.position.z;
+        const kd = Math.hypot(kx, kz) || 1;
+        w.position.x += (kx / kd) * GOAT.knockback;
+        w.position.z += (kz / kd) * GOAT.knockback;
         this.juice.goatButt(g, w);
       },
       onHowlStart: (w) => this.juice.howlStart(w),
@@ -223,7 +229,12 @@ export class Game {
   }
 
   // Real sheep only: a wolf in sheep's clothing doesn't count.
+  // The flock counter: real sheep plus the goat, if you bought one.
   flockSize() {
+    return this.sheepCount() + (this.goat ? 1 : 0);
+  }
+
+  sheepCount() {
     let n = 0;
     for (const s of this.sheep) if (!s.type.fake) n++;
     return n;
@@ -352,7 +363,7 @@ export class Game {
   // Animals that have turned up this run (a lamb always), and only one of each unique kind.
   canBuyAnimal(kind) {
     if (kind !== 'lamb' && this.wave < FIRST_WAVE[kind]) return false;
-    if (kind !== 'goat' && this.flockSize() + this.pendingAnimals.length >= SHEEP.cap) return false;
+    if (this.flockSize() + this.pendingAnimals.length >= SHEEP.cap) return false;
     return !(ANIMAL[kind].unique && this.ownedAnimals(kind) > 0);
   }
 
@@ -470,7 +481,11 @@ export class Game {
     // Livestock bought in the shop comes first: it's paid for.
     const bought = this.pendingAnimals.splice(0);
     this.spawnSheep(bought.filter((k) => k !== 'goat'), true);
-    if (bought.includes('goat') && !this.goat) cfg.goat = true;
+    if (bought.includes('goat') && !this.goat) {
+      this.goat = new Goat(this.world.scene).setPosition(this.center.x + 4, 0, this.center.z - 3);
+      this.goat.appear?.();
+      this.juice.newSheep(this.goat);
+    }
 
     // Then special sheep, then plain ones, up to the flock cap.
     const count = (kind) => this.sheep.filter((s) => s.kind === kind).length;
@@ -484,10 +499,6 @@ export class Game {
     for (let i = 0; i < cfg.newSheep + (this.wave > 1 ? mods.extraSheep : 0); i++) kinds.push('normal');
     this.spawnSheep(kinds.slice(0, Math.max(0, SHEEP.cap - this.flockSize())), this.wave > 1);
     for (let i = 0; i < cfg.disguised; i++) this.spawnDisguise();
-    if (cfg.goat && !this.goat) {
-      this.goat = new Goat(this.world.scene).setPosition(this.center.x + 6, 0, this.center.z - 4);
-      this.juice.newSheep(this.goat);
-    }
 
     this.waveStartSheep = this.flockSize();
     this.waveStartScore = this.score;
@@ -504,7 +515,7 @@ export class Game {
 
     // Announce the kinds that first turn up this wave (the disguise stays a surprise).
     const newcomers = Object.keys(FIRST_WAVE)
-      .filter((k) => FIRST_WAVE[k] === this.wave && k !== 'disguised')
+      .filter((k) => FIRST_WAVE[k] === this.wave && k !== 'disguised' && k !== 'goat')
       .map((k) => ENTRY[k === 'pups' ? 'pup' : k].name);
     const sub =
       this.wave === 1
@@ -532,7 +543,7 @@ export class Game {
     const flock = this.sheep.filter((s) => !s.type.fake);
     const sheared = Math.floor(flock.reduce((sum, s) => sum + s.type.wool, 0) * this.ctx.mods.shears);
     const calm = Math.floor(flock.filter((s) => !s.wasGrabbed && s.stress < SHEARING.calmStress).length * SHEARING.calmBonus);
-    const perfect = flock.length === this.waveStartSheep ? SHEARING.perfect : 0;
+    const perfect = this.flockSize() === this.waveStartSheep ? SHEARING.perfect : 0;
     const interest = Math.min(Math.floor(this.wool / SHEARING.interestPer), SHEARING.interestMax + this.ctx.mods.interest);
     const reward = sheared + calm + perfect + interest;
     this.wool += reward;
@@ -542,7 +553,7 @@ export class Game {
     this.panelTimer = 1.8;
     this.pendingPanel = {
       wave: this.wave,
-      survived: flock.length,
+      survived: this.flockSize(),
       total: this.waveStartSheep,
       lines: [
         [`Shearing: ${flock.length} sheep`, sheared],
@@ -821,7 +832,8 @@ export class Game {
       this.ctx.cohesionScale = BELL.lostCohesion;
       this.juice.bellwetherLost(sheep.position);
     }
-    if (this.flockSize() === 0 && this.state === STATE.PLAYING) this.gameOver();
+    // The goat can't keep the flock going on its own.
+    if (this.sheepCount() === 0 && this.state === STATE.PLAYING) this.gameOver();
   }
 
   zoomBy(factor) {

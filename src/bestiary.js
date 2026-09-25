@@ -77,8 +77,8 @@ export const ENTRIES = [
     id: 'goat',
     side: 'flock',
     name: 'Goat',
-    text: 'Not a sheep, and it knows it. Goes wherever it likes.',
-    tip: 'Head-butts wolves that come close, dazing them and freeing any sheep they were holding.',
+    text: 'Not a sheep, and it knows it. Only comes from the shop, counts as part of the flock, and gives no wool.',
+    tip: 'Charges wolves that come near the flock, head-butts them away and frees any sheep they were holding.',
     make: (scene) => [new Goat(scene)],
   },
   {

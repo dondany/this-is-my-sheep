@@ -34,7 +34,7 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🐑 | **Golden Fleece** (gold, sparkles) | 6, then sometimes | Rare. Every wolf prefers it. Shorn for 10 wool at the end of each wave it survives. |
 | 🐑 | **Black Sheep** (dark fleece) | 7, one per flock | Every 12–18 s it stamps and snorts ("!"), then stampedes away from the flock, dragging up to 3 sheep along. Get the dog close to head it off (★ +10); otherwise it runs for 6 s or to the edge of the meadow. |
 | 🐑 | **Bellwether** (collar and bell) | 8, one per flock | Rings its bell every 5–7 s and sheep within 10 units regroup around it. If a wolf takes it, the whole flock loses cohesion for the rest of the wave. |
-| 🐐 | **Goat** | 9, one per game | Not a sheep. Ambles wherever it likes and head-butts wolves that come within 7 units ("BONK!"): they're dazed for 1.3 s and drop any sheep they were holding. Wolves ignore it. |
+| 🐐 | **Goat** | 3, shop only | Only ever bought from the livestock card (one per run). Counts in the flock counter and takes a flock slot, but gives no wool. Charges wolves within 10 units of it and head-butts them ("BONK!"): knocked back 2.5 units, dazed for 2 s, and any sheep they were holding is freed. Stays near the flock. Wolves ignore it, and it can't keep the game going on its own. |
 
 ### The wolves
 
@@ -145,7 +145,7 @@ cost 50% more.
 | Lamb | 6 | 2 a wave | Joins a mother; wolves love lambs |
 | Bellwether | 10 | 2 a wave | One per flock; its bell regroups the sheep |
 | Old Ram | 12 | 3 a wave | One per flock; hard for wolves to take |
-| Goat | 18 | — | One per game; head-butts wolves |
+| Goat | 18 | — | One per run, from wave 3; counts in the flock; head-butts wolves |
 | Golden Fleece | 35 | 10 a wave | Every wolf wants it |
 
 Definitions, prices and the card draw live in `src/upgrades.js`; `modifiers()` turns levels into

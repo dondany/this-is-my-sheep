@@ -1963,7 +1963,7 @@ wave 5   old ram        sneaky wolf
 wave 6   golden fleece  brute
 wave 7   black sheep    trickster
 wave 8   bellwether     alpha
-wave 9   goat           wolf in sheep's clothing
+wave 9                  wolf in sheep's clothing
 ```
 
 The wave banner names the newcomers ("New: Sleepy Sheep & Howler").
@@ -2188,4 +2188,17 @@ average     +10      +72      +55       526      505     28 / 63
 
     The flock peaks around 30-40 sheep; from wave 9 both bots lose
     5-15 sheep a wave.
+
+------------------------------------------------------------------------
+
+# 69. Goat Rework (implemented)
+
+-   The goat is now only available from the shop's livestock card
+    (18 wool, one per run), from wave 3. It no longer arrives by itself
+    in wave 9.
+-   It counts in the flock counter and takes a flock slot, but gives no
+    wool. The game still ends when the last real sheep is lost.
+-   Buffs: sight radius 10 (was 7), charge speed 8 (was 6), cooldown
+    3.5 s (was 5), stun 2 s (was 1.3), and a 2.5-unit knockback; it
+    stays within about 11 units of the flock.
 
