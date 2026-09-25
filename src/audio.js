@@ -155,6 +155,11 @@ export class Sfx {
     this.noiseBurst({ dur: 0.5, gain: 0.06, filter: 'lowpass', freq: 300 });
   }
 
+  upgrade() {
+    if (!this.ready) return;
+    [659.25, 880, 1318.5].forEach((f, i) => this.tone({ type: 'triangle', freq: f, dur: 0.22, gain: 0.12, at: i * 0.07 }));
+  }
+
   ding() {
     if (!this.ready || !this.throttle('ding', 200)) return;
     this.tone({ type: 'sine', freq: 1320, dur: 0.9, gain: 0.08, attack: 0.005 });

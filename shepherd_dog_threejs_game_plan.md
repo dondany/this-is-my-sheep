@@ -1986,3 +1986,24 @@ The wave banner names the newcomers ("New: Sleepy Sheep & Howler").
 -   Opened from the 📖 button, the menu, pause, end-of-wave and game-over
     screens, or the B key. Opening it mid-wave pauses the game.
 -   Unlocks persist in `localStorage`.
+
+------------------------------------------------------------------------
+
+# 62. Upgrade Cards (implemented)
+
+Implements the progression from sections 24-28 as a card shop on the
+end-of-wave screen.
+
+-   Three random cards per wave, drawn without duplicates from upgrades
+    that aren't maxed yet (rare cards are drawn at 35% weight).
+-   Each card shows its group (dog / shepherd / flock), icon, level pips,
+    effect and price. Buy any number you can afford; each card can be
+    bought once per offer.
+-   Reroll: 25 wool, +25 for each further reroll in the same wave.
+-   Price = base × (1 + 0.6 × current level), rounded to 5.
+-   Levels reset when a run ends.
+-   `modifiers(levels)` in `src/upgrades.js` produces the multipliers
+    (`ctx.mods`) read by the dog's stats, flock steering (panic,
+    cohesion) and wolf AI (brute courage, grab time), plus extra sheep
+    and lambs per wave.
+

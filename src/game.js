@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SHEEP, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, waveConfig } from './config.js';
+import { DOG, SHEEP, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, angleTo } from './entities.js';
 import { updateFlock, updateGoat, flockCenter } from './flock.js';
@@ -10,6 +10,7 @@ import { Sfx } from './audio.js';
 import { MouseController } from './input.js';
 import { UI } from './ui.js';
 import { Bestiary, ENTRY, entryId } from './bestiary.js';
+import { UPGRADE, SHOP, cost, modifiers, drawCards } from './upgrades.js';
 
 export const STATE = {
   MENU: 'MENU',
@@ -65,6 +66,8 @@ export class Game {
     this.center = new THREE.Vector3();
     this.cameraFocus = new THREE.Vector3();
     this.zoom = 1;
+    this.levels = {}; // upgrade id → level, reset every run
+    this.shop = null;
 
     // Shared context handed to the flock and wolf systems.
     this.ctx = {
@@ -78,6 +81,7 @@ export class Game {
       huntingAllowed: false,
       stampedes: false,
       cohesionScale: 1,
+      mods: modifiers({}),
       onSheepPanic: (s) => this.juice.sheepPanic(s),
       onSheepStray: (s) => this.juice.sheepStray(s),
       onWolfResist: (w) => this.juice.wolfResist(w),
@@ -150,6 +154,8 @@ export class Game {
       ui.setMuted(this.sfx.muted);
     });
     ui.on('bestiary', () => this.openBestiary());
+    ui.on('reroll', () => this.reroll());
+    ui.onBuy = (id) => this.buy(id);
     ui.on('close-bestiary', () => this.closeBestiary());
 
     window.addEventListener('keydown', (e) => {
@@ -199,7 +205,7 @@ export class Game {
     // The end-of-wave / game-over panel may have come due while the bestiary was open.
     const panelDue = this.panelTimer <= 0;
     this.ui.show({ [STATE.MENU]: 'menu', [STATE.PAUSED]: 'pause' }[this.state] ?? null);
-    if (panelDue && this.state === STATE.WAVE_COMPLETE) this.ui.showWaveComplete(this.pendingPanel);
+    if (panelDue && this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
     if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ wave: this.wave, best: this.best, wool: this.wool });
   }
 
@@ -215,6 +221,53 @@ export class Game {
     for (const s of this.sheep) check(s);
     for (const w of this.wolves) check(w);
     if (this.goat) check(this.goat);
+  }
+
+  // --- Upgrades ------------------------------------------------------------
+
+  applyUpgrades() {
+    const mods = (this.ctx.mods = modifiers(this.levels));
+    Object.assign(this.dog.stats, {
+      maxSpeed: DOG.maxSpeed * mods.dogSpeed,
+      acceleration: DOG.acceleration * mods.dogSpeed,
+      turnSpeed: DOG.turnSpeed * mods.dogSpeed,
+      threatRadius: DOG.threatRadius * mods.threat,
+      fleeTime: DOG.fleeTime * mods.flee,
+    });
+  }
+
+  openShop() {
+    this.shop = { cards: drawCards(this.levels), bought: new Set(), rerollCost: SHOP.reroll };
+  }
+
+  showShop() {
+    this.ui.renderShop({ ...this.shop, levels: this.levels, wool: this.wool, price: (id) => cost(UPGRADE[id], this.levels[id] ?? 0) });
+  }
+
+  showWavePanel() {
+    this.ui.showWaveComplete(this.pendingPanel);
+    this.showShop();
+  }
+
+  buy(id) {
+    const price = cost(UPGRADE[id], this.levels[id] ?? 0);
+    if (this.shop.bought.has(id) || this.wool < price) return;
+    this.wool -= price;
+    this.levels[id] = (this.levels[id] ?? 0) + 1;
+    this.shop.bought.add(id);
+    this.applyUpgrades();
+    this.sfx.upgrade();
+    this.showShop();
+  }
+
+  reroll() {
+    if (this.wool < this.shop.rerollCost) return;
+    this.wool -= this.shop.rerollCost;
+    this.shop.rerollCost += SHOP.reroll;
+    this.shop.cards = drawCards(this.levels);
+    this.shop.bought.clear();
+    this.sfx.click();
+    this.showShop();
   }
 
   // --- Flow ----------------------------------------------------------------
@@ -234,6 +287,8 @@ export class Game {
     this.dog.hasTarget = false;
     this.wave = 0;
     this.wool = 0;
+    this.levels = {};
+    this.applyUpgrades();
     this.ui.setHudVisible(true);
     this.nextWave();
   }
@@ -250,8 +305,9 @@ export class Game {
     if (cfg.golden && !has('golden')) kinds.push('golden');
     for (let i = 0; i < cfg.sleepy; i++) kinds.push('sleepy');
     for (let i = 0; i < cfg.wanderers; i++) kinds.push('wanderer');
-    for (let i = 0; i < cfg.lambs; i++) kinds.push('lamb');
-    for (let i = 0; i < cfg.newSheep; i++) kinds.push('normal');
+    const mods = this.ctx.mods;
+    for (let i = 0; i < cfg.lambs + mods.lambs; i++) kinds.push('lamb');
+    for (let i = 0; i < cfg.newSheep + (this.wave > 1 ? mods.extraSheep : 0); i++) kinds.push('normal');
     this.spawnSheep(kinds.slice(0, Math.max(0, SHEEP.cap - this.flockSize())), this.wave > 1);
     for (let i = 0; i < cfg.disguised; i++) this.spawnDisguise();
     if (cfg.goat && !this.goat) {
@@ -298,6 +354,7 @@ export class Game {
     this.shepherd.play('clap', 2);
     this.panelTimer = 1.8;
     this.pendingPanel = { wave: this.wave, survived, total: this.waveStartSheep, reward, perfect };
+    this.openShop();
   }
 
   gameOver() {
@@ -511,7 +568,7 @@ export class Game {
         if (this.panelTimer > 0) {
           this.panelTimer -= dt;
           if (this.panelTimer <= 0 && this.bestiaryReturn === undefined) {
-            if (this.state === STATE.WAVE_COMPLETE) this.ui.showWaveComplete(this.pendingPanel);
+            if (this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
             else this.ui.showGameOver({ wave: this.wave, best: this.best, wool: this.wool });
           }
         }
@@ -523,7 +580,7 @@ export class Game {
     this.updateCamera(dt);
     this.juice.updateFloats(dt);
     this.ui.updateIndicators(this.wolves, this.world.camera);
-    this.ui.updateFearMeters(this.wolves, this.world.camera);
+    this.ui.updateFearMeters(this.wolves, this.world.camera, this.ctx.mods.courage);
     if (this.state !== STATE.MENU) {
       this.ui.setHud({
         sheep: this.flockSize(),

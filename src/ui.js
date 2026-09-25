@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { isThreatening } from './wolves.js';
 import { ENTRIES, ENTRY } from './bestiary.js';
+import { UPGRADE } from './upgrades.js';
 
 const $ = (id) => document.getElementById(id);
 const tmp = new THREE.Vector3();
@@ -79,6 +80,42 @@ export class UI {
     $('wave-sheep').textContent = `🐑 ${survived} / ${total}`;
     $('wave-reward').textContent = `+${reward} wool${perfect ? ' · perfect flock!' : ''}`;
     this.show('wave');
+  }
+
+  // Upgrade cards on the end-of-wave screen.
+  renderShop({ cards, bought, rerollCost, levels, wool, price }) {
+    $('shop-wool').textContent = wool;
+    const reroll = $('shop-reroll');
+    reroll.textContent = `🎲 Reroll (${rerollCost})`;
+    reroll.disabled = wool < rerollCost;
+    const group = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock' };
+    $('shop-cards').replaceChildren(
+      ...cards.map((id) => {
+        const u = UPGRADE[id];
+        const level = levels[id] ?? 0;
+        const owned = bought.has(id);
+        const cost = price(id);
+        const card = document.createElement('button');
+        card.className = `upgrade-card group-${u.group}${u.rare ? ' rare' : ''}${owned ? ' bought' : ''}`;
+        card.disabled = owned || wool < cost;
+        card.innerHTML = `
+          <span class="upgrade-group"></span>
+          <span class="upgrade-icon"></span>
+          <strong class="upgrade-name"></strong>
+          <span class="upgrade-pips"></span>
+          <span class="upgrade-text"></span>
+          <span class="upgrade-price"></span>`;
+        card.querySelector('.upgrade-group').textContent = u.rare ? `${group[u.group]} · rare` : group[u.group];
+        card.querySelector('.upgrade-icon').textContent = u.icon;
+        card.querySelector('.upgrade-name').textContent = u.name;
+        card.querySelector('.upgrade-pips').textContent = '●'.repeat(level) + '○'.repeat(u.max - level);
+        card.querySelector('.upgrade-text').textContent = u.text;
+        card.querySelector('.upgrade-price').textContent = owned ? '✓ Bought' : `🧶 ${cost}`;
+        card.addEventListener('click', () => this.onBuy?.(id));
+        return card;
+      })
+    );
+    if (!cards.length) $('shop-cards').textContent = 'Everything is maxed out. Good dog!';
   }
 
   showGameOver({ wave, best, wool }) {
@@ -194,7 +231,7 @@ export class UI {
   }
 
   // Fear meter over wolves that need the dog to stand its ground (brutes).
-  updateFearMeters(wolves, camera) {
+  updateFearMeters(wolves, camera, courageScale = 1) {
     const w = window.innerWidth;
     const h = window.innerHeight;
     let used = 0;
@@ -215,7 +252,7 @@ export class UI {
       used++;
       el.style.display = '';
       el.style.transform = `translate(${(tmp.x * 0.5 + 0.5) * w}px, ${(-tmp.y * 0.5 + 0.5) * h}px) translate(-50%, -50%)`;
-      el.firstChild.style.transform = `scaleX(${Math.min(1, wolf.fear / wolf.type.courage)})`;
+      el.firstChild.style.transform = `scaleX(${Math.min(1, wolf.fear / (wolf.type.courage * courageScale))})`;
     }
     for (let i = used; i < this.meters.length; i++) this.meters[i].style.display = 'none';
   }

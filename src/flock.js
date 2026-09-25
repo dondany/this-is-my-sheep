@@ -187,7 +187,9 @@ export function updateFlock(sheep, ctx, dt) {
   const n = sheep.length;
   const baseRadius = SHEEP.flockRadius + Math.sqrt(n) * SHEEP.flockRadiusPerSqrt;
   const home = shepherd.position;
-  const cohesionScale = ctx.cohesionScale ?? 1; // drops once the bellwether is lost
+  const mods = ctx.mods;
+  // Drops once the bellwether is lost; Herding Instinct raises it.
+  const cohesionScale = (ctx.cohesionScale ?? 1) * mods.cohesion;
   updateStampedes(sheep, ctx, dt);
 
   for (let i = 0; i < n; i++) {
@@ -379,7 +381,7 @@ export function updateFlock(sheep, ctx, dt) {
       fear = k * 0.4;
       s.wanderAngle = Math.atan2(ddx, ddz); // walk on away from the dog: that's what makes herding work
     }
-    const panic = t.panic * (nearRam && !t.attract ? RAM_CALM : 1);
+    const panic = t.panic * mods.panic * (nearRam && !t.attract ? RAM_CALM : 1);
     s.wolfNear = false;
     for (const w of wolves) {
       const wx = px - w.position.x;

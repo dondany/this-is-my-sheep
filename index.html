@@ -72,11 +72,17 @@
   </section>
 
   <section id="screen-wave" class="screen hidden">
-    <div class="panel">
+    <div class="panel panel-shop">
       <h2 id="wave-title">Wave 1 complete!</h2>
-      <p id="wave-sheep" class="big-stat">🐑 10 / 10</p>
-      <p id="wave-reward" class="reward">+50 wool</p>
-      <p class="small">More sheep are joining the flock, and more wolves are on their way.</p>
+      <p class="wave-summary"><span id="wave-sheep" class="big-stat">🐑 10 / 10</span> <span id="wave-reward" class="reward">+50 wool</span></p>
+      <div class="shop">
+        <div class="shop-head">
+          <h3>Spend your wool</h3>
+          <span class="shop-wool">🧶 <span id="shop-wool">0</span></span>
+        </div>
+        <div id="shop-cards" class="shop-cards"></div>
+        <button id="shop-reroll" class="btn btn-quiet btn-small" data-action="reroll">🎲 Reroll</button>
+      </div>
       <button class="btn" data-action="next">Next wave</button>
       <button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button>
     </div>

@@ -6,15 +6,9 @@ table in [`README.md`](README.md) and sections 60–61 of the
 
 What's left from the original plan, plus notes from playtesting:
 
-## Upgrades (design doc sections 24–28)
-Wool is already counted but can't be spent yet. An upgrade screen between waves could offer:
-- **Dog:** speed, acceleration, bark radius (`DOG.threatRadius`), bark power (`DOG.fleeTime`).
-- **Shepherd:** a whistle that pulls the flock in now and then, calmer sheep (lower `panic`), fence
-  posts.
-- **Flock:** tougher sheep (longer `grabTime`), more sheep per wave.
-
-Most of these are already single numbers in `src/config.js`, so an upgrade can just be a multiplier
-on one of them.
+## More upgrades
+The upgrade shop is in (see the README). Ideas not built yet: fence posts along one side of the
+meadow, and cosmetic unlocks (dog hats, other breeds) bought with lifetime wool.
 
 ## Balance
 - Waves 10+ get very hard very fast (brutes, sneaky wolves and the alpha together). Consider a

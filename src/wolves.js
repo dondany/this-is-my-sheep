@@ -210,11 +210,12 @@ export function updateWolves(wolves, ctx, dt) {
     // The dog's threat radius beats everything else. Brave wolves hold out until their fear meter fills.
     const canScare = w.state !== 'FLEE' && w.state !== 'LEAVE';
     const inThreat = canScare && dd < dog.stats.threatRadius * T.threatScale;
-    if (inThreat && T.courage > 0) {
+    const courage = T.courage * ctx.mods.courage;
+    if (inThreat && courage > 0) {
       if (!w.resisting) ctx.onWolfResist?.(w);
       w.resisting = true;
       w.fear += dt;
-      if (w.fear >= T.courage) scare(w, ctx, ddx, ddz, dd);
+      if (w.fear >= courage) scare(w, ctx, ddx, ddz, dd);
     } else {
       w.resisting = false;
       if (inThreat) scare(w, ctx, ddx, ddz, dd);
@@ -365,7 +366,7 @@ export function updateWolves(wolves, ctx, dt) {
         vz = (tz / td) * WOLF.chaseSpeed * speedScale;
         if (td < WOLF.grabDistance * (T.scale / 1.2)) {
           w.state = 'ATTACK';
-          w.stateTimer = WOLF.grabTime * T.grabTime * s.type.grabTime;
+          w.stateTimer = WOLF.grabTime * T.grabTime * s.type.grabTime * ctx.mods.grab;
           s.grabbedBy = w;
           ctx.onSheepGrabbed(s, w);
         } else if (td > WOLF.chaseDistance * 1.8) {

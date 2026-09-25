@@ -763,3 +763,190 @@ h2 {
   font-size: 18px;
   color: #d8e4ff;
 }
+
+/* --- Upgrade shop --------------------------------------------------------- */
+
+.panel-shop {
+  width: min(640px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.wave-summary {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 16px;
+  margin: 4px 0 12px;
+}
+
+.wave-summary .big-stat,
+.wave-summary .reward {
+  margin: 0;
+}
+
+.shop {
+  padding: 12px;
+  background: var(--paper-2);
+  border-radius: 18px;
+}
+
+.shop-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 4px 10px;
+}
+
+.shop-head h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.shop-wool {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.shop-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.upgrade-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px 12px;
+  font: inherit;
+  color: var(--ink);
+  text-align: center;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 5px 0 rgba(74, 52, 38, 0.3);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.upgrade-card:not(:disabled):hover {
+  transform: translateY(-3px);
+}
+
+.upgrade-card:not(:disabled):active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 rgba(74, 52, 38, 0.3);
+}
+
+.upgrade-card:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.upgrade-card.bought {
+  opacity: 1;
+  background: #eaf2d6;
+  border-color: var(--grass);
+}
+
+.upgrade-card.rare {
+  border-color: #d9a441;
+  box-shadow: 0 5px 0 rgba(217, 164, 65, 0.5), 0 0 0 3px rgba(217, 164, 65, 0.25);
+}
+
+.upgrade-group {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.group-dog .upgrade-group {
+  color: #3d6fa0;
+}
+
+.group-shepherd .upgrade-group {
+  color: #8a5a3b;
+}
+
+.group-flock .upgrade-group {
+  color: #5f8a32;
+}
+
+.upgrade-icon {
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.upgrade-name {
+  font-size: 16px;
+  line-height: 1.1;
+}
+
+.upgrade-pips {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--accent-dark);
+}
+
+.upgrade-text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.25;
+  color: var(--ink-soft);
+}
+
+.upgrade-price {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.btn-small {
+  width: auto;
+  margin: 10px auto 0;
+  padding: 6px 16px;
+  font-size: 15px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none;
+}
+
+@media (max-width: 600px) {
+  .shop-cards {
+    grid-template-columns: 1fr;
+  }
+  .upgrade-card {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    grid-template-areas: 'icon name price' 'icon text price' 'icon pips price';
+    text-align: left;
+    column-gap: 10px;
+    row-gap: 2px;
+  }
+  .upgrade-group {
+    display: none;
+  }
+  .upgrade-icon {
+    grid-area: icon;
+  }
+  .upgrade-name {
+    grid-area: name;
+  }
+  .upgrade-text {
+    grid-area: text;
+  }
+  .upgrade-pips {
+    grid-area: pips;
+  }
+  .upgrade-price {
+    grid-area: price;
+    align-self: center;
+  }
+}

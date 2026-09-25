@@ -44,6 +44,27 @@ Sheep walk on away from the dog when it comes close, which is what makes herding
 Later waves mix several of each (`wolfPack()` in `src/config.js`). The wave banner names the
 newcomers each wave.
 
+## Upgrades
+
+Wool buys upgrades on the end-of-wave screen: three random cards, each with a price; buy any you
+can afford, or reroll the cards (25 wool, +25 per extra reroll that wave). Upgrades have levels,
+each level costs 60% more than the last, and everything resets when a run ends.
+
+| Card | Group | Effect per level | Max |
+| --- | --- | --- | --- |
+| ⚡ Swift Paws | Dog | Dog runs and turns 10% faster | 5 |
+| 📣 Loud Bark | Dog | Threat radius +12% | 5 |
+| 😱 Scary Bark | Dog | Scared wolves run 20% longer | 3 |
+| 🦴 Brave Heart | Dog | Brutes give up 25% sooner | 3 |
+| 🎶 Calming Song | Shepherd | Sheep panic 15% less around wolves | 3 |
+| 🪄 Herding Instinct | Shepherd | Flock cohesion +20% | 3 |
+| 🧶 Thick Fleece | Flock | Wolves need 20% longer to take a sheep | 5 |
+| 🐑 Bigger Flock | Flock | +2 sheep every wave | 3 |
+| 🍼 Lambing Season | Flock | +1 lamb every wave | 2 |
+
+Definitions, prices and the card draw live in `src/upgrades.js`; `modifiers()` turns levels into
+the multipliers the game reads (`ctx.mods`).
+
 ### Bestiary
 
 Open it with 📖 (top bar, menu, pause and end-of-wave screens) or the **B** key; opening it mid-wave
@@ -86,5 +107,6 @@ with WebAudio, so there are no asset files.
 | `src/input.js` | Pointer → ground-plane raycast |
 | `src/ui.js` | HUD, screens, bestiary screen, unlock cards, off-screen wolf indicators |
 | `src/bestiary.js` | Bestiary entries, unlock persistence, portraits rendered from the models |
+| `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |
 
 `window.game` is exposed in the console for debugging.
