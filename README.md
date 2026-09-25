@@ -85,7 +85,11 @@ Two separate numbers:
 | Perfect flock (nobody lost) | +2 |
 | Interest: wool you didn't spend | +1 per 5, up to +3 |
 
-The end-of-wave screen breaks the total down. Tuning: `SHEARING` in `src/config.js`.
+**Bounty tufts:** the first time a brute (3), alpha (3) or trickster (2) is scared off it drops
+a glowing tuft of fur worth that much wool. Run the dog over it within 8 s (it blinks before it
+blows away). It's the only wool you can earn during a wave, and it's a detour away from the flock.
+
+The end-of-wave screen breaks the total down. Tuning: `SHEARING` and `BOUNTY` in `src/config.js`.
 
 ## Upgrades
 

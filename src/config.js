@@ -92,6 +92,14 @@ export const SHEARING = {
   interestMax: 3, // ...up to this much
 };
 
+// Big wolves drop a tuft of fur the first time they're scared off: run the dog over it for wool.
+export const BOUNTY = {
+  wool: { brute: 3, alpha: 3, trickster: 2 },
+  life: 8, // seconds before it blows away
+  blink: 2.5, // blinks for this long before it goes
+  pickupRadius: 1.6,
+};
+
 // Shared flocking constants; per-type values live in SHEEP_TYPES.
 // The dog's special move: right-click, Space, or the HUD button.
 export const BIG_BARK = {

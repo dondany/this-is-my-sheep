@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { DOG, SHEEP, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, waveConfig } from './config.js';
+import { DOG, SHEEP, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
-import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, angleTo } from './entities.js';
+import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
 import { updateFlock, updateGoat, flockCenter } from './flock.js';
 import { updateWolves, toWander, isThreatening, stunWolf, forceScare } from './wolves.js';
@@ -88,6 +88,8 @@ export class Game {
     this.shop = null;
     this.helper = null; // Second Dog upgrade
     this.scarecrows = [];
+    this.tufts = []; // bounty tufts waiting to be picked up
+    this.waveBounty = 0;
     this.whistleTimer = 0;
     this.hitstop = 0;
     this.slowmo = 0;
@@ -368,6 +370,8 @@ export class Game {
     this.score = 0;
     this.levels = {};
     this.bigBarkTimer = 0;
+    for (const t of this.tufts) t.destroy();
+    this.tufts.length = 0;
     this.helper?.destroy();
     this.helper = null;
     this.ctx.guards.length = 1;
@@ -402,6 +406,7 @@ export class Game {
 
     this.waveStartSheep = this.flockSize();
     this.waveStartScore = this.score;
+    this.waveBounty = 0;
     for (const s of this.sheep) {
       s.stress = 0;
       s.wasGrabbed = false;
@@ -459,6 +464,7 @@ export class Game {
         ['Perfect flock', perfect],
         [`Interest (1 per ${SHEARING.interestPer} saved)`, interest],
       ],
+      bounty: this.waveBounty,
       reward,
       score: this.score - this.waveStartScore,
     };
@@ -626,6 +632,7 @@ export class Game {
     if (points) {
       this.freeze(FEEL.hitstop);
       this.addCombo(wolf);
+      this.dropBounty(wolf);
     }
     const praise = by instanceof Scarecrow ? 'SCARED OFF!' : by === this.helper ? 'GOOD PUP!' : 'GOOD DOG!';
     this.juice.wolfScared(wolf, points, praise);
@@ -665,6 +672,34 @@ export class Game {
     }
     this.freeze(BIG_BARK.hitstop);
     this.juice.bigBark(dog, BIG_BARK.radius, scared);
+  }
+
+  // The first time a big wolf is scared off it leaves a tuft of fur behind.
+  dropBounty(wolf) {
+    const value = BOUNTY.wool[wolf.kind];
+    if (!value || wolf.bountyDropped) return;
+    wolf.bountyDropped = true;
+    const color = { brute: COLORS.brute, alpha: COLORS.alphaMane, trickster: COLORS.fox }[wolf.kind];
+    const t = new Tuft(this.world.scene, color, value, BOUNTY.life).setPosition(wolf.position.x, 0, wolf.position.z);
+    this.tufts.push(t);
+    this.juice.tuftDropped(t);
+  }
+
+  updateTufts(dt) {
+    for (let i = this.tufts.length - 1; i >= 0; i--) {
+      const t = this.tufts[i];
+      t.animate(dt, this.time, BOUNTY.blink);
+      const picked = t.position.distanceTo(this.dog.position) < BOUNTY.pickupRadius;
+      if (picked) {
+        this.addWool(t.value);
+        this.waveBounty += t.value;
+        this.juice.tuftCollected(t);
+      } else if (t.life <= 0) this.juice.tuftLost(t);
+      if (picked || t.life <= 0) {
+        t.destroy();
+        this.tufts.splice(i, 1);
+      }
+    }
   }
 
   freeze(seconds) {
@@ -821,6 +856,7 @@ export class Game {
     }
     if (this.helper) updateHelper(this.helper, this.ctx, dt, time);
     for (const sc of this.scarecrows) sc.animate(dt, time);
+    this.updateTufts(dt);
 
     updateWolves(wolves, this.ctx, dt);
     for (let i = wolves.length - 1; i >= 0; i--) {

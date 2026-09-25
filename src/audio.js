@@ -170,6 +170,12 @@ export class Sfx {
     this.tone({ type: 'triangle', freq: f * 1.5, dur: 0.2, gain: 0.09, at: 0.07 });
   }
 
+  coin() {
+    if (!this.ready) return;
+    this.tone({ type: 'square', freq: 988, dur: 0.08, gain: 0.06, filter: 'lowpass', filterFreq: 3000 });
+    this.tone({ type: 'square', freq: 1319, dur: 0.25, gain: 0.06, at: 0.07, filter: 'lowpass', filterFreq: 3000 });
+  }
+
   upgrade() {
     if (!this.ready) return;
     [659.25, 880, 1318.5].forEach((f, i) => this.tone({ type: 'triangle', freq: f, dur: 0.22, gain: 0.12, at: i * 0.07 }));

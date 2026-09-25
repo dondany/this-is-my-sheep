@@ -756,3 +756,37 @@ export class Scarecrow extends Animal {
   }
 }
 
+// ---------------------------------------------------------------------------
+
+const TUFT = new THREE.IcosahedronGeometry(0.4, 0);
+
+// A tuft of wolf fur (bounty). Bobs and spins until the dog picks it up or it blows away.
+export class Tuft extends Animal {
+  constructor(scene, color, value, life) {
+    super(scene);
+    this.kind = 'tuft';
+    this.value = value;
+    this.life = life;
+    this.body = new THREE.Group();
+    this.root.add(this.body);
+    for (let i = 0; i < value; i++) {
+      const a = (i / value) * Math.PI * 2;
+      this.body.add(mesh(TUFT, color, { position: [Math.cos(a) * 0.26, 0.14 * i, Math.sin(a) * 0.26], scale: 1 - i * 0.1, shadow: true }));
+    }
+    this.glow = new THREE.Mesh(
+      new THREE.RingGeometry(0.72, 0.9, 24).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.8, depthWrite: false })
+    );
+    this.glow.position.y = 0.05;
+    this.root.add(this.glow);
+  }
+
+  animate(dt, time, blinkTime) {
+    this.life -= dt;
+    this.body.position.y = 0.6 + Math.sin(time * 4 + this.phase) * 0.15;
+    this.body.rotation.y += dt * 2;
+    this.glow.scale.setScalar(1 + Math.sin(time * 6) * 0.1);
+    this.root.visible = this.life > blinkTime || Math.sin(time * 20) > 0;
+  }
+}
+

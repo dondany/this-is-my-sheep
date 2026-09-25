@@ -106,7 +106,7 @@ export class UI {
     el.classList.add('show');
   }
 
-  showWaveComplete({ wave, survived, total, lines, reward, score }) {
+  showWaveComplete({ wave, survived, total, lines, bounty, reward, score }) {
     $('wave-title').textContent = `Wave ${wave} complete!`;
     $('wave-sheep').textContent = `🐑 ${survived} / ${total}`;
     $('wave-score').textContent = `★ +${score}`;
@@ -121,8 +121,15 @@ export class UI {
       });
     const sum = document.createElement('li');
     sum.className = 'total';
-    sum.innerHTML = `<span>Wool this wave</span><span>🧶 +${reward}</span>`;
-    $('wave-breakdown').replaceChildren(...rows, sum);
+    sum.innerHTML = `<span>Wool from shearing</span><span>🧶 +${reward}</span>`;
+    const extra = [];
+    if (bounty) {
+      const li = document.createElement('li');
+      li.className = 'bounty';
+      li.innerHTML = `<span>Bounty tufts collected during the wave</span><span>🧶 +${bounty}</span>`;
+      extra.push(li);
+    }
+    $('wave-breakdown').replaceChildren(...rows, sum, ...extra);
     this.show('wave');
   }
 

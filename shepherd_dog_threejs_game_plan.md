@@ -2098,4 +2098,11 @@ that keep score and money separate.
     n costs base × (n + 1); rerolls cost 1 (+1 each).
 -   Bot numbers: 17 wool after wave 1, ~60 by wave 5, ~110 per wave
     once the flock hits its cap of 80.
+-   **Bounty tufts** (from Brotato-style pickups): the first time a
+    brute, alpha or trickster is scared off (and scores), it drops a
+    tuft of its fur worth 3 / 3 / 2 wool. It bobs and glows for 8 s,
+    blinking for the last 2.5, then blows away. The player's dog picks
+    it up by running within 1.6 units. One per wolf, so it can't be
+    farmed; the point is the detour away from the flock. Collected
+    tufts are listed separately on the end-of-wave screen.
 
