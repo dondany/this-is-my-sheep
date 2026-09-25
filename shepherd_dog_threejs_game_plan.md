@@ -2036,3 +2036,20 @@ end-of-wave screen.
     the flock to wave 10 almost intact (76/80), versus a collapse at
     wave 10 without them. Human players earn less from scares.
 
+------------------------------------------------------------------------
+
+# 63. Hit-stop, Close Calls and Combos (implemented)
+
+-   Hit-stop: `Game.freeze(seconds)` skips simulation for a few frames
+    while still rendering. 50 ms per scored scare, 100 ms when the
+    alpha's pack scatters.
+-   Close call: a rescue (dog scare or goat head-butt) with less than
+    0.4 s of the wolf's grab timer left gives 0.6 real seconds of slow
+    motion (time × 0.25), a camera push-in of 10% and "CLOSE ONE!".
+-   Combo: every scored scare within 2.5 s of the previous one extends
+    the chain. From ×2 each step pays 5 × (n - 1) bonus wool, shows
+    "COMBO ×N! +bonus" with the text growing, and a chime that rises a
+    whole tone per step. Scares by the helper dog and scarecrows count
+    too. A HUD badge under the top bar shows ×N and a draining timer.
+-   Tuning lives in `FEEL` at the top of `src/game.js`.
+

@@ -24,6 +24,19 @@ export const STATE = {
 
 const POINTS = { save: 25, survivor: 2, perfect: 50 }; // scaring a wolf pays WOLF_TYPES[kind].points
 const ZOOM = { min: 0.7, max: 1.5 }; // multiplier on the default camera distance
+
+// Game feel: a tiny freeze when a wolf is scared, slow motion for a last-second rescue,
+// and a combo chain for scares in quick succession.
+const FEEL = {
+  hitstop: 0.05, // seconds frozen per scare
+  scatterHitstop: 0.1,
+  closeCall: 0.4, // a rescue with less than this much grab time left counts as a close one
+  slowmo: 0.6, // real seconds of slow motion
+  slowmoScale: 0.25,
+  punch: 0.1, // camera push-in on a close call (fraction of the distance)
+  comboWindow: 2.5, // seconds to land the next scare
+  comboBonus: 5, // extra wool per combo step
+};
 const BEST_KEY = 'this-is-my-sheep.best';
 
 function readBest() {
@@ -72,6 +85,10 @@ export class Game {
     this.helper = null; // Second Dog upgrade
     this.scarecrows = [];
     this.whistleTimer = 0;
+    this.hitstop = 0;
+    this.slowmo = 0;
+    this.punch = 0;
+    this.combo = { count: 0, timer: 0 };
 
     // Shared context handed to the flock and wolf systems.
     this.ctx = {
@@ -116,11 +133,14 @@ export class Game {
         this.juice.pupCombo(w, PUPS.comboPoints);
       },
       onAlphaCall: (w) => this.juice.alphaCall(w),
-      onPackScattered: (w, count) => this.juice.packScattered(w, count),
+      onPackScattered: (w, count) => {
+        this.freeze(FEEL.scatterHitstop);
+        this.juice.packScattered(w, count);
+      },
       onWolfCharge: (w) => this.onWolfCharge(w),
       onWolfScared: (w, threatening, by) => this.onWolfScared(w, threatening, by),
       onSheepGrabbed: (s, w) => this.juice.sheepGrabbed(s),
-      onSheepSaved: (s) => this.onSheepSaved(s),
+      onSheepSaved: (s, w) => this.onSheepSaved(s, w),
       onSheepLost: (s) => this.onSheepLost(s),
     };
 
@@ -562,13 +582,38 @@ export class Game {
     } else if (by?.bark()) this.juice.bark(by);
     const points = threatening && this.state === STATE.PLAYING ? wolf.type.points : 0;
     this.addWool(points);
+    if (points) {
+      this.freeze(FEEL.hitstop);
+      this.addCombo(wolf);
+    }
     const praise = by instanceof Scarecrow ? 'SCARED OFF!' : by === this.helper ? 'GOOD PUP!' : 'GOOD DOG!';
     this.juice.wolfScared(wolf, points, praise);
   }
 
-  onSheepSaved(sheep) {
+  onSheepSaved(sheep, wolf) {
     this.addWool(POINTS.save);
     this.juice.sheepSaved(sheep, POINTS.save);
+    // Saved in the nick of time: slow motion and a little camera push.
+    if (wolf?.stateTimer < FEEL.closeCall && this.state === STATE.PLAYING) {
+      this.slowmo = FEEL.slowmo;
+      this.punch = 1;
+      this.juice.closeCall(sheep);
+    }
+  }
+
+  freeze(seconds) {
+    this.hitstop = Math.max(this.hitstop, seconds);
+  }
+
+  // Scares landed within FEEL.comboWindow of each other chain into a combo.
+  addCombo(wolf) {
+    const c = this.combo;
+    c.count = c.timer > 0 ? c.count + 1 : 1;
+    c.timer = FEEL.comboWindow;
+    if (c.count < 2) return;
+    const bonus = FEEL.comboBonus * (c.count - 1);
+    this.addWool(bonus);
+    this.juice.combo(this.dog, c.count, bonus);
   }
 
   removeSheep(sheep) {
@@ -596,9 +641,16 @@ export class Game {
 
   frame() {
     const now = performance.now();
-    const dt = Math.min((now - this.last) / 1000, 1 / 20);
+    let dt = Math.min((now - this.last) / 1000, 1 / 20);
     this.last = now;
-    if (this.state !== STATE.PAUSED) {
+    if (this.hitstop > 0) {
+      // Freeze-frame: keep rendering, skip the simulation.
+      this.hitstop -= dt;
+    } else if (this.state !== STATE.PAUSED) {
+      if (this.slowmo > 0) {
+        this.slowmo -= dt;
+        dt *= FEEL.slowmoScale;
+      }
       this.time += dt;
       this.update(dt);
     }
@@ -643,6 +695,10 @@ export class Game {
     this.juice.updateFloats(dt);
     this.ui.updateIndicators(this.wolves, this.world.camera);
     this.ui.updateFearMeters(this.wolves, this.world.camera, this.ctx.mods.courage);
+    const c = this.combo;
+    c.timer = Math.max(0, c.timer - dt);
+    if (!c.timer) c.count = 0;
+    this.ui.setCombo(c.count, c.timer / FEEL.comboWindow);
     if (this.state !== STATE.MENU) {
       this.ui.setHud({
         sheep: this.flockSize(),
@@ -735,7 +791,8 @@ export class Game {
     // Follow the flock, leaning a little toward the dog so it rarely leaves the frame.
     const focus = this.cameraFocus.copy(this.center).lerp(this.dog.position, 0.25);
     focus.z -= 1.5; // nudge the view down a little so the HUD doesn't cover the flock
-    const distance = (35 + Math.min(this.sheep.length, SHEEP.cap) * 0.12) * this.zoom;
+    this.punch = Math.max(0, this.punch - dt * 1.5);
+    const distance = (35 + Math.min(this.sheep.length, SHEEP.cap) * 0.12) * this.zoom * (1 - FEEL.punch * Math.sin(this.punch * Math.PI));
     this.world.updateCamera(focus, distance, dt, this.juice.shakeOffset);
   }
 }

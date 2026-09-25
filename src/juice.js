@@ -45,10 +45,11 @@ export class Juice {
     this.rings.push(m);
   }
 
-  floatText(text, { position, follow, offsetY = 2.5, cls = '', duration = 1.1 }) {
+  floatText(text, { position, follow, offsetY = 2.5, cls = '', duration = 1.1, size }) {
     const el = document.createElement('div');
     el.className = `float-text ${cls}`;
     el.textContent = text;
+    if (size) el.style.fontSize = `${size}px`;
     this.floatLayer.appendChild(el);
     this.floats.push({ el, pos: position?.clone(), follow, offsetY, age: 0, duration });
   }
@@ -122,6 +123,17 @@ export class Juice {
   packScattered(wolf, count) {
     this.floatText(`PACK SCATTERED! ×${count + 1}`, { position: wolf.position, offsetY: 3.6, cls: 'big', duration: 1.6 });
     this.shake(0.08, 160);
+  }
+
+  combo(dog, count, bonus) {
+    this.floatText(`COMBO ×${count}! +${bonus}`, { follow: dog, offsetY: 3.4, cls: 'combo', duration: 1.2, size: Math.min(22 + count * 4, 44) });
+    this.particles.sparkle(tmp.copy(dog.position).setY(1.5), 4 + count * 2, [0xfff3b0, COLORS.accent, 0xffffff]);
+    this.sfx.combo(count);
+  }
+
+  closeCall(sheep) {
+    this.floatText('CLOSE ONE!', { follow: sheep, offsetY: 3.4, cls: 'big', duration: 1.4 });
+    this.flash('rgba(255, 240, 208, 0.35)');
   }
 
   whistle(shepherd) {

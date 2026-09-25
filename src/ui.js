@@ -61,6 +61,19 @@ export class UI {
     this.set('wool', wool, (v) => (this.el.wool.textContent = v));
   }
 
+  setCombo(count, left) {
+    this.set('combo', count >= 2 ? count : 0, (n) => {
+      $('hud-combo').classList.toggle('hidden', !n);
+      if (!n) return;
+      $('hud-combo-n').textContent = `×${n}`;
+      const el = $('hud-combo');
+      el.classList.remove('bump');
+      void el.offsetWidth;
+      el.classList.add('bump');
+    });
+    if (count >= 2) $('hud-combo-bar').style.transform = `scaleX(${left})`;
+  }
+
   setMuted(muted) {
     this.el.mute.textContent = muted ? '🔇' : '🔊';
     this.el.mute.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');

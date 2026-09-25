@@ -155,6 +155,14 @@ export class Sfx {
     this.noiseBurst({ dur: 0.5, gain: 0.06, filter: 'lowpass', freq: 300 });
   }
 
+  // Rises a whole tone with every step of the combo.
+  combo(count) {
+    if (!this.ready) return;
+    const f = 523.25 * 2 ** ((Math.min(count, 10) - 2) / 6);
+    this.tone({ type: 'triangle', freq: f, dur: 0.12, gain: 0.1 });
+    this.tone({ type: 'triangle', freq: f * 1.5, dur: 0.2, gain: 0.09, at: 0.07 });
+  }
+
   upgrade() {
     if (!this.ready) return;
     [659.25, 880, 1318.5].forEach((f, i) => this.tone({ type: 'triangle', freq: f, dur: 0.22, gain: 0.12, at: i * 0.07 }));

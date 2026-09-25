@@ -44,6 +44,18 @@ Sheep walk on away from the dog when it comes close, which is what makes herding
 Later waves mix several of each (`wolfPack()` in `src/config.js`). The wave banner names the
 newcomers each wave.
 
+## Game feel
+
+- **Hit-stop:** every wolf scared off the flock freezes the game for 50 ms (100 ms when an alpha's
+  pack scatters).
+- **Close calls:** rescuing a sheep with less than 0.4 s of grab time left triggers 0.6 s of
+  slow motion, a camera push-in and "CLOSE ONE!".
+- **Combos:** scares within 2.5 s of each other chain up: "COMBO ×N" grows with the chain, pays
+  +5 wool per step (×2 = +5, ×3 = +10, …), plays a rising chime, and a badge under the top bar
+  shows the chain and how long you have to extend it.
+
+All the numbers are in `FEEL` at the top of `src/game.js`.
+
 ## Upgrades
 
 Wool buys upgrades on the end-of-wave screen: three random cards, each with a price; buy any you
