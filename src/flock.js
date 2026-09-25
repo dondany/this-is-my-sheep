@@ -1,4 +1,4 @@
-import { SHEEP, WORLD, RAM_CALM, LAMB, BLACK, SLEEPY, BELL, GOAT } from './config.js';
+import { SHEEP, WORLD, RAM_CALM, LAMB, BLACK, SLEEPY, BELL, GOAT, BUMP } from './config.js';
 import { angleTo } from './entities.js';
 
 const NEIGH2 = SHEEP.neighbourRadius ** 2;
@@ -385,6 +385,21 @@ export function updateFlock(sheep, ctx, dt) {
     const ddx = px - dog.position.x;
     const ddz = pz - dog.position.z;
     const dd = Math.hypot(ddx, ddz) || 1e-3;
+    // A running dog bowling through the flock bounces sheep out of its way.
+    s.bumpCooldown -= dt;
+    if (dog.speed > BUMP.minSpeed && dd < BUMP.radius * t.scale && s.bumpCooldown <= 0) {
+      // Shove sideways, away from the line the dog is running along.
+      const vx = dog.velocity.x / dog.speed;
+      const vz = dog.velocity.z / dog.speed;
+      const side = Math.sign(ddx * vz - ddz * vx) || 1;
+      s.velocity.x += vz * side * BUMP.push;
+      s.velocity.z += -vx * side * BUMP.push;
+      s.bump = 1;
+      s.bumpSide = side;
+      s.bumpCooldown = BUMP.cooldown;
+      ctx.onSheepBump?.(s);
+    }
+
     // Unease builds while the dog sits still nearby, widening the distance the sheep keep.
     const parked = dog.speed < SHEEP.pressureSpeed && dd < t.dogFearRadius * SHEEP.pressureRange;
     s.pressure = Math.max(0, Math.min(1, (s.pressure ?? 0) + (parked ? dt : -dt * 0.5) / SHEEP.pressureTime));

@@ -109,6 +109,15 @@ export const ROAM = {
   maxRadius: 14, // and within this distance of the middle of the meadow
 };
 
+// Juice: a dog running through the flock knocks sheep into a little bounce.
+export const BUMP = {
+  minSpeed: 6, // the dog has to be running at least this fast
+  radius: 1.4, // × the sheep's size
+  push: 3, // sideways shove out of the dog's path
+  height: 0.6,
+  cooldown: 0.6,
+};
+
 // Shared flocking constants; per-type values live in SHEEP_TYPES.
 // The dog's special move: right-click, Space, or the HUD button.
 export const BIG_BARK = {

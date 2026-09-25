@@ -115,6 +115,7 @@ export class Game {
       guards: [this.dog], // dogs that scare wolves (plus the helper once bought)
       scarecrows: this.scarecrows,
       onSheepPanic: (s) => this.juice.sheepPanic(s),
+      onSheepBump: (s) => this.juice.sheepBump(s),
       onSheepStray: (s) => this.juice.sheepStray(s),
       onWolfResist: (w) => this.juice.wolfResist(w),
       onLambOrphaned: (s) => this.juice.lambOrphaned(s),

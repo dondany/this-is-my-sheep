@@ -70,6 +70,10 @@ newcomers each wave.
   +10 per step (×2 = +10, ×3 = +20, …, capped at +90), plays a rising chime, and a badge under
   the top bar shows the chain and how long you have to extend it.
 
+- **Bowling through the flock:** sheep the dog runs through at speed get knocked into a little
+  bounce, tilt away from it and get nudged out of its path, with a puff of wool and a "boing"
+  (`BUMP` in `src/config.js`).
+
 All the numbers are in `FEEL` at the top of `src/game.js`.
 
 ## Economy: Shearing Day

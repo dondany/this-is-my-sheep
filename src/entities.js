@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { COLORS, DOG, WORLD, SHEEP_TYPES, WOLF_TYPES, BLACK, ALPHA, GOAT, ROAM } from './config.js';
+import { COLORS, DOG, WORLD, SHEEP_TYPES, WOLF_TYPES, BLACK, ALPHA, GOAT, ROAM, BUMP } from './config.js';
 import { GEO, mesh } from './materials.js';
 
 const TAU = Math.PI * 2;
@@ -166,6 +166,9 @@ export class Sheep extends Animal {
     this.asleep = kind === 'sleepy';
     this.sleepPose = this.asleep ? 1 : 0;
     this.wakeTimer = 0;
+    this.bump = 0; // 1 → 0 while bouncing off the running dog
+    this.bumpSide = 1;
+    this.bumpCooldown = 0;
     this.stress = 0; // seconds spent panicking this wave
     this.wasGrabbed = false; // this wave
     this.regroup = 0; // seconds left being called by a bellwether
@@ -217,6 +220,15 @@ export class Sheep extends Animal {
       this.hop = Math.max(0, this.hop - dt * 2.5);
       y += Math.sin(this.hop * Math.PI) * 0.45;
     }
+    // Knocked by the running dog: a quick boing with a tilt away from it.
+    let bumpTilt = 0;
+    if (this.bump > 0) {
+      this.bump = Math.max(0, this.bump - dt * 2.8);
+      const arc = Math.sin(this.bump * Math.PI);
+      y += arc * BUMP.height;
+      bumpTilt = arc * 0.45 * this.bumpSide;
+      this.body.scale.set(1 - arc * 0.08, 1 + arc * 0.12, 1 - arc * 0.08); // stretch in the air
+    } else this.body.scale.set(1, 1, 1);
     this.body.position.y = y;
     this.body.rotation.x = Math.sin(this.phase * 2) * 0.05 * moving;
 
@@ -229,7 +241,7 @@ export class Sheep extends Animal {
     this.head.rotation.y = damp(this.head.rotation.y, grazing ? 0 : this.lookYaw, 5, dt);
 
     // Struggle while a wolf holds on.
-    this.body.rotation.z = this.grabbedBy ? Math.sin(time * 45) * 0.18 : damp(this.body.rotation.z, 0, 10, dt);
+    this.body.rotation.z = this.grabbedBy ? Math.sin(time * 45) * 0.18 : damp(this.body.rotation.z, bumpTilt, 10, dt);
 
     if (this.spawnScale < 1) {
       this.spawnScale = Math.min(1, this.spawnScale + dt * 3);

@@ -187,6 +187,12 @@ export class Sfx {
     this.tone({ type: 'sine', freq: 2500, freqEnd: 1900, dur: 0.3, gain: 0.08, attack: 0.02, at: 0.2 });
   }
 
+  boing(pitch = 1) {
+    if (!this.ready || !this.throttle('boing', 90)) return;
+    const f = 260 * pitch * (0.9 + Math.random() * 0.25);
+    this.tone({ type: 'sine', freq: f, freqEnd: f * 2.2, dur: 0.14, gain: 0.07, attack: 0.005 });
+  }
+
   ding() {
     if (!this.ready || !this.throttle('ding', 200)) return;
     this.tone({ type: 'sine', freq: 1320, dur: 0.9, gain: 0.08, attack: 0.005 });

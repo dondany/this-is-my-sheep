@@ -93,6 +93,23 @@ export class Juice {
     this.sfx.growl();
   }
 
+  sheepBump(sheep) {
+    this.particles.emit({
+      position: tmp.copy(sheep.position).setY(0.9),
+      count: 4,
+      colors: [0xfff7e6, 0xffffff],
+      speed: 2,
+      up: 2,
+      spread: 0.3,
+      life: 0.5,
+      size: 0.35,
+      endSize: 0.15,
+      gravity: 5,
+      drag: 2,
+    });
+    this.sfx.boing(sheep.kind === 'lamb' ? 1.4 : 1);
+  }
+
   sheepPanic(sheep) {
     this.particles.dust(sheep.position, 4, 0.8);
     this.sfx.bleat(true, sheep.kind === 'lamb' ? 1.5 : 1);
