@@ -360,6 +360,15 @@ export function updateFlock(sheep, ctx, dt) {
       dx -= (hx / hd) * push;
       dz -= (hz / hd) * push;
     }
+    for (const sc of ctx.scarecrows) {
+      const sx = px - sc.position.x;
+      const sz = pz - sc.position.z;
+      const sd = Math.hypot(sx, sz);
+      if (sd < 1.3 && sd > 1e-3) {
+        dx += (sx / sd) * (1.3 - sd) * 3;
+        dz += (sz / sd) * (1.3 - sd) * 3;
+      }
+    }
 
     // Wanderers that stray well past the flock get a "?".
     if (s.kind === 'wanderer') {

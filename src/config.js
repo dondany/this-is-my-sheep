@@ -217,7 +217,7 @@ Object.assign(SHEEP_TYPES, {
   // Dozes on the spot: won't wander off, but won't flee from wolves either.
   sleepy: { ...SHEEP_TYPES.normal, fidget: 0.4, lure: 2 },
   // Rare. Every wolf wants it; worth a fortune if it survives the wave.
-  golden: { ...SHEEP_TYPES.normal, lure: 8, wool: 20 },
+  golden: { ...SHEEP_TYPES.normal, lure: 8, wool: 50 }, // 50 × 2 survivor wool = 100
   // Rings its bell to regroup the sheep around it.
   bellwether: { ...SHEEP_TYPES.normal, scale: 1.2, cohesion: 0.45, radiusScale: 0.8, panic: 0.8 },
   // A wolf in a sheepskin. Not a real sheep: wolves ignore it and it doesn't count.
@@ -257,6 +257,22 @@ export const DISGUISE = {
   sniffRadius: 2.5, // the dog this close for `sniffTime` exposes it early
   sniffTime: 0.5,
   points: 40,
+};
+
+// Rare upgrades (see src/upgrades.js)
+export const WHISTLE = {
+  regroupTime: 2.5, // seconds every sheep spends heading back to the shepherd
+};
+
+export const SCARECROW = {
+  radius: 4.5, // ordinary wolves this close get scared
+};
+
+export const HELPER = {
+  speed: 0.8, // relative to the player's dog
+  threat: 0.7,
+  guardRadius: 7, // patrols this far from the shepherd (plus a bit for big flocks)
+  reactRadius: 16, // goes after threatening wolves this close to the flock
 };
 
 export const LAMB = {

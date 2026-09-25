@@ -2007,3 +2007,32 @@ end-of-wave screen.
     cohesion) and wolf AI (brute courage, grab time), plus extra sheep
     and lambs per wave.
 
+## Rare upgrades
+
+-   **Second Dog** (max 1): a brown-and-cream dog (`Dog` with a
+    different look) added to `ctx.guards`, so wolves treat it like the
+    player's dog. AI in `src/helper.js`: every 0.25 s it picks the
+    threatening wolf closest to the flock (within 16 units, howlers
+    included) that the player's dog isn't already nearer to; otherwise
+    it patrols a slow circle around the shepherd. 80% of the dog's
+    speed, 70% of its threat radius, never sits.
+-   **Shepherd's Whistle** (max 3): every 20/15/10 s the shepherd puts
+    his fingers to his mouth ("FWEET!") and every sheep that isn't
+    asleep or held regroups toward him for 2.5 s (reuses the
+    bellwether's regroup pull).
+-   **Scarecrow** (max 2): after buying, the next wave shows "Click the
+    meadow to place your scarecrow"; that click places it instead of
+    moving the dog. Ordinary wolves (no `courage`) within 4.5 units are
+    scared by it ("BOO!", "SCARED OFF! +15"). Brutes ignore it. Sheep
+    walk around it. Scarecrows last for the rest of the run.
+
+## Economy
+
+-   Base prices 120-180 wool for common cards, 300-525 for rare ones;
+    level n costs base × (1 + n).
+-   Survivors pay 2 wool each at the end of a wave (lambs 4, golden
+    fleece 100), plus 50 for a perfect wave; scaring wolves pays 5-50.
+-   With a bot that always chases the most urgent wolf, upgrades carry
+    the flock to wave 10 almost intact (76/80), versus a collapse at
+    wave 10 without them. Human players earn less from scares.
+

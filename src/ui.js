@@ -184,6 +184,13 @@ export class UI {
     setTimeout(() => el.remove(), 4500);
   }
 
+  // A persistent instruction at the bottom of the screen (e.g. placing a scarecrow).
+  hint(text) {
+    const el = $('hint');
+    el.classList.toggle('hidden', !text);
+    if (text) el.textContent = text;
+  }
+
   setBest(best) {
     $('menu-best').textContent = best ? `Best: wave ${best}` : '';
   }

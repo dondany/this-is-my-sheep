@@ -240,8 +240,11 @@ export class Sheep extends Animal {
 // ---------------------------------------------------------------------------
 
 export class Dog extends Animal {
-  constructor(scene) {
+  // look: optional { body, light, scale } for a differently coloured dog (the helper).
+  constructor(scene, look = {}) {
     super(scene);
+    const dark = look.body ?? COLORS.dog;
+    const light = look.light ?? COLORS.dogLight;
     this.stats = { ...DOG };
     this.target = new THREE.Vector3();
     this.hasTarget = false;
@@ -258,24 +261,24 @@ export class Dog extends Animal {
     const body = (this.body = new THREE.Group());
     body.position.y = 0.72;
     this.root.add(body);
-    body.add(mesh(GEO.sphere, COLORS.dog, { scale: [0.33, 0.3, 0.62], shadow: true }));
-    body.add(mesh(GEO.sphere, COLORS.dogLight, { position: [0, -0.04, 0.36], scale: 0.26 }));
-    body.add(mesh(GEO.sphere, COLORS.dogLight, { position: [0, 0.14, 0.42], scale: [0.3, 0.26, 0.2] }));
+    body.add(mesh(GEO.sphere, dark, { scale: [0.33, 0.3, 0.62], shadow: true }));
+    body.add(mesh(GEO.sphere, light, { position: [0, -0.04, 0.36], scale: 0.26 }));
+    body.add(mesh(GEO.sphere, light, { position: [0, 0.14, 0.42], scale: [0.3, 0.26, 0.2] }));
 
     const head = (this.head = new THREE.Group());
     head.position.set(0, 0.34, 0.55);
     body.add(head);
-    head.add(mesh(GEO.sphere, COLORS.dog, { scale: [0.28, 0.26, 0.28], shadow: true }));
-    head.add(mesh(GEO.sphere, COLORS.dogLight, { position: [0, 0.1, 0.17], scale: [0.06, 0.14, 0.12] }));
-    head.add(mesh(GEO.sphere, COLORS.dogLight, { position: [0, -0.07, 0.26], scale: [0.15, 0.13, 0.2] }));
-    head.add(mesh(GEO.sphere, COLORS.dog, { position: [0, -0.02, 0.45], scale: 0.055 }));
+    head.add(mesh(GEO.sphere, dark, { scale: [0.28, 0.26, 0.28], shadow: true }));
+    head.add(mesh(GEO.sphere, light, { position: [0, 0.1, 0.17], scale: [0.06, 0.14, 0.12] }));
+    head.add(mesh(GEO.sphere, light, { position: [0, -0.07, 0.26], scale: [0.15, 0.13, 0.2] }));
+    head.add(mesh(GEO.sphere, dark, { position: [0, -0.02, 0.45], scale: 0.055 }));
     this.tongue = mesh(GEO.box, COLORS.tongue, { position: [0, -0.18, 0.33], scale: [0.09, 0.025, 0.15], rotation: [0.4, 0, 0] });
     head.add(this.tongue);
 
     this.ears = [-1, 1].map((side) => {
       const pivot = new THREE.Group();
       pivot.position.set(side * 0.19, 0.18, -0.02);
-      pivot.add(mesh(GEO.sphere, COLORS.dog, { position: [side * 0.04, -0.09, 0], scale: [0.09, 0.16, 0.06] }));
+      pivot.add(mesh(GEO.sphere, dark, { position: [side * 0.04, -0.09, 0], scale: [0.09, 0.16, 0.06] }));
       pivot.userData.side = side;
       head.add(pivot);
       return pivot;
@@ -284,11 +287,11 @@ export class Dog extends Animal {
     const tail = (this.tail = new THREE.Group());
     tail.position.set(0, 0.12, -0.58);
     body.add(tail);
-    tail.add(mesh(GEO.leg, COLORS.dog, { scale: [0.065, 0.5, 0.065] }));
-    tail.add(mesh(GEO.sphere, COLORS.dogLight, { position: [0, -0.5, 0], scale: 0.08 }));
+    tail.add(mesh(GEO.leg, dark, { scale: [0.065, 0.5, 0.065] }));
+    tail.add(mesh(GEO.sphere, light, { position: [0, -0.5, 0], scale: 0.08 }));
 
-    this.legs = addLegs(this.root, COLORS.dogLight, { x: 0.17, zFront: 0.33, zBack: -0.36, y: 0.6, length: 0.6, width: 0.075 });
-    this.root.scale.setScalar(1.25);
+    this.legs = addLegs(this.root, light, { x: 0.17, zFront: 0.33, zBack: -0.36, y: 0.6, length: 0.6, width: 0.075 });
+    this.root.scale.setScalar(look.scale ?? 1.25);
 
     // Faint circle showing how close the dog needs to get to scare a wolf.
     this.ring = new THREE.Mesh(
@@ -639,6 +642,11 @@ export class Shepherd extends Animal {
         lz = 2.7;
         this.hatLift = Math.sin(Math.min(1, 1 - this.actionTimer / 1.2) * Math.PI) * 0.18;
         break;
+      case 'whistle':
+        // Fingers to the mouth.
+        lx = -2.5;
+        lz = -0.6;
+        break;
       case 'point':
         lx = -1.5;
         if (this.pointTarget) face = Math.atan2(this.pointTarget.x - this.position.x, this.pointTarget.z - this.position.z);
@@ -712,3 +720,37 @@ export class Goat extends Animal {
     this.head.rotation.y = Math.sin(time * 0.7 + this.phase * 0.1) * 0.3 * (1 - moving);
   }
 }
+
+// ---------------------------------------------------------------------------
+
+const POST = new THREE.CylinderGeometry(0.07, 0.09, 2.4, 6).translate(0, 1.2, 0);
+const ARM = new THREE.CylinderGeometry(0.05, 0.05, 1.8, 6).rotateZ(Math.PI / 2);
+
+// A static threat bought as an upgrade: ordinary wolves that come close get scared.
+export class Scarecrow extends Animal {
+  constructor(scene) {
+    super(scene);
+    this.kind = 'scarecrow';
+    this.wobble = 0;
+    const body = (this.body = new THREE.Group());
+    this.root.add(body);
+    body.add(mesh(POST, COLORS.wood, { shadow: true }));
+    body.add(mesh(ARM, COLORS.wood, { position: [0, 1.75, 0], shadow: true }));
+    body.add(mesh(GEO.box, COLORS.accent, { position: [0, 1.55, 0], scale: [0.62, 0.7, 0.36], shadow: true })); // shirt
+    body.add(mesh(GEO.box, COLORS.accent, { position: [0, 1.75, 0], scale: [1.3, 0.22, 0.26] })); // sleeves
+    for (const side of [-1, 1]) {
+      body.add(mesh(GEO.cone, 0xe8c85a, { position: [side * 0.8, 1.68, 0], scale: [0.1, 0.22, 0.1], rotation: [0, 0, side * 2.4] })); // straw
+    }
+    body.add(mesh(GEO.sphere, COLORS.dust, { position: [0, 2.2, 0], scale: [0.27, 0.3, 0.27], shadow: true })); // sack head
+    body.add(mesh(GEO.cylinder, COLORS.brown, { position: [0, 2.46, 0], scale: [0.45, 0.04, 0.45] }));
+    body.add(mesh(GEO.cone, COLORS.brown, { position: [0, 2.66, 0], scale: [0.26, 0.4, 0.26] }));
+    for (const side of [-1, 1]) body.add(mesh(GEO.box, COLORS.sheepFace, { position: [side * 0.09, 2.24, 0.25], scale: [0.06, 0.06, 0.02] }));
+    this.root.scale.setScalar(1.1);
+  }
+
+  animate(dt, time) {
+    this.wobble = Math.max(0, this.wobble - dt * 1.5);
+    this.body.rotation.z = Math.sin(time * 1.3 + this.phase) * 0.03 + Math.sin(time * 20) * 0.15 * this.wobble;
+  }
+}
+

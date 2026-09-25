@@ -160,6 +160,12 @@ export class Sfx {
     [659.25, 880, 1318.5].forEach((f, i) => this.tone({ type: 'triangle', freq: f, dur: 0.22, gain: 0.12, at: i * 0.07 }));
   }
 
+  whistle() {
+    if (!this.ready) return;
+    this.tone({ type: 'sine', freq: 1700, freqEnd: 2500, dur: 0.18, gain: 0.08, attack: 0.02 });
+    this.tone({ type: 'sine', freq: 2500, freqEnd: 1900, dur: 0.3, gain: 0.08, attack: 0.02, at: 0.2 });
+  }
+
   ding() {
     if (!this.ready || !this.throttle('ding', 200)) return;
     this.tone({ type: 'sine', freq: 1320, dur: 0.9, gain: 0.08, attack: 0.005 });

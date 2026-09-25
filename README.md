@@ -48,7 +48,8 @@ newcomers each wave.
 
 Wool buys upgrades on the end-of-wave screen: three random cards, each with a price; buy any you
 can afford, or reroll the cards (25 wool, +25 per extra reroll that wave). Upgrades have levels,
-each level costs 60% more than the last, and everything resets when a run ends.
+each level adds the base price again (base, 2×, 3×…), and everything resets when a run ends.
+Rare cards (gold border) come up about a third as often.
 
 | Card | Group | Effect per level | Max |
 | --- | --- | --- | --- |
@@ -61,6 +62,9 @@ each level costs 60% more than the last, and everything resets when a run ends.
 | 🧶 Thick Fleece | Flock | Wolves need 20% longer to take a sheep | 5 |
 | 🐑 Bigger Flock | Flock | +2 sheep every wave | 3 |
 | 🍼 Lambing Season | Flock | +1 lamb every wave | 2 |
+| 🐕 Second Dog *(rare)* | Dog | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock (80% speed, 70% threat radius) | 1 |
+| 📯 Shepherd's Whistle *(rare)* | Shepherd | Every 20 / 15 / 10 s the shepherd whistles and every sheep heads back to him | 3 |
+| 🌾 Scarecrow *(rare)* | Shepherd | Click the meadow to place it; ordinary wolves within 4.5 units get scared (brutes ignore it). Stays for the rest of the run | 2 |
 
 Definitions, prices and the card draw live in `src/upgrades.js`; `modifiers()` turns levels into
 the multipliers the game reads (`ctx.mods`).
@@ -108,5 +112,6 @@ with WebAudio, so there are no asset files.
 | `src/ui.js` | HUD, screens, bestiary screen, unlock cards, off-screen wolf indicators |
 | `src/bestiary.js` | Bestiary entries, unlock persistence, portraits rendered from the models |
 | `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |
+| `src/helper.js` | AI for the Second Dog upgrade |
 
 `window.game` is exposed in the console for debugging.

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-import { DOG, SHEEP, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, waveConfig } from './config.js';
+import { DOG, SHEEP, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, waveConfig } from './config.js';
 import { createWorld } from './world.js';
-import { Dog, Sheep, Wolf, Goat, Shepherd, angleTo } from './entities.js';
+import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, angleTo } from './entities.js';
+import { updateHelper } from './helper.js';
 import { updateFlock, updateGoat, flockCenter } from './flock.js';
 import { updateWolves, toWander, isThreatening, stunWolf } from './wolves.js';
 import { ParticleSystem } from './particles.js';
@@ -21,7 +22,7 @@ export const STATE = {
   GAME_OVER: 'GAME_OVER',
 };
 
-const POINTS = { save: 25, survivor: 5, perfect: 50 }; // scaring a wolf pays WOLF_TYPES[kind].points
+const POINTS = { save: 25, survivor: 2, perfect: 50 }; // scaring a wolf pays WOLF_TYPES[kind].points
 const ZOOM = { min: 0.7, max: 1.5 }; // multiplier on the default camera distance
 const BEST_KEY = 'this-is-my-sheep.best';
 
@@ -68,6 +69,9 @@ export class Game {
     this.zoom = 1;
     this.levels = {}; // upgrade id → level, reset every run
     this.shop = null;
+    this.helper = null; // Second Dog upgrade
+    this.scarecrows = [];
+    this.whistleTimer = 0;
 
     // Shared context handed to the flock and wolf systems.
     this.ctx = {
@@ -82,6 +86,8 @@ export class Game {
       stampedes: false,
       cohesionScale: 1,
       mods: modifiers({}),
+      guards: [this.dog], // dogs that scare wolves (plus the helper once bought)
+      scarecrows: this.scarecrows,
       onSheepPanic: (s) => this.juice.sheepPanic(s),
       onSheepStray: (s) => this.juice.sheepStray(s),
       onWolfResist: (w) => this.juice.wolfResist(w),
@@ -112,7 +118,7 @@ export class Game {
       onAlphaCall: (w) => this.juice.alphaCall(w),
       onPackScattered: (w, count) => this.juice.packScattered(w, count),
       onWolfCharge: (w) => this.onWolfCharge(w),
-      onWolfScared: (w, threatening) => this.onWolfScared(w, threatening),
+      onWolfScared: (w, threatening, by) => this.onWolfScared(w, threatening, by),
       onSheepGrabbed: (s, w) => this.juice.sheepGrabbed(s),
       onSheepSaved: (s) => this.onSheepSaved(s),
       onSheepLost: (s) => this.onSheepLost(s),
@@ -120,6 +126,7 @@ export class Game {
 
     this.input = new MouseController(renderer.domElement, camera, {
       onPress: (p) => {
+        if (this.scarecrowsToPlace() > 0) return this.placeScarecrow(p);
         this.dog.setTarget(p);
         this.juice.clickMarker(this.dog.target);
       },
@@ -234,6 +241,46 @@ export class Game {
       threatRadius: DOG.threatRadius * mods.threat,
       fleeTime: DOG.fleeTime * mods.flee,
     });
+    if (mods.helper && !this.helper) {
+      this.helper = new Dog(this.world.scene, { body: 0x7a4a2c, light: 0xf2dcb8, scale: 1.05 });
+      this.helper.setPosition(this.shepherd.position.x - 3, 0, this.shepherd.position.z + 3);
+      this.ctx.guards.push(this.helper);
+      this.juice.newSheep(this.helper);
+    }
+    if (this.helper) {
+      const s = this.dog.stats;
+      Object.assign(this.helper.stats, {
+        maxSpeed: s.maxSpeed * HELPER.speed,
+        acceleration: s.acceleration * HELPER.speed,
+        threatRadius: s.threatRadius * HELPER.threat,
+        fleeTime: s.fleeTime,
+      });
+    }
+    this.ui.hint(this.scarecrowsToPlace() > 0 && this.state !== STATE.WAVE_COMPLETE ? '🌾 Click the meadow to place your scarecrow' : null);
+  }
+
+  scarecrowsToPlace() {
+    return this.state === STATE.INTRO || this.state === STATE.PLAYING ? this.ctx.mods.scarecrows - this.scarecrows.length : 0;
+  }
+
+  placeScarecrow(p) {
+    const r = Math.hypot(p.x, p.z);
+    const k = r > WORLD.playRadius ? WORLD.playRadius / r : 1;
+    const sc = new Scarecrow(this.world.scene).setPosition(p.x * k, 0, p.z * k);
+    sc.root.rotation.y = Math.atan2(this.center.x - sc.position.x, this.center.z - sc.position.z) + Math.PI; // face outward
+    this.scarecrows.push(sc);
+    this.juice.scarecrowPlaced(sc);
+    this.applyUpgrades(); // refreshes the placement hint
+  }
+
+  whistle() {
+    for (const s of this.sheep) {
+      if (s.grabbedBy || s.asleep) continue;
+      s.regroup = WHISTLE.regroupTime;
+      s.regroupTo = this.shepherd;
+    }
+    this.shepherd.play('whistle', 1.2);
+    this.juice.whistle(this.shepherd);
   }
 
   openShop() {
@@ -288,6 +335,11 @@ export class Game {
     this.wave = 0;
     this.wool = 0;
     this.levels = {};
+    this.helper?.destroy();
+    this.helper = null;
+    this.ctx.guards.length = 1;
+    for (const sc of this.scarecrows) sc.destroy();
+    this.scarecrows.length = 0;
     this.applyUpgrades();
     this.ui.setHudVisible(true);
     this.nextWave();
@@ -333,7 +385,9 @@ export class Game {
           ? `New: ${newcomers.join(' & ')}. See the 📖 bestiary`
           : `${cfg.wolves} wolves are coming`;
     this.ui.banner(`Wave ${this.wave}`, sub);
+    this.whistleTimer = this.ctx.mods.whistle;
     this.setState(STATE.INTRO);
+    this.applyUpgrades(); // shows the scarecrow placement hint if one is waiting
   }
 
   completeWave() {
@@ -501,11 +555,15 @@ export class Game {
     }
   }
 
-  onWolfScared(wolf, threatening) {
-    if (this.dog.bark()) this.juice.bark(this.dog);
+  onWolfScared(wolf, threatening, by) {
+    if (by instanceof Scarecrow) {
+      by.wobble = 1;
+      this.juice.scarecrowScare(by);
+    } else if (by?.bark()) this.juice.bark(by);
     const points = threatening && this.state === STATE.PLAYING ? wolf.type.points : 0;
     this.addWool(points);
-    this.juice.wolfScared(wolf, points);
+    const praise = by instanceof Scarecrow ? 'SCARED OFF!' : by === this.helper ? 'GOOD PUP!' : 'GOOD DOG!';
+    this.juice.wolfScared(wolf, points, praise);
   }
 
   onSheepSaved(sheep) {
@@ -561,6 +619,10 @@ export class Game {
           this.nextWolfAt += this.cfg.spawnInterval;
         }
         this.updateDisguises(dt);
+        if (this.ctx.mods.whistle && (this.whistleTimer -= dt) <= 0) {
+          this.whistleTimer = this.ctx.mods.whistle;
+          this.whistle();
+        }
         if (this.waveTime >= this.cfg.duration) this.completeWave();
         break;
       case STATE.WAVE_COMPLETE:
@@ -632,6 +694,8 @@ export class Game {
       updateGoat(this.goat, this.ctx, dt);
       this.goat.animate(dt, time);
     }
+    if (this.helper) updateHelper(this.helper, this.ctx, dt, time);
+    for (const sc of this.scarecrows) sc.animate(dt, time);
 
     updateWolves(wolves, this.ctx, dt);
     for (let i = wolves.length - 1; i >= 0; i--) {

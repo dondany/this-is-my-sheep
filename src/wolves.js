@@ -1,4 +1,4 @@
-import { WOLF, WORLD, SNEAKY, ALPHA, PUPS, HOWLER, TRICKSTER } from './config.js';
+import { WOLF, WORLD, SNEAKY, ALPHA, PUPS, HOWLER, TRICKSTER, SCARECROW } from './config.js';
 import { angleTo } from './entities.js';
 
 // Wolf states:
@@ -23,6 +23,7 @@ import { angleTo } from './entities.js';
 //   pup     comes in groups of three that move together and split up when the dog gets close.
 //
 // Any wolf can be stunned by the goat for a moment (`stun`).
+// Besides the player's dog, a helper dog (ctx.guards) and scarecrows (ctx.scarecrows) can scare wolves.
 
 const between = ([min, max]) => min + Math.random() * (max - min);
 
@@ -88,7 +89,8 @@ function aimAway(w, ddx, ddz, dd) {
   w.fleeDir.set(fx / fl, 0, fz / fl);
 }
 
-function scare(w, ctx, ddx, ddz, dd) {
+// `by` is whatever did the scaring: a dog, or a scarecrow.
+function scare(w, ctx, ddx, ddz, dd, by = ctx.dog) {
   const threatening = isThreatening(w) || !!w.type.howler;
   w.howling = 0;
   w.stun = 0;
@@ -105,7 +107,7 @@ function scare(w, ctx, ddx, ddz, dd) {
   w.pause = WOLF.scarePause;
   w.stateTimer = ctx.dog.stats.fleeTime * w.type.fleeTime;
   aimAway(w, ddx, ddz, dd);
-  ctx.onWolfScared(w, threatening);
+  ctx.onWolfScared(w, threatening, by);
 
   // Pups: scaring the whole group in one pass earns a bonus.
   const g = w.group;
@@ -126,7 +128,7 @@ function scare(w, ctx, ddx, ddz, dd) {
       if (o.position.distanceTo(w.position) > ALPHA.panicRadius) continue;
       const ox = o.position.x - ctx.dog.position.x;
       const oz = o.position.z - ctx.dog.position.z;
-      scare(o, ctx, ox, oz, Math.hypot(ox, oz) || 1e-3);
+      scare(o, ctx, ox, oz, Math.hypot(ox, oz) || 1e-3, by);
       scattered++;
     }
     if (scattered) ctx.onPackScattered?.(w, scattered);
@@ -207,19 +209,43 @@ export function updateWolves(wolves, ctx, dt) {
 
     w.revealed = !T.hidden || w.state === 'CHASE' || w.state === 'ATTACK' || (w.state === 'APPROACH' && w.position.distanceTo(ctx.center) < SNEAKY.revealDistance);
 
-    // The dog's threat radius beats everything else. Brave wolves hold out until their fear meter fills.
+    // A dog's threat radius beats everything else. Brave wolves hold out until their fear meter fills.
     const canScare = w.state !== 'FLEE' && w.state !== 'LEAVE';
-    const inThreat = canScare && dd < dog.stats.threatRadius * T.threatScale;
+    let by = null;
+    let bx = 0;
+    let bz = 0;
+    if (canScare) {
+      for (const g of ctx.guards) {
+        const gx = px - g.position.x;
+        const gz = pz - g.position.z;
+        if (Math.hypot(gx, gz) < g.stats.threatRadius * T.threatScale) {
+          [by, bx, bz] = [g, gx, gz];
+          break;
+        }
+      }
+    }
     const courage = T.courage * ctx.mods.courage;
-    if (inThreat && courage > 0) {
+    if (by && courage > 0) {
       if (!w.resisting) ctx.onWolfResist?.(w);
       w.resisting = true;
       w.fear += dt;
-      if (w.fear >= courage) scare(w, ctx, ddx, ddz, dd);
+      if (w.fear >= courage) scare(w, ctx, bx, bz, Math.hypot(bx, bz) || 1e-3, by);
     } else {
       w.resisting = false;
-      if (inThreat) scare(w, ctx, ddx, ddz, dd);
+      if (by) scare(w, ctx, bx, bz, Math.hypot(bx, bz) || 1e-3, by);
       else if (w.fear > 0) w.fear = Math.max(0, w.fear - dt * 0.5);
+    }
+    // Scarecrows only fool ordinary wolves: brutes see right through them.
+    if (w.state !== 'FLEE' && w.state !== 'LEAVE' && !courage) {
+      for (const sc of ctx.scarecrows) {
+        const sx = px - sc.position.x;
+        const sz = pz - sc.position.z;
+        const sd = Math.hypot(sx, sz);
+        if (sd < SCARECROW.radius * T.threatScale) {
+          scare(w, ctx, sx, sz, sd || 1e-3, sc);
+          break;
+        }
+      }
     }
 
     // Dazed by the goat: stand still (the dog can still scare it).

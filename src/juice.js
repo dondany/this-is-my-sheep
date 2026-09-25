@@ -80,9 +80,9 @@ export class Juice {
     this.sfx.bark();
   }
 
-  wolfScared(wolf, points) {
+  wolfScared(wolf, points, praise = 'GOOD DOG!') {
     this.floatText('!', { follow: wolf, offsetY: 2.6, cls: 'exclaim', duration: 0.7 });
-    if (points) this.floatText(`GOOD DOG! +${points}`, { position: wolf.position, offsetY: 1.5, cls: 'good', duration: 1.2 });
+    if (points) this.floatText(`${praise} +${points}`, { position: wolf.position, offsetY: 1.5, cls: 'good', duration: 1.2 });
     this.particles.dust(wolf.position, 10, 1.2);
     this.shake(0.05, 100);
     this.sfx.yelp();
@@ -122,6 +122,23 @@ export class Juice {
   packScattered(wolf, count) {
     this.floatText(`PACK SCATTERED! ×${count + 1}`, { position: wolf.position, offsetY: 3.6, cls: 'big', duration: 1.6 });
     this.shake(0.08, 160);
+  }
+
+  whistle(shepherd) {
+    this.ring(shepherd.position, { from: 1, to: 14, duration: 0.8, color: COLORS.accent, opacity: 0.6 });
+    this.floatText('♪ FWEET!', { follow: shepherd, offsetY: 3.6, cls: 'good', duration: 1.2 });
+    this.sfx.whistle();
+  }
+
+  scarecrowPlaced(sc) {
+    this.particles.dust(sc.position, 12, 1.2);
+    this.ring(sc.position, { from: 0.5, to: 4.5, duration: 0.5, color: COLORS.accent, opacity: 0.7 });
+    this.sfx.pop();
+  }
+
+  scarecrowScare(sc) {
+    this.floatText('BOO!', { follow: sc, offsetY: 3.4, cls: 'warn', duration: 0.9 });
+    this.ring(sc.position, { from: 0.5, to: 4.5, duration: 0.4, color: COLORS.ui, opacity: 0.8 });
   }
 
   sheepWoke(sheep) {
