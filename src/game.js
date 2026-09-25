@@ -243,6 +243,7 @@ export class Game {
     this.input.enabled = state === STATE.INTRO || state === STATE.PLAYING || state === STATE.WAVE_COMPLETE;
     this.ctx.huntingAllowed = state === STATE.PLAYING;
     this.ctx.stampedes = state === STATE.PLAYING;
+    this.achievements.enabled = state !== STATE.MENU;
   }
 
   // Real sheep only: a wolf in sheep's clothing doesn't count.

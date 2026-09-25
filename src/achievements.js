@@ -63,6 +63,7 @@ export class Achievements {
   constructor() {
     this.unlocked = new Set(load(UNLOCKED_KEY, []));
     this.life = load(STATS_KEY, {});
+    this.enabled = false; // only real games count, not the menu's background scene
     this.newRun();
   }
 
@@ -87,13 +88,14 @@ export class Achievements {
 
   // Lifetime counter.
   add(stat, amount = 1) {
+    if (!this.enabled) return;
     this.life[stat] = (this.life[stat] ?? 0) + amount;
     this.dirty = true;
   }
 
   // Run record that only goes up.
   best(stat, value) {
-    if (value > (this.run[stat] ?? 0)) this.run[stat] = value;
+    if (this.enabled && value > (this.run[stat] ?? 0)) this.run[stat] = value;
   }
 
   // Returns the achievements unlocked by this call.
