@@ -11,6 +11,7 @@ import { Sfx } from './audio.js';
 import { MouseController } from './input.js';
 import { UI } from './ui.js';
 import { Bestiary, ENTRY, entryId } from './bestiary.js';
+import { Achievements } from './achievements.js';
 import { UPGRADE, SHOP, ANIMAL, cost, modifiers, drawCards, drawAnimal, animalPrice } from './upgrades.js';
 
 export const STATE = {
@@ -65,6 +66,9 @@ export class Game {
     this.ui = new UI();
     this.juice = new Juice({ scene, camera, particles: this.particles, sfx: this.sfx });
     this.bestiary = new Bestiary();
+    this.achievements = new Achievements();
+    this.overlay = null; // 'bestiary' | 'achievements' while one of those screens is open
+    this.achievementCheck = 0;
 
     this.shepherd = new Shepherd(scene);
     this.dog = new Dog(scene).setPosition(0, 0, 7);
@@ -78,6 +82,7 @@ export class Game {
     this.wave = 0;
     this.wool = 0;
     this.score = 0;
+    this.achievements.newRun();
     this.best = readNumber(BEST_KEY);
     this.bestScore = readNumber(BEST_SCORE_KEY);
     this.cfg = null;
@@ -119,18 +124,26 @@ export class Game {
       onSheepStray: (s) => this.juice.sheepStray(s),
       onWolfResist: (w) => this.juice.wolfResist(w),
       onLambOrphaned: (s) => this.juice.lambOrphaned(s),
-      onLambReunited: (s) => this.juice.lambReunited(s),
+      onLambReunited: (s) => {
+        this.achievements.add('reunions');
+        this.juice.lambReunited(s);
+      },
       onStampedeWarning: (s) => this.juice.stampedeWarning(s),
       onStampede: (s) => this.juice.stampede(s),
       onStampedeStopped: (s) => {
+        this.achievements.add('stampedes');
         this.addScore(BLACK.points);
         this.juice.stampedeStopped(s, BLACK.points);
       },
-      onSheepWoke: (s) => this.juice.sheepWoke(s),
+      onSheepWoke: (s) => {
+        this.achievements.add('wakeUps');
+        this.juice.sheepWoke(s);
+      },
       onSheepDozed: (s) => this.juice.snore(s),
       onSnore: (s) => this.juice.snore(s),
       onBell: (s) => this.juice.bell(s),
       onGoatButt: (g, w) => {
+        this.achievements.add('goatButts');
         stunWolf(w, this.ctx, GOAT.stun);
         // Knock the wolf back, away from the goat.
         const kx = w.position.x - g.position.x;
@@ -145,11 +158,13 @@ export class Game {
       onFeint: (w) => this.juice.feint(w),
       onPupsSplit: (w) => this.juice.pupsSplit(w),
       onPupCombo: (w) => {
+        this.achievements.add('pupCombos');
         this.addScore(PUPS.comboPoints);
         this.juice.pupCombo(w, PUPS.comboPoints);
       },
       onAlphaCall: (w) => this.juice.alphaCall(w),
       onPackScattered: (w, count) => {
+        this.achievements.add('packScatters');
         this.freeze(FEEL.scatterHitstop);
         this.juice.packScattered(w, count);
       },
@@ -201,10 +216,12 @@ export class Game {
     ui.on('reroll', () => this.reroll());
     ui.on('bigbark', () => this.bigBark());
     ui.onBuy = (id) => this.buy(id);
-    ui.on('close-bestiary', () => this.closeBestiary());
+    ui.on('close-bestiary', () => this.closeOverlay());
+    ui.on('achievements', () => this.openAchievements());
+    ui.on('close-achievements', () => this.closeOverlay());
 
     window.addEventListener('keydown', (e) => {
-      if (this.bestiaryReturn !== undefined && (e.key === 'Escape' || e.key === 'b' || e.key === 'B')) this.closeBestiary();
+      if (this.overlay && (e.key === 'Escape' || e.key === 'b' || e.key === 'B')) this.closeOverlay();
       else if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') this.togglePause();
       else if (e.key === 'b' || e.key === 'B') this.openBestiary();
       if (e.key === ' ' && this.input.enabled) {
@@ -240,23 +257,41 @@ export class Game {
     return n;
   }
 
-  // --- Bestiary ------------------------------------------------------------
+  // --- Bestiary and achievements screens ----------------------------------
+
+  // Opening one mid-wave pauses the game; closing it goes back to whatever screen was up.
+  openOverlay(name) {
+    if (this.state === STATE.PLAYING || this.state === STATE.INTRO) this.togglePause();
+    this.overlay = name;
+    this.sfx.click();
+  }
 
   openBestiary(focusId) {
-    if (this.bestiaryReturn !== undefined) {
+    if (this.overlay === 'bestiary') {
       if (focusId) this.ui.showBeast(focusId);
       return;
     }
-    // Opening it mid-wave pauses the game; closing it goes back to whatever screen was up.
-    if (this.state === STATE.PLAYING || this.state === STATE.INTRO) this.togglePause();
-    this.bestiaryReturn = true;
-    this.sfx.click();
+    this.openOverlay('bestiary');
     this.ui.openBestiary(this.bestiary, focusId);
   }
 
-  closeBestiary() {
-    this.bestiaryReturn = undefined;
-    // The end-of-wave / game-over panel may have come due while the bestiary was open.
+  openAchievements() {
+    this.openOverlay('achievements');
+    this.ui.openAchievements(this.achievements);
+  }
+
+  // Unlock whatever has been achieved since the last check, with a card for each.
+  checkAchievements() {
+    this.achievements.life.discovered = this.bestiary.unlocked.size;
+    for (const a of this.achievements.check()) {
+      this.ui.toastAchievement(a, () => this.openAchievements());
+      this.sfx.upgrade();
+    }
+  }
+
+  closeOverlay() {
+    this.overlay = null;
+    // The end-of-wave / game-over panel may have come due while the overlay was open.
     const panelDue = this.panelTimer <= 0;
     this.ui.show({ [STATE.MENU]: 'menu', [STATE.PAUSED]: 'pause' }[this.state] ?? null);
     if (panelDue && this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
@@ -423,6 +458,8 @@ export class Game {
     else {
       this.levels[key] = (this.levels[key] ?? 0) + 1;
       this.applyUpgrades();
+      if (this.levels.loud >= UPGRADE.loud.max) this.achievements.run.loudMax = true;
+      this.checkAchievements();
     }
     this.sfx.upgrade();
     this.showShop();
@@ -547,6 +584,18 @@ export class Game {
     const interest = Math.min(Math.floor(this.wool / SHEARING.interestPer), SHEARING.interestMax + this.ctx.mods.interest);
     const reward = sheared + calm + perfect + interest;
     this.wool += reward;
+
+    const run = this.achievements.run;
+    run.wave = this.wave;
+    if (perfect && this.wave >= 2) run.perfectWave = true;
+    if (interest > 0 && interest >= SHEARING.interestMax + this.ctx.mods.interest) run.maxInterest = true;
+    this.achievements.best('bestWaveWool', reward + this.waveBounty);
+    for (const s of flock) {
+      if (s.kind !== 'golden') continue;
+      s.wavesSurvived = (s.wavesSurvived ?? 0) + 1;
+      this.achievements.best('goldenStreak', s.wavesSurvived);
+    }
+    this.checkAchievements();
     this.juice.waveComplete(this.center);
     this.juice.shearing(flock, this.shepherd, reward);
     this.shepherd.play('clap', 2);
@@ -578,6 +627,7 @@ export class Game {
       localStorage.setItem(BEST_SCORE_KEY, String(this.bestScore));
     } catch {}
     this.sfx.gameOver();
+    this.checkAchievements();
     this.panelTimer = 1.5;
     this.pendingPanel = null;
   }
@@ -655,7 +705,10 @@ export class Game {
     w.root.rotation.y = s.heading;
     this.wolves.push(w);
     if (mode === 'leave') w.state = 'LEAVE';
-    else if (mode === 'exposed') w.state = 'APPROACH'; // the dog is right there: it gets scared next frame
+    else if (mode === 'exposed') {
+      w.state = 'APPROACH'; // the dog is right there: it gets scared next frame
+      this.achievements.add('exposed');
+    } // the dog is right there: it gets scared next frame
     else {
       let best = null;
       let bestD = Infinity;
@@ -728,6 +781,11 @@ export class Game {
       this.juice.crook(this.shepherd);
     } else if (by?.bark()) this.juice.bark(by);
     const points = threatening && this.state === STATE.PLAYING ? wolf.type.points : 0;
+    if (points) {
+      this.achievements.add('scares');
+      if (wolf.kind === 'brute') this.achievements.add('brutes');
+      if (wolf.kind === 'howler') this.achievements.add('howlers');
+    }
     this.addScore(points);
     if (points) {
       this.freeze(FEEL.hitstop);
@@ -739,12 +797,14 @@ export class Game {
   }
 
   onSheepSaved(sheep, wolf) {
+    this.achievements.add('saves');
     this.addScore(SCORE.save);
     this.juice.sheepSaved(sheep, SCORE.save);
     // Saved in the nick of time: slow motion and a little camera push.
     if (wolf?.stateTimer < FEEL.closeCall && this.state === STATE.PLAYING) {
       this.slowmo = FEEL.slowmo;
       this.punch = 1;
+      this.achievements.add('closeCalls');
       this.juice.closeCall(sheep);
     }
   }
@@ -771,6 +831,7 @@ export class Game {
         if (s.asleep) s.asleep = false;
       }
     }
+    this.achievements.best('bestBigBark', scared);
     this.freeze(BIG_BARK.hitstop);
     this.juice.bigBark(dog, radius, scared);
   }
@@ -794,6 +855,7 @@ export class Game {
       if (picked) {
         this.addWool(t.value);
         this.waveBounty += t.value;
+        this.achievements.add('tufts');
         this.juice.tuftCollected(t);
       } else if (t.life <= 0) this.juice.tuftLost(t);
       if (picked || t.life <= 0) {
@@ -812,6 +874,7 @@ export class Game {
     const c = this.combo;
     c.count = c.timer > 0 ? c.count + 1 : 1;
     c.timer = FEEL.comboWindow;
+    this.achievements.best('bestCombo', c.count);
     if (c.count < 2) return;
     const bonus = SCORE.comboStep * Math.min(c.count - 1, SCORE.comboMaxSteps);
     this.addScore(bonus);
@@ -828,6 +891,7 @@ export class Game {
   onSheepLost(sheep) {
     this.removeSheep(sheep);
     this.juice.sheepLost(sheep.position);
+    if (this.wave <= 5 && !sheep.type.fake) this.achievements.run.lostBy5++;
     if (sheep.kind === 'bellwether' && this.state === STATE.PLAYING) {
       this.ctx.cohesionScale = BELL.lostCohesion;
       this.juice.bellwetherLost(sheep.position);
@@ -885,7 +949,7 @@ export class Game {
       case STATE.GAME_OVER:
         if (this.panelTimer > 0) {
           this.panelTimer -= dt;
-          if (this.panelTimer <= 0 && this.bestiaryReturn === undefined) {
+          if (this.panelTimer <= 0 && !this.overlay) {
             if (this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
             else this.ui.showGameOver({ wave: this.wave, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore });
           }
@@ -894,7 +958,14 @@ export class Game {
     }
 
     this.simulate(dt);
-    if (this.state !== STATE.MENU) this.discover();
+    if (this.state !== STATE.MENU) {
+      this.discover();
+      this.achievements.best('maxFlock', this.flockSize());
+      if ((this.achievementCheck -= dt) <= 0) {
+        this.achievementCheck = 0.5;
+        this.checkAchievements();
+      }
+    }
     this.updateCamera(dt);
     this.juice.updateFloats(dt);
     this.ui.updateIndicators(this.wolves, this.world.camera);

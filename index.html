@@ -80,7 +80,7 @@
         <li><span>🐑</span>If a wolf grabs a sheep, you have a second to save it.</li>
       </ul>
       <button class="btn" data-action="play">Play</button>
-      <button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button>
+      <div class="btn-row"><button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button><button class="btn btn-quiet" data-action="achievements">🏆 Achievements</button></div>
       <p id="menu-best" class="small"></p>
     </div>
   </section>
@@ -99,7 +99,7 @@
         <button id="shop-reroll" class="btn btn-quiet btn-small" data-action="reroll">🎲 Reroll</button>
       </div>
       <button class="btn" data-action="next">Next wave</button>
-      <button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button>
+      <div class="btn-row"><button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button><button class="btn btn-quiet" data-action="achievements">🏆 Achievements</button></div>
     </div>
   </section>
 
@@ -107,7 +107,7 @@
     <div class="panel">
       <h2>Paused</h2>
       <button class="btn" data-action="resume">Resume</button>
-      <button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button>
+      <div class="btn-row"><button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button><button class="btn btn-quiet" data-action="achievements">🏆 Achievements</button></div>
       <button class="btn btn-quiet" data-action="menu">Quit to menu</button>
     </div>
   </section>
@@ -119,7 +119,7 @@
       <p id="over-waves" class="reward">You survived 3 waves</p>
       <p id="over-stats" class="small"></p>
       <button class="btn" data-action="retry">Try again</button>
-      <button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button>
+      <div class="btn-row"><button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button><button class="btn btn-quiet" data-action="achievements">🏆 Achievements</button></div>
       <button class="btn btn-quiet" data-action="menu">Menu</button>
     </div>
   </section>
@@ -140,6 +140,17 @@
         <div id="bestiary-detail" class="bestiary-detail"></div>
       </div>
       <button class="btn btn-quiet" data-action="close-bestiary">Back</button>
+    </div>
+  </section>
+
+  <section id="screen-achievements" class="screen hidden">
+    <div class="panel panel-wide">
+      <div class="bestiary-head">
+        <h2>Achievements</h2>
+        <span id="achievements-count" class="small"></span>
+      </div>
+      <div id="achievements-list" class="achievements-list"></div>
+      <button class="btn btn-quiet" data-action="close-achievements">Back</button>
     </div>
   </section>
 

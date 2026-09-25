@@ -159,6 +159,14 @@ shows up in a game (sneaky wolves once they come close, the disguised wolf once 
 a card popping up in the corner. Portraits are rendered from the in-game models (`src/bestiary.js`).
 Unlocks are saved in the browser's `localStorage`.
 
+### Achievements
+
+30 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
+to "Scare off 250 wolves in total" and "Keep a golden fleece alive for 3 waves". Open them with
+🏆 on the menu, pause, end-of-wave and game-over screens (opening mid-wave pauses). A card pops up
+in the corner when one unlocks. Unlocks and lifetime counters are saved in `localStorage`; the
+list lives in `src/achievements.js`.
+
 ## Run locally
 
 ES modules need an HTTP server (opening `index.html` via `file://` won't work):
@@ -193,6 +201,7 @@ with WebAudio, so there are no asset files.
 | `src/input.js` | Pointer → ground-plane raycast |
 | `src/ui.js` | HUD, screens, bestiary screen, unlock cards, off-screen wolf indicators |
 | `src/bestiary.js` | Bestiary entries, unlock persistence, portraits rendered from the models |
+| `src/achievements.js` | The 30 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |
 | `src/helper.js` | AI for the Second Dog upgrade |
 

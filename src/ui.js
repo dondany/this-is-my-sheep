@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { isThreatening } from './wolves.js';
 import { ENTRIES, ENTRY } from './bestiary.js';
+import { ACHIEVEMENTS } from './achievements.js';
 
 const $ = (id) => document.getElementById(id);
 const tmp = new THREE.Vector3();
@@ -222,16 +223,48 @@ export class UI {
     detail.querySelector('.beast-tip').textContent = known ? e.tip : '';
   }
 
+  openAchievements(achievements) {
+    const done = ACHIEVEMENTS.filter((a) => achievements.has(a.id)).length;
+    $('achievements-count').textContent = `${done} / ${ACHIEVEMENTS.length} unlocked`;
+    const groups = [...new Set(ACHIEVEMENTS.map((a) => a.group))];
+    $('achievements-list').replaceChildren(
+      ...groups.flatMap((group) => {
+        const h = document.createElement('h3');
+        h.textContent = group;
+        const grid = document.createElement('div');
+        grid.className = 'achievement-grid';
+        for (const a of ACHIEVEMENTS.filter((a) => a.group === group)) {
+          const card = document.createElement('div');
+          card.className = `achievement${achievements.has(a.id) ? '' : ' locked'}`;
+          card.innerHTML = '<span class="achievement-icon"></span><span><strong></strong><small></small></span>';
+          card.querySelector('.achievement-icon').textContent = a.icon;
+          card.querySelector('strong').textContent = a.name;
+          card.querySelector('small').textContent = a.text;
+          grid.appendChild(card);
+        }
+        return [h, grid];
+      })
+    );
+    this.show('achievements');
+  }
+
+  toastAchievement(a, onClick) {
+    this.pushToast(`<span class="toast-icon">${a.icon}</span><span><small>Achievement unlocked</small><strong></strong></span>`, a.name, onClick, 'achievement-toast');
+  }
+
   // Small card sliding in from the corner when something new is unlocked.
   toast(bestiary, id, onClick) {
-    const e = ENTRY[id];
+    this.pushToast(`<img alt="" src="${bestiary.portrait(id)}"><span><small>New in the bestiary</small><strong></strong></span>`, ENTRY[id].name, () => onClick?.(id));
+  }
+
+  pushToast(html, title, onClick, cls = '') {
     const el = document.createElement('button');
-    el.className = 'toast';
-    el.innerHTML = `<img alt="" src="${bestiary.portrait(id)}"><span><small>New in the bestiary</small><strong></strong></span>`;
-    el.querySelector('strong').textContent = e.name;
+    el.className = `toast ${cls}`;
+    el.innerHTML = html;
+    el.querySelector('strong').textContent = title;
     el.addEventListener('click', () => {
       el.remove();
-      onClick?.(id);
+      onClick?.();
     });
     const layer = $('toast-layer');
     while (layer.children.length >= 3) layer.firstChild.remove();

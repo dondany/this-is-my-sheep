@@ -2216,3 +2216,22 @@ average     +10      +72      +55       526      505     28 / 63
     549 wool earned); the average bot starts losing sheep from wave 2,
     peaks around 22 sheep and earns ~310 wool. Skill matters more.
 
+------------------------------------------------------------------------
+
+# 71. Achievements (implemented)
+
+-   30 achievements in five groups: Waves (6), Wolves (12), Flock (6),
+    Economy (5), Collection (1). Defined in `src/achievements.js` as
+    `{ id, group, icon, name, text, done(life, run) }`.
+-   Two kinds of progress: lifetime counters (`life`: scares, saves,
+    close calls, brutes, howlers, tufts, goat butts, stampedes...,
+    saved in localStorage) and this run's records (`run`: wave reached,
+    best combo, best Big Bark, biggest flock, golden fleece streak, best
+    wave's wool, max interest, Loud Bark maxed).
+-   The game calls `achievements.add()` / `best()` at the matching
+    events and `check()` every 0.5 s during play, at the end of each
+    wave, after buying and at game over. New unlocks show a gold card
+    in the corner ("Achievement unlocked") that opens the list.
+-   Screen: 🏆 button on the menu, pause, end-of-wave and game-over
+    screens; locked achievements are greyed out but their goal is shown.
+
