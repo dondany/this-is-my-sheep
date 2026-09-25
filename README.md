@@ -93,8 +93,9 @@ The end-of-wave screen breaks the total down. Tuning: `SHEARING` and `BOUNTY` in
 
 ## Upgrades
 
-Wool buys upgrades on the end-of-wave screen: three random cards, each with a price; buy any you
-can afford, or reroll the cards (1 wool, +1 per extra reroll that wave). Level n of an upgrade
+Wool buys upgrades on the end-of-wave screen: three random cards (two upgrades and one animal),
+each with a price; buy any you can afford, or reroll the cards (1 wool, +1 per extra reroll that
+wave). Level n of an upgrade
 costs its base price × (n + 1), and everything resets when a run ends. Rare cards (gold border)
 come up about a third as often.
 
@@ -113,6 +114,21 @@ come up about a third as often.
 | 🐕 Second Dog *(rare)* | Dog | 15 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock (80% speed, 70% threat radius) | 1 |
 | 📯 Shepherd's Whistle *(rare)* | Shepherd | 10 | Every 20 / 15 / 10 s the shepherd whistles and every sheep heads back to him | 3 |
 | 🌾 Scarecrow *(rare)* | Shepherd | 10 | Click the meadow to place it; ordinary wolves within 4.5 units get scared (brutes ignore it). Stays for the rest of the run | 2 |
+
+### Livestock
+
+One of the three cards offers an animal. It joins the flock at the start of the next wave and pays
+for itself through shearing, as long as you keep it alive. Only animals that have already turned
+up in the run are offered (a lamb always is), and each one you own makes the next of its kind
+cost 50% more.
+
+| Animal | Price | Shorn for | Notes |
+| --- | --- | --- | --- |
+| Lamb | 4 | 2 a wave | Joins a mother; wolves love lambs |
+| Bellwether | 6 | 2 a wave | One per flock; its bell regroups the sheep |
+| Old Ram | 8 | 3 a wave | One per flock; hard for wolves to take |
+| Goat | 12 | — | One per game; head-butts wolves |
+| Golden Fleece | 25 | 10 a wave | Every wolf wants it |
 
 Definitions, prices and the card draw live in `src/upgrades.js`; `modifiers()` turns levels into
 the multipliers the game reads (`ctx.mods`).

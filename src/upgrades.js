@@ -65,3 +65,32 @@ export function drawCards(levels, n = SHOP.cards) {
   }
   return cards;
 }
+
+// Livestock: one of the shop's cards offers an animal to buy. It joins the flock at the start of the
+// next wave and pays back through shearing, as long as you keep it alive. Only animals that have
+// already turned up in the run are offered (a lamb always is). Each one you already own makes the
+// next of its kind pricier.
+export const LIVESTOCK = [
+  { kind: 'lamb', price: 4, weight: 3, text: 'Joins a mother in the flock. Wolves love lambs.' },
+  { kind: 'bellwether', price: 6, weight: 1.5, unique: true, text: 'Its bell regroups the sheep around it.' },
+  { kind: 'ram', price: 8, weight: 1.5, unique: true, text: 'Big, calm and hard for wolves to take.' },
+  { kind: 'goat', price: 12, weight: 1, unique: true, text: 'Head-butts wolves and frees sheep. Not a sheep: no wool.' },
+  { kind: 'golden', price: 25, weight: 1, text: 'Every wolf wants it. A big investment if you can keep it.' },
+];
+
+export const ANIMAL = Object.fromEntries(LIVESTOCK.map((a) => [a.kind, a]));
+
+export function animalPrice(kind, owned) {
+  const a = ANIMAL[kind];
+  return a.price + owned * Math.ceil(a.price / 2);
+}
+
+// available(kind) says whether an animal can be offered right now.
+export function drawAnimal(available) {
+  const pool = LIVESTOCK.filter((a) => available(a.kind));
+  if (!pool.length) return null;
+  let r = Math.random() * pool.reduce((sum, a) => sum + a.weight, 0);
+  for (const a of pool) if ((r -= a.weight) <= 0) return a.kind;
+  return pool[pool.length - 1].kind;
+}
+

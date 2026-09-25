@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { DOG, SHEEP, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { DOG, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -11,7 +11,7 @@ import { Sfx } from './audio.js';
 import { MouseController } from './input.js';
 import { UI } from './ui.js';
 import { Bestiary, ENTRY, entryId } from './bestiary.js';
-import { UPGRADE, SHOP, cost, modifiers, drawCards } from './upgrades.js';
+import { UPGRADE, SHOP, ANIMAL, cost, modifiers, drawCards, drawAnimal, animalPrice } from './upgrades.js';
 
 export const STATE = {
   MENU: 'MENU',
@@ -89,6 +89,7 @@ export class Game {
     this.helper = null; // Second Dog upgrade
     this.scarecrows = [];
     this.tufts = []; // bounty tufts waiting to be picked up
+    this.pendingAnimals = []; // livestock bought in the shop, joining next wave
     this.waveBounty = 0;
     this.whistleTimer = 0;
     this.hitstop = 0;
@@ -316,12 +317,61 @@ export class Game {
     this.juice.whistle(this.shepherd);
   }
 
+  // Two upgrade cards and one livestock card, in random order.
+  drawShopCards() {
+    const cards = drawCards(this.levels, SHOP.cards - 1);
+    const animal = drawAnimal((kind) => this.canBuyAnimal(kind));
+    if (animal) cards.splice(Math.floor(Math.random() * (cards.length + 1)), 0, `animal:${animal}`);
+    return cards;
+  }
+
+  // Animals that have turned up this run (a lamb always), and only one of each unique kind.
+  canBuyAnimal(kind) {
+    if (kind !== 'lamb' && this.wave < FIRST_WAVE[kind]) return false;
+    if (kind !== 'goat' && this.flockSize() + this.pendingAnimals.length >= SHEEP.cap) return false;
+    return !(ANIMAL[kind].unique && this.ownedAnimals(kind) > 0);
+  }
+
+  ownedAnimals(kind) {
+    const onField = kind === 'goat' ? (this.goat ? 1 : 0) : this.sheep.filter((s) => s.kind === kind).length;
+    return onField + this.pendingAnimals.filter((k) => k === kind).length;
+  }
+
+  cardPrice(key) {
+    if (key.startsWith('animal:')) {
+      const kind = key.slice(7);
+      return animalPrice(kind, this.ownedAnimals(kind));
+    }
+    return cost(UPGRADE[key], this.levels[key] ?? 0);
+  }
+
   openShop() {
-    this.shop = { cards: drawCards(this.levels), bought: new Set(), rerollCost: SHOP.reroll };
+    this.shop = { cards: this.drawShopCards(), bought: new Set(), rerollCost: SHOP.reroll };
   }
 
   showShop() {
-    this.ui.renderShop({ ...this.shop, levels: this.levels, wool: this.wool, price: (id) => cost(UPGRADE[id], this.levels[id] ?? 0) });
+    const cards = this.shop.cards.map((key) => {
+      const bought = this.shop.bought.has(key);
+      const price = this.cardPrice(key);
+      if (key.startsWith('animal:')) {
+        const kind = key.slice(7);
+        const a = ANIMAL[kind];
+        const wool = kind === 'goat' ? 0 : SHEEP_TYPES[kind].wool;
+        return {
+          key,
+          livestock: true,
+          name: ENTRY[kind].name,
+          image: this.bestiary.portrait(kind),
+          text: a.text,
+          pays: wool ? `Shorn for 🧶 ${wool} a wave` : '',
+          price,
+          bought,
+        };
+      }
+      const u = UPGRADE[key];
+      return { key, ...u, level: this.levels[key] ?? 0, price, bought };
+    });
+    this.ui.renderShop({ cards, rerollCost: this.shop.rerollCost, wool: this.wool });
   }
 
   showWavePanel() {
@@ -329,13 +379,16 @@ export class Game {
     this.showShop();
   }
 
-  buy(id) {
-    const price = cost(UPGRADE[id], this.levels[id] ?? 0);
-    if (this.shop.bought.has(id) || this.wool < price) return;
+  buy(key) {
+    const price = this.cardPrice(key);
+    if (this.shop.bought.has(key) || this.wool < price) return;
     this.wool -= price;
-    this.levels[id] = (this.levels[id] ?? 0) + 1;
-    this.shop.bought.add(id);
-    this.applyUpgrades();
+    this.shop.bought.add(key);
+    if (key.startsWith('animal:')) this.pendingAnimals.push(key.slice(7));
+    else {
+      this.levels[key] = (this.levels[key] ?? 0) + 1;
+      this.applyUpgrades();
+    }
     this.sfx.upgrade();
     this.showShop();
   }
@@ -344,7 +397,7 @@ export class Game {
     if (this.wool < this.shop.rerollCost) return;
     this.wool -= this.shop.rerollCost;
     this.shop.rerollCost += SHOP.reroll;
-    this.shop.cards = drawCards(this.levels);
+    this.shop.cards = this.drawShopCards();
     this.shop.bought.clear();
     this.sfx.click();
     this.showShop();
@@ -369,6 +422,7 @@ export class Game {
     this.wool = 0;
     this.score = 0;
     this.levels = {};
+    this.pendingAnimals.length = 0;
     this.bigBarkTimer = 0;
     for (const t of this.tufts) t.destroy();
     this.tufts.length = 0;
@@ -399,6 +453,10 @@ export class Game {
     for (let i = 0; i < cfg.newSheep + (this.wave > 1 ? mods.extraSheep : 0); i++) kinds.push('normal');
     this.spawnSheep(kinds.slice(0, Math.max(0, SHEEP.cap - this.flockSize())), this.wave > 1);
     for (let i = 0; i < cfg.disguised; i++) this.spawnDisguise();
+    // Livestock bought in the shop.
+    const bought = this.pendingAnimals.splice(0);
+    this.spawnSheep(bought.filter((k) => k !== 'goat'), true);
+    if (bought.includes('goat') && !this.goat) cfg.goat = true;
     if (cfg.goat && !this.goat) {
       this.goat = new Goat(this.world.scene).setPosition(this.center.x + 6, 0, this.center.z - 4);
       this.juice.newSheep(this.goat);

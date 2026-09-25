@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { isThreatening } from './wolves.js';
 import { ENTRIES, ENTRY } from './bestiary.js';
-import { UPGRADE } from './upgrades.js';
 
 const $ = (id) => document.getElementById(id);
 const tmp = new THREE.Vector3();
@@ -133,22 +132,19 @@ export class UI {
     this.show('wave');
   }
 
-  // Upgrade cards on the end-of-wave screen.
-  renderShop({ cards, bought, rerollCost, levels, wool, price }) {
+  // Shop cards on the end-of-wave screen: upgrades and one livestock card.
+  renderShop({ cards, rerollCost, wool }) {
     $('shop-wool').textContent = wool;
     const reroll = $('shop-reroll');
     reroll.textContent = `🎲 Reroll (${rerollCost})`;
     reroll.disabled = wool < rerollCost;
     const group = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock' };
     $('shop-cards').replaceChildren(
-      ...cards.map((id) => {
-        const u = UPGRADE[id];
-        const level = levels[id] ?? 0;
-        const owned = bought.has(id);
-        const cost = price(id);
+      ...cards.map((c) => {
         const card = document.createElement('button');
-        card.className = `upgrade-card group-${u.group}${u.rare ? ' rare' : ''}${owned ? ' bought' : ''}`;
-        card.disabled = owned || wool < cost;
+        const style = c.livestock ? 'livestock' : `group-${c.group}${c.rare ? ' rare' : ''}`;
+        card.className = `upgrade-card ${style}${c.bought ? ' bought' : ''}`;
+        card.disabled = c.bought || wool < c.price;
         card.innerHTML = `
           <span class="upgrade-group"></span>
           <span class="upgrade-icon"></span>
@@ -156,13 +152,21 @@ export class UI {
           <span class="upgrade-pips"></span>
           <span class="upgrade-text"></span>
           <span class="upgrade-price"></span>`;
-        card.querySelector('.upgrade-group').textContent = u.rare ? `${group[u.group]} · rare` : group[u.group];
-        card.querySelector('.upgrade-icon').textContent = u.icon;
-        card.querySelector('.upgrade-name').textContent = u.name;
-        card.querySelector('.upgrade-pips').textContent = '●'.repeat(level) + '○'.repeat(u.max - level);
-        card.querySelector('.upgrade-text').textContent = u.text;
-        card.querySelector('.upgrade-price').textContent = owned ? '✓ Bought' : `🧶 ${cost}`;
-        card.addEventListener('click', () => this.onBuy?.(id));
+        const q = (sel) => card.querySelector(sel);
+        q('.upgrade-name').textContent = c.name;
+        q('.upgrade-text').textContent = c.text;
+        if (c.livestock) {
+          q('.upgrade-group').textContent = 'Livestock';
+          q('.upgrade-icon').innerHTML = `<img alt="" src="${c.image}">`;
+          q('.upgrade-pips').textContent = c.pays;
+          q('.upgrade-price').textContent = c.bought ? '✓ Joins next wave' : `🧶 ${c.price}`;
+        } else {
+          q('.upgrade-group').textContent = c.rare ? `${group[c.group]} · rare` : group[c.group];
+          q('.upgrade-icon').textContent = c.icon;
+          q('.upgrade-pips').textContent = '●'.repeat(c.level) + '○'.repeat(c.max - c.level);
+          q('.upgrade-price').textContent = c.bought ? '✓ Bought' : `🧶 ${c.price}`;
+        }
+        card.addEventListener('click', () => this.onBuy?.(c.key));
         return card;
       })
     );

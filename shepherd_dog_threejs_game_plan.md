@@ -2105,4 +2105,13 @@ that keep score and money separate.
     it up by running within 1.6 units. One per wolf, so it can't be
     farmed; the point is the detour away from the flock. Collected
     tufts are listed separately on the end-of-wave screen.
+-   **Livestock card**: one of the three shop cards offers an animal to
+    buy (lamb 4, bellwether 6, ram 8, goat 12, golden fleece 25 wool),
+    turning wool into an investment that pays back through shearing
+    if you keep it alive. Only animals already met in the run are
+    offered (lambs always), unique ones (ram, bellwether, goat) only if
+    you don't have one, never beyond the flock cap, and each one owned
+    raises the next one's price by 50%. Bought animals join at the start
+    of the next wave. The card shows the bestiary portrait and "Shorn
+    for N a wave".
 

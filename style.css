@@ -1158,3 +1158,60 @@ h2 {
   font-weight: 600;
   color: var(--accent-dark);
 }
+
+/* Livestock card: an animal to buy, with its bestiary portrait */
+.upgrade-card.livestock {
+  background: #f3f8e6;
+  border-color: #6f8f3f;
+  box-shadow: 0 5px 0 rgba(95, 138, 50, 0.4);
+}
+
+.livestock .upgrade-group {
+  color: #5f8a32;
+}
+
+.livestock .upgrade-icon img {
+  width: 64px;
+  height: 64px;
+  margin: -8px 0 -6px;
+}
+
+.livestock .upgrade-pips {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #5f8a32;
+}
+
+.upgrade-card.livestock.bought {
+  background: #eaf2d6;
+}
+
+@media (max-width: 600px) {
+  .livestock .upgrade-icon img {
+    width: 44px;
+    height: 44px;
+    margin: 0;
+  }
+}
+
+/* Keep the end-of-wave screen compact enough for laptop screens */
+.panel-shop {
+  padding: 20px 24px 18px;
+}
+
+.panel-shop h2 {
+  font-size: 28px;
+  margin-bottom: 2px;
+}
+
+.panel-shop .breakdown {
+  margin-bottom: 10px;
+  padding: 6px 14px;
+  font-size: 14px;
+}
+
+.panel-shop .btn {
+  margin-top: 8px;
+  padding: 10px 20px;
+}
