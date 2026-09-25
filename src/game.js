@@ -472,10 +472,10 @@ export class Game {
     if (bought.includes('goat') && !this.goat) cfg.goat = true;
 
     // Then special sheep, then plain ones, up to the flock cap.
-    const has = (kind) => this.sheep.some((s) => s.kind === kind);
+    const count = (kind) => this.sheep.filter((s) => s.kind === kind).length;
     const kinds = [];
-    for (const kind of ['ram', 'black', 'bellwether']) if (cfg[kind] && !has(kind)) kinds.push(kind);
-    if (cfg.golden && !has('golden')) kinds.push('golden');
+    for (const kind of ['ram', 'black', 'bellwether']) for (let i = count(kind); i < cfg[kind]; i++) kinds.push(kind);
+    if (cfg.golden && !count('golden')) kinds.push('golden');
     for (let i = 0; i < cfg.sleepy; i++) kinds.push('sleepy');
     for (let i = 0; i < cfg.wanderers; i++) kinds.push('wanderer');
     const mods = this.ctx.mods;

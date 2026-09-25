@@ -85,7 +85,7 @@ export const DOG = {
 // Shearing Day: wool comes from the flock. At the end of each wave every surviving sheep is sheared
 // for its type's `wool`, plus a calm bonus; scaring wolves only earns score.
 export const SHEARING = {
-  calmBonus: 0.5, // extra wool per calm sheep (never grabbed, never panicked for long), rounded down
+  calmBonus: 1 / 3, // extra wool per calm sheep (never grabbed, never panicked for long), rounded down
   calmStress: 2, // seconds of panic a sheep can take and still count as calm
   perfect: 2, // bonus when no sheep was lost
   interestPer: 5, // +1 wool for every this much left unspent at the end of a wave...
@@ -119,7 +119,7 @@ export const BIG_BARK = {
 };
 
 export const SHEEP = {
-  cap: 80,
+  cap: 60,
   separationRadius: 1.6,
   grazeSpacing: 1.5, // grazing sheep want this much more room than walking ones
   separation: 2.2,
@@ -506,15 +506,18 @@ export function waveConfig(wave) {
   return {
     wave,
     difficulty,
-    newSheep: wave === 1 ? 10 : 3, // plain sheep; the special ones below come on top
-    wanderers: wave >= FIRST_WAVE.wanderer ? 1 : 0,
-    lambs: wave < FIRST_WAVE.lamb ? 0 : wave < 8 ? 1 : 2, // each is paired with a mother
-    sleepy: wave >= FIRST_WAVE.sleepy ? 1 : 0,
+    // New arrivals each wave. The flock starts small, and later waves bring fewer plain sheep and
+    // more troublemakers (wanderers, sleepy sheep, black sheep), so it gets harder to manage
+    // rather than just bigger.
+    newSheep: wave === 1 ? 6 : wave < 5 ? 2 : 1, // plain sheep
+    wanderers: wave < FIRST_WAVE.wanderer ? 0 : wave < 6 ? 1 : 2,
+    lambs: wave < FIRST_WAVE.lamb ? 0 : 1, // each is paired with a mother
+    sleepy: wave < FIRST_WAVE.sleepy ? 0 : wave < 7 ? 1 : 2,
     golden: wave === GOLDEN.firstWave || (wave > GOLDEN.firstWave && Math.random() < GOLDEN.chance),
-    // One per flock: joins if the flock doesn't have one
-    ram: wave >= FIRST_WAVE.ram,
-    black: wave >= FIRST_WAVE.black,
-    bellwether: wave >= FIRST_WAVE.bellwether,
+    // How many of these the flock should have: new ones join to make up the number.
+    ram: wave >= FIRST_WAVE.ram ? 1 : 0,
+    black: wave < FIRST_WAVE.black ? 0 : wave < 10 ? 1 : 2,
+    bellwether: wave >= FIRST_WAVE.bellwether ? 1 : 0,
     goat: wave >= FIRST_WAVE.goat, // one per game
     disguised: wave >= FIRST_WAVE.disguised ? 1 : 0,
     wolves: Math.min(1 + wave, 15),

@@ -4,29 +4,29 @@
 
 export const UPGRADES = [
   // --- Dog
-  { id: 'swift', group: 'dog', icon: '⚡', name: 'Swift Paws', text: 'The dog runs and turns 10% faster.', max: 5, cost: 4 },
-  { id: 'loud', group: 'dog', icon: '📣', name: 'Loud Bark', text: 'Bark range +12%: wolves get scared from further away.', max: 5, cost: 4 },
-  { id: 'scary', group: 'dog', icon: '😱', name: 'Scary Bark', text: 'Scared wolves run 20% longer before coming back.', max: 3, cost: 3 },
-  { id: 'brave', group: 'dog', icon: '🦴', name: 'Brave Heart', text: 'Brutes give up 25% sooner.', max: 3, cost: 4 },
-  { id: 'lungs', group: 'dog', icon: '🌬️', name: 'Deep Lungs', text: 'The Big Bark recharges 20% faster.', max: 3, cost: 4 },
-  { id: 'booming', group: 'dog', icon: '💥', name: 'Booming Bark', text: 'The Big Bark reaches 15% further.', max: 3, cost: 4 },
-  { id: 'nose', group: 'dog', icon: '👃', name: 'Nose for Wolves', text: 'Sneaky wolves show up sooner, and a wolf in sheep\'s clothing is sniffed out twice as fast.', max: 2, cost: 3 },
-  { id: 'fetch', group: 'dog', icon: '🎾', name: 'Fetch!', text: 'Bounty tufts last 50% longer and are easier to grab.', max: 2, cost: 3 },
-  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', text: 'A young dog joins you and guards the flock on its own. Slow at first: train it with pup upgrades.', max: 1, cost: 30, rare: true },
-  { id: 'pupSpeed', group: 'dog', icon: '🐾', name: 'Pup Training', text: 'The second dog runs 10% faster (of your dog\'s speed).', max: 4, cost: 4, requires: 'helper' },
-  { id: 'pupBark', group: 'dog', icon: '🔊', name: "Pup's Bark", text: 'The second dog scares wolves from further away.', max: 3, cost: 4, requires: 'helper' },
+  { id: 'swift', group: 'dog', icon: '⚡', name: 'Swift Paws', text: 'The dog runs and turns 10% faster.', max: 5, cost: 8 },
+  { id: 'loud', group: 'dog', icon: '📣', name: 'Loud Bark', text: 'Bark range +12%: wolves get scared from further away.', max: 5, cost: 8 },
+  { id: 'scary', group: 'dog', icon: '😱', name: 'Scary Bark', text: 'Scared wolves run 20% longer before coming back.', max: 3, cost: 6 },
+  { id: 'brave', group: 'dog', icon: '🦴', name: 'Brave Heart', text: 'Brutes give up 25% sooner.', max: 3, cost: 8 },
+  { id: 'lungs', group: 'dog', icon: '🌬️', name: 'Deep Lungs', text: 'The Big Bark recharges 20% faster.', max: 3, cost: 8 },
+  { id: 'booming', group: 'dog', icon: '💥', name: 'Booming Bark', text: 'The Big Bark reaches 15% further.', max: 3, cost: 8 },
+  { id: 'nose', group: 'dog', icon: '👃', name: 'Nose for Wolves', text: 'Sneaky wolves show up sooner, and a wolf in sheep\'s clothing is sniffed out twice as fast.', max: 2, cost: 6 },
+  { id: 'fetch', group: 'dog', icon: '🎾', name: 'Fetch!', text: 'Bounty tufts last 50% longer and are easier to grab.', max: 2, cost: 6 },
+  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', text: 'A young dog joins you and guards the flock on its own. Slow at first: train it with pup upgrades.', max: 1, cost: 40, rare: true },
+  { id: 'pupSpeed', group: 'dog', icon: '🐾', name: 'Pup Training', text: 'The second dog runs 10% faster (of your dog\'s speed).', max: 4, cost: 8, requires: 'helper' },
+  { id: 'pupBark', group: 'dog', icon: '🔊', name: "Pup's Bark", text: 'The second dog scares wolves from further away.', max: 3, cost: 8, requires: 'helper' },
   // --- Shepherd
-  { id: 'calm', group: 'shepherd', icon: '🎶', name: 'Calming Song', text: 'Sheep panic 15% less around wolves.', max: 3, cost: 3 },
-  { id: 'herding', group: 'shepherd', icon: '🪄', name: 'Herding Instinct', text: 'The flock sticks together 20% more tightly.', max: 3, cost: 3 },
-  { id: 'whistle', group: 'shepherd', icon: '📯', name: "Shepherd's Whistle", text: 'The shepherd whistles the whole flock back to him every 20 s (5 s sooner per level).', max: 3, cost: 10, rare: true },
-  { id: 'crook', group: 'shepherd', icon: '🦯', name: "Shepherd's Crook", text: 'The shepherd swats wolves that come within 3 units of him (+1 per level).', max: 3, cost: 5 },
-  { id: 'scarecrow', group: 'shepherd', icon: '🌾', name: 'Scarecrow', text: 'Place a scarecrow that scares off ordinary wolves (not brutes) that come close.', max: 2, cost: 10, rare: true },
+  { id: 'calm', group: 'shepherd', icon: '🎶', name: 'Calming Song', text: 'Sheep panic 15% less around wolves.', max: 3, cost: 6 },
+  { id: 'herding', group: 'shepherd', icon: '🪄', name: 'Herding Instinct', text: 'The flock sticks together 20% more tightly.', max: 3, cost: 6 },
+  { id: 'whistle', group: 'shepherd', icon: '📯', name: "Shepherd's Whistle", text: 'The shepherd whistles the whole flock back to him every 20 s (5 s sooner per level).', max: 3, cost: 20, rare: true },
+  { id: 'crook', group: 'shepherd', icon: '🦯', name: "Shepherd's Crook", text: 'The shepherd swats wolves that come within 3 units of him (+1 per level).', max: 3, cost: 10 },
+  { id: 'scarecrow', group: 'shepherd', icon: '🌾', name: 'Scarecrow', text: 'Place a scarecrow that scares off ordinary wolves (not brutes) that come close.', max: 2, cost: 20, rare: true },
   // --- Flock
-  { id: 'fleece', group: 'flock', icon: '🧶', name: 'Thick Fleece', text: 'Wolves need 20% longer to take a sheep.', max: 5, cost: 4 },
-  { id: 'more', group: 'flock', icon: '🐑', name: 'Bigger Flock', text: '+2 sheep join every wave.', max: 3, cost: 3 },
-  { id: 'lambing', group: 'flock', icon: '🍼', name: 'Lambing Season', text: '+1 lamb every wave (they pay double).', max: 2, cost: 3 },
-  { id: 'shears', group: 'flock', icon: '✂️', name: 'Sharp Shears', text: '+10% wool from shearing.', max: 3, cost: 5 },
-  { id: 'piggy', group: 'flock', icon: '🐷', name: 'Piggy Bank', text: 'Interest on unspent wool can go 2 higher.', max: 2, cost: 4 },
+  { id: 'fleece', group: 'flock', icon: '🧶', name: 'Thick Fleece', text: 'Wolves need 20% longer to take a sheep.', max: 5, cost: 8 },
+  { id: 'more', group: 'flock', icon: '🐑', name: 'Bigger Flock', text: '+1 sheep joins every wave.', max: 3, cost: 6 },
+  { id: 'lambing', group: 'flock', icon: '🍼', name: 'Lambing Season', text: '+1 lamb every wave (they pay double).', max: 2, cost: 6 },
+  { id: 'shears', group: 'flock', icon: '✂️', name: 'Sharp Shears', text: '+10% wool from shearing.', max: 3, cost: 10 },
+  { id: 'piggy', group: 'flock', icon: '🐷', name: 'Piggy Bank', text: 'Interest on unspent wool can go 2 higher.', max: 2, cost: 8 },
 ];
 
 export const UPGRADE = Object.fromEntries(UPGRADES.map((u) => [u.id, u]));
@@ -34,7 +34,7 @@ export const UPGRADE = Object.fromEntries(UPGRADES.map((u) => [u.id, u]));
 export const SHOP = {
   cards: 4, // three upgrades and one livestock card
   levelCostGrowth: 1, // level n costs base × (n + 1)
-  reroll: 1, // first reroll of a wave; each further reroll costs this much more
+  reroll: 2, // first reroll of a wave; each further reroll costs this much more
   rareWeight: 0.35, // how often rare cards come up relative to common ones
 };
 
@@ -52,7 +52,7 @@ export function modifiers(levels) {
     panic: 0.85 ** l('calm'),
     cohesion: 1 + 0.2 * l('herding'),
     grab: 1 + 0.2 * l('fleece'),
-    extraSheep: 2 * l('more'),
+    extraSheep: l('more'),
     lambs: l('lambing'),
     bigBarkCooldown: 0.8 ** l('lungs'),
     whistle: l('whistle') ? 25 - 5 * l('whistle') : 0, // seconds between whistles (0 = none)
@@ -90,11 +90,11 @@ export function drawCards(levels, n = SHOP.cards) {
 // already turned up in the run are offered (a lamb always is). Each one you already own makes the
 // next of its kind pricier.
 export const LIVESTOCK = [
-  { kind: 'lamb', price: 4, weight: 3, text: 'Joins a mother in the flock. Wolves love lambs.' },
-  { kind: 'bellwether', price: 6, weight: 1.5, unique: true, text: 'Its bell regroups the sheep around it.' },
-  { kind: 'ram', price: 8, weight: 1.5, unique: true, text: 'Big, calm and hard for wolves to take.' },
-  { kind: 'goat', price: 12, weight: 1, unique: true, text: 'Head-butts wolves and frees sheep. Not a sheep: no wool.' },
-  { kind: 'golden', price: 25, weight: 1, text: 'Every wolf wants it. A big investment if you can keep it.' },
+  { kind: 'lamb', price: 6, weight: 3, text: 'Joins a mother in the flock. Wolves love lambs.' },
+  { kind: 'bellwether', price: 10, weight: 1.5, unique: true, text: 'Its bell regroups the sheep around it.' },
+  { kind: 'ram', price: 12, weight: 1.5, unique: true, text: 'Big, calm and hard for wolves to take.' },
+  { kind: 'goat', price: 18, weight: 1, unique: true, text: 'Head-butts wolves and frees sheep. Not a sheep: no wool.' },
+  { kind: 'golden', price: 35, weight: 1, text: 'Every wolf wants it. A big investment if you can keep it.' },
 ];
 
 export const ANIMAL = Object.fromEntries(LIVESTOCK.map((a) => [a.kind, a]));

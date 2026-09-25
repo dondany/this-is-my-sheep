@@ -2160,3 +2160,32 @@ middle covered every sheep with its bark radius. Three changes:
     that does nothing now loses the game in wave 3; an active bot still
     keeps ~85-100% of the flock.
 
+------------------------------------------------------------------------
+
+# 68. Economy Balance Pass
+
+Goal: early waves afford about one purchase, a strong player owns
+roughly half of all upgrade levels by wave 12, and the flock gets
+harder to manage rather than just bigger.
+
+-   Flock: starts with 6 sheep (was 10); plain arrivals 2 per wave, 1
+    from wave 5 (was 3); wanderers 1, 2 from wave 6; sleepy sheep 1, 2
+    from wave 7; lambs 1; black sheep up to 2 from wave 10; cap 60 (was
+    80). Bigger Flock is +1 sheep per level (was +2).
+-   Prices roughly doubled: common upgrades 6-10 base, rare 20-40
+    (Second Dog 40); livestock lamb 6, bellwether 10, ram 12, goat 18,
+    golden fleece 35; rerolls 2 (+2).
+-   Calm bonus +1 per 3 calm sheep (was per 2).
+-   Bot results over 12 waves (strong: reacts every 0.5 s, Big Bark,
+    fetches tufts; average: reacts every 1.2 s, no Big Bark; both buy
+    the cheapest cards they can afford):
+
+``` text
+            wave 1   wave 8   wave 12   earned   spent   levels
+strong      +10      +60      +65       486      448     28 / 63
+average     +10      +72      +55       526      505     28 / 63
+```
+
+    The flock peaks around 30-40 sheep; from wave 9 both bots lose
+    5-15 sheep a wave.
+
