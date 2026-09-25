@@ -226,7 +226,7 @@ export class Sheep extends Animal {
       this.bump = Math.max(0, this.bump - dt * 2.8);
       const arc = Math.sin(this.bump * Math.PI);
       y += arc * BUMP.height;
-      bumpTilt = arc * 0.45 * this.bumpSide;
+      bumpTilt = arc * 0.65 * this.bumpSide;
       this.body.scale.set(1 - arc * 0.08, 1 + arc * 0.12, 1 - arc * 0.08); // stretch in the air
     } else this.body.scale.set(1, 1, 1);
     this.body.position.y = y;

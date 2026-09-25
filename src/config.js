@@ -113,8 +113,8 @@ export const ROAM = {
 export const BUMP = {
   minSpeed: 6, // the dog has to be running at least this fast
   radius: 1.4, // × the sheep's size
-  push: 3, // sideways shove out of the dog's path
-  height: 0.6,
+  push: 4.5, // sideways shove out of the dog's path
+  height: 0.9,
   cooldown: 0.6,
 };
 
