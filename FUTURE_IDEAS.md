@@ -64,3 +64,32 @@ behaviour and tolerates it because replaying is tedious; Balatro saves the exact
 3. **Save the exact moment, like Balatro.** Every wolf's state and target, grabs in progress, the
    boss's progress, stampedes, tufts and the combo. The fairest, but the most fragile: lots of
    state to keep in sync, and a bug means a broken save.
+
+### Going mobile: wrap the web game, or port to Godot?
+
+**Goal.** Release on iOS / Android. The game is ~7,000 lines of JS plus ~2,000 of HTML/CSS UI,
+all plain code (procedural models, synthesized audio, data in config modules).
+
+**Options considered:**
+
+1. **Wrap the web game (Capacitor), ~1-2 weeks.** *(Recommended first step.)* Ship the existing
+   game in a native shell. Work: touch controls (thumb-sized Big Bark button), safe areas, pause
+   on app background, low-end Android performance (big endless flocks), icons and store listings.
+   Cheapest way to test the market; a PWA (installable web app) is an even cheaper step before it.
+   Risk: three.js in a mobile webview is slower than native.
+2. **Port to Godot 4, ~4-6 weeks.** A rewrite (no JS → GDScript conversion):
+   - Data (config, upgrades, bestiary, achievements, cosmetics) → exported to JSON once. Small.
+   - Simulation (flock, wolves, waves, economy, saves) → GDScript, mostly mechanical. Medium.
+   - Models and procedural animation → rebuilt from primitives. Medium.
+   - Toon shading, shadows, particles, instanced decor → shader, built-ins, MultiMesh. Medium.
+   - UI (HUD, shop, bestiary, wardrobe, achievements, tips, summaries) → Control nodes and a
+     Theme; nothing carries over. **Largest part.**
+   - Audio → render the synthesized sounds to WAV once (OfflineAudioContext). Small.
+   - Saves → `user://` files. Mobile export, signing, Game Center / Play Games. Medium.
+
+**Suggested path.** Start with option 1. Before any port: split `game.js` so game logic is
+separate from rendering/UI, move all tuning data into JSON both versions can read, and record the
+sounds to files. Then port in this order: data → headless simulation checked against the same
+strong/average bots (they become the port's regression test) → visuals → UI → mobile export.
+Godot over Unity (licensing, weight) or Defold (2D-focused).
+
