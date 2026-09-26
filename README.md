@@ -233,7 +233,7 @@ tips again" on the menu resets them. The texts are in `src/tips.js`.
 
 ### Achievements
 
-37 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
+36 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
 to "Scare off 250 wolves in total" and "Keep a golden fleece alive for 3 waves". Open them with
 🏆 on the menu, pause, end-of-wave and game-over screens (opening mid-wave pauses). A card pops up
 in the corner when one unlocks. Unlocks and lifetime counters are saved in `localStorage`; the
@@ -274,7 +274,7 @@ with WebAudio, so there are no asset files.
 | `src/ui.js` | HUD, screens, bestiary screen, unlock cards, off-screen wolf indicators |
 | `src/bestiary.js` | Bestiary entries, unlock persistence, portraits rendered from the models |
 | `src/tips.js` | First-time tips and which ones the player has seen |
-| `src/achievements.js` | The 37 achievements, lifetime counters and unlock checks |
+| `src/achievements.js` | The 36 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |
 | `src/helper.js` | AI for the Second Dog upgrade |
 

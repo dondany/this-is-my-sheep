@@ -2330,7 +2330,7 @@ with star grading was chosen).
     are sold at market for 1 wool each. The HUD shows "17 ∞".
 -   Achievements: the wave-15 one is now "Summer's End" (win a run);
     new: Three-Star Summer, Golden Summer (win with a golden fleece),
-    Indian Summer (wave 20) and First Frost (wave 25). 35 in total.
+    Indian Summer (wave 20) and First Frost (wave 25). 34 in total.
 -   Part 2 adds the final boss.
 
 # 76. End of Summer: the Boss (implemented, part 2)
@@ -2406,7 +2406,7 @@ Phase 3 of the goal proposal, like Balatro's stakes.
     picker with the level's rules once Summer 2 is unlocked; highest
     unlocked and won are saved in localStorage.
 -   Achievements: Seasoned Shepherd (win Summer 3), Evergreen (win
-    Summer 8). 37 in total.
+    Summer 8). 36 in total.
 
 ------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 import { ENTRIES } from './bestiary.js';
 
-// Achievements: 37 goals across runs. Lifetime counters (`life`) and this run's records (`run`) are
+// Achievements: 36 goals across runs. Lifetime counters (`life`) and this run's records (`run`) are
 // updated by the game; `check()` unlocks anything newly met. Unlocks and lifetime counters are saved
 // in localStorage.
 
