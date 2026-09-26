@@ -51,7 +51,7 @@ $('dog-stats').innerHTML = `
 // --- Goal ---------------------------------------------------------------------
 
 $('goal-body').innerHTML = `
-  <p>Survive <strong>wave ${GOAL.finalWave}</strong> and drive off the boss, <strong>Old Greymuzzle</strong>, with at least one sheep left, and you win the run. The win screen rates the flock you brought home:</p>
+  <p>Survive <strong>wave ${GOAL.finalWave}</strong>, drive off the boss, <strong>Old Greymuzzle</strong>, and meet the final quota (${quotaFor(GOAL.finalWave)} sheep), and you win the run. Losing every sheep, or missing the shepherd's quota ${GOAL.strikes} times, ends it. The win screen rates the flock you brought home:</p>
   ${chips([
     ['★', 'any survivors'],
     ['★★', `${GOAL.stars[0]}+ sheep`],
