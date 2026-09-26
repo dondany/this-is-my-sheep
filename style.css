@@ -1569,3 +1569,82 @@ h2 {
   box-shadow: 0 4px 0 #8f3a2c;
 }
 
+/* --- Freezing shop cards -------------------------------------------------- */
+
+.upgrade-card {
+  position: relative;
+}
+
+.upgrade-card.unaffordable {
+  cursor: default;
+}
+
+.upgrade-card.unaffordable:not(.bought) > :not(.freeze-btn) {
+  opacity: 0.55;
+}
+
+.upgrade-card.unaffordable:hover {
+  transform: none;
+}
+
+.upgrade-card.frozen {
+  border-color: #6fa8d6;
+  background: #eef6fc;
+  box-shadow: 0 5px 0 rgba(111, 168, 214, 0.5), 0 0 0 3px rgba(111, 168, 214, 0.3);
+}
+
+.freeze-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 2px 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2f6a99;
+  background: rgba(255, 255, 255, 0.7);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.freeze-btn:hover,
+.frozen .freeze-btn {
+  opacity: 1;
+  border-color: #6fa8d6;
+  background: #fff;
+}
+
+.shop-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.shop-foot .btn-small {
+  margin: 0;
+}
+
+.shop-frozen {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2f6a99;
+}
+
+.shop-frozen.deny {
+  animation: bigbark-deny 0.3s;
+  color: var(--danger);
+}
+
+.upgrade-card[data-frozen] .upgrade-group::before {
+  content: '❄️ Frozen · ';
+  color: #2f6a99;
+}
+
+
+.upgrade-card .upgrade-group {
+  padding: 0 22px; /* room for the ❄️ button */
+}

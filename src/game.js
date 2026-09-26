@@ -13,7 +13,7 @@ import { UI } from './ui.js';
 import { Bestiary, ENTRY, entryId } from './bestiary.js';
 import { Achievements } from './achievements.js';
 import { Tips } from './tips.js';
-import { UPGRADE, SHOP, ANIMAL, cost, modifiers, drawCards, drawAnimal, animalPrice } from './upgrades.js';
+import { UPGRADE, SHOP, ANIMAL, cost, modifiers, drawCards, drawAnimal, animalPrice, canOffer } from './upgrades.js';
 
 export const STATE = {
   MENU: 'MENU',
@@ -135,6 +135,7 @@ export class Game {
     this.zoom = 1;
     this.levels = {}; // upgrade id → level, reset every run
     this.shop = null;
+    this.frozen = []; // shop cards kept for the next wave's shop
     this.helper = null; // Second Dog upgrade
     this.scarecrows = [];
     this.tufts = []; // bounty tufts waiting to be picked up
@@ -306,6 +307,7 @@ export class Game {
     ui.on('reroll', () => this.reroll());
     ui.on('bigbark', () => this.bigBark());
     ui.onBuy = (id) => this.buy(id);
+    ui.onFreeze = (id) => this.toggleFreeze(id);
     ui.on('close-bestiary', () => this.closeOverlay());
     ui.on('achievements', () => this.openAchievements());
     ui.on('effects', () => this.cycleEffects());
@@ -492,12 +494,31 @@ export class Game {
     this.juice.whistle(this.shepherd);
   }
 
-  // Two upgrade cards and one livestock card, in random order.
+  // Three upgrade cards and one livestock card. Frozen cards come first and stay put; the rest are
+  // drawn at random around them.
   drawShopCards() {
-    const cards = drawCards(this.levels, SHOP.cards - 1);
-    const animal = drawAnimal((kind) => this.canBuyAnimal(kind));
-    if (animal) cards.splice(Math.floor(Math.random() * (cards.length + 1)), 0, `animal:${animal}`);
-    return cards;
+    this.frozen = this.frozen.filter((key) => this.canOfferCard(key));
+    const frozenAnimal = this.frozen.find((k) => k.startsWith('animal:'));
+    const frozenUpgrades = this.frozen.filter((k) => !k.startsWith('animal:'));
+    const fresh = drawCards(this.levels, SHOP.cards - 1 - frozenUpgrades.length, frozenUpgrades);
+    const animal = frozenAnimal ? null : drawAnimal((kind) => this.canBuyAnimal(kind));
+    if (animal) fresh.splice(Math.floor(Math.random() * (fresh.length + 1)), 0, `animal:${animal}`);
+    return [...this.frozen, ...fresh];
+  }
+
+  // Whether a card (e.g. a frozen one) can still be offered: not maxed, animal still available.
+  canOfferCard(key) {
+    return key.startsWith('animal:') ? this.canBuyAnimal(key.slice(7)) : !!UPGRADE[key] && canOffer(UPGRADE[key], this.levels);
+  }
+
+  // Freeze a card to keep it in the shop for the next wave (up to SHOP.maxFrozen), or unfreeze it.
+  toggleFreeze(key) {
+    if (this.frozen.includes(key)) this.frozen = this.frozen.filter((k) => k !== key);
+    else if (this.frozen.length >= SHOP.maxFrozen) return this.ui.denyFreeze();
+    else this.frozen.push(key);
+    this.sfx.click();
+    this.showShop();
+    this.saveRun();
   }
 
   // Animals that have turned up this run (a lamb always), and only one of each unique kind.
@@ -538,6 +559,7 @@ export class Game {
         const wool = kind === 'goat' ? 0 : SHEEP_TYPES[kind].wool;
         return {
           key,
+          frozen: this.frozen.includes(key),
           livestock: true,
           name: ENTRY[kind].name,
           image: this.bestiary.portrait(kind),
@@ -548,9 +570,9 @@ export class Game {
         };
       }
       const u = UPGRADE[key];
-      return { key, ...u, level: this.levels[key] ?? 0, price, bought };
+      return { key, ...u, level: this.levels[key] ?? 0, price, bought, frozen: this.frozen.includes(key) };
     });
-    this.ui.renderShop({ cards, rerollCost: this.shop.rerollCost, wool: this.wool });
+    this.ui.renderShop({ cards, rerollCost: this.shop.rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
   }
 
   showWavePanel() {
@@ -567,6 +589,7 @@ export class Game {
     this.stats.woolSpent += price;
     if (key.startsWith('animal:')) this.stats.animals.push(key.slice(7));
     this.shop.bought.add(key);
+    this.frozen = this.frozen.filter((k) => k !== key);
     if (key.startsWith('animal:')) this.pendingAnimals.push(key.slice(7));
     else {
       this.levels[key] = (this.levels[key] ?? 0) + 1;
@@ -625,6 +648,7 @@ export class Game {
     this.stats = newRunStats();
     this.rules = summerRules(this.summer);
     this.levels = {};
+    this.frozen = [];
     this.pendingAnimals.length = 0;
     this.bigBarkTimer = 0;
     for (const t of this.tufts) t.destroy();
@@ -826,6 +850,7 @@ export class Game {
         r: s.type.fake ? r(s.revealIn) : undefined,
       })),
       pendingAnimals: this.pendingAnimals,
+      frozen: this.frozen,
       shop: atShop && this.shop ? { cards: this.shop.cards, bought: [...this.shop.bought], rerollCost: this.shop.rerollCost } : null,
       panel: atShop ? this.pendingPanel : null,
       victory: atShop ? this.victoryPanel : null,
@@ -849,6 +874,7 @@ export class Game {
     this.waveStartScore = data.waveStartScore ?? data.score;
     this.endless = data.endless;
     this.levels = data.levels;
+    this.frozen = data.frozen ?? [];
     this.stats = { ...newRunStats(), ...data.stats };
     Object.assign(this.achievements.run, data.run);
     this.applyUpgrades(); // brings back the second dog if it was bought

@@ -36,6 +36,7 @@ export const SHOP = {
   levelCostGrowth: 1, // level n costs base × (n + 1)
   reroll: 2, // first reroll of a wave; each further reroll costs this much more
   rareWeight: 0.35, // how often rare cards come up relative to common ones
+  maxFrozen: 2, // cards you can freeze to keep them for the next wave's shop
 };
 
 export function cost(upgrade, level) {
@@ -72,9 +73,13 @@ export function modifiers(levels) {
   };
 }
 
-// Up to `n` different upgrades that aren't maxed out yet, rare ones less often.
-export function drawCards(levels, n = SHOP.cards) {
-  const pool = UPGRADES.filter((u) => (levels[u.id] ?? 0) < u.max && (!u.requires || levels[u.requires]));
+export function canOffer(upgrade, levels) {
+  return (levels[upgrade.id] ?? 0) < upgrade.max && (!upgrade.requires || levels[upgrade.requires]);
+}
+
+// Up to `n` different upgrades that aren't maxed out yet (and not in `exclude`), rare ones less often.
+export function drawCards(levels, n = SHOP.cards, exclude = []) {
+  const pool = UPGRADES.filter((u) => canOffer(u, levels) && !exclude.includes(u.id));
   const cards = [];
   while (cards.length < n && pool.length) {
     const weights = pool.map((u) => u.weight ?? (u.rare ? SHOP.rareWeight : 1));

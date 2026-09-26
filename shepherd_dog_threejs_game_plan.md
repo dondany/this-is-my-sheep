@@ -2454,3 +2454,24 @@ sheep. Bots agreed: a strong bot lost nothing until wave 4.
     wave; a very slow casual bot (reacting every 2 s) struggles and died
     in 1 of 3 runs by wave 5.
 
+------------------------------------------------------------------------
+
+# 82. Freezing Shop Cards (implemented)
+
+Playtest: not being able to afford a card meant losing it, since the
+next shop was random again, which made saving (and interest) pointless.
+Borrowed from Super Auto Pets:
+
+-   Every unbought card has a ❄️ toggle. Frozen cards (`Game.frozen`)
+    stay in the next wave's shop and survive rerolls; the rest of the
+    shop is drawn around them (frozen upgrades are excluded from the
+    draw, a frozen animal replaces the livestock draw).
+-   Buying a frozen card unfreezes it; a frozen card that can no longer
+    be offered (maxed, animal unavailable) is dropped.
+-   Free, but at most `SHOP.maxFrozen` (2) of the 4 cards; the shop
+    footer shows "❄️ n / 2 frozen" and shakes if you try a third.
+-   Frozen cards are part of the run save. The first-shop tip mentions
+    freezing.
+-   Shop cards became `div role="button"` (so the ❄️ button can sit
+    inside them); unaffordable cards dim everything except the ❄️.
+

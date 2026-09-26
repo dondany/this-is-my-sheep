@@ -165,19 +165,23 @@ export class UI {
     this.show('wave');
   }
 
-  // Shop cards on the end-of-wave screen: upgrades and one livestock card.
-  renderShop({ cards, rerollCost, wool }) {
+  // Shop cards on the end-of-wave screen: upgrades and one livestock card. Click a card to buy it;
+  // the ❄️ button freezes it so it stays for the next wave's shop.
+  renderShop({ cards, rerollCost, wool, frozen, maxFrozen }) {
     $('shop-wool').textContent = wool;
     const reroll = $('shop-reroll');
     reroll.textContent = `🎲 Reroll (${rerollCost})`;
     reroll.disabled = wool < rerollCost;
+    $('shop-frozen').textContent = `❄️ ${frozen} / ${maxFrozen} frozen`;
     const group = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock' };
     $('shop-cards').replaceChildren(
       ...cards.map((c) => {
-        const card = document.createElement('button');
+        const card = document.createElement('div');
         const style = c.livestock ? 'livestock' : `group-${c.group}${c.rare ? ' rare' : ''}`;
-        card.className = `upgrade-card ${style}${c.bought ? ' bought' : ''}`;
-        card.disabled = c.bought || wool < c.price;
+        const affordable = !c.bought && wool >= c.price;
+        card.className = `upgrade-card ${style}${c.bought ? ' bought' : ''}${affordable ? '' : ' unaffordable'}${c.frozen ? ' frozen' : ''}`;
+        card.setAttribute('role', 'button');
+        card.tabIndex = affordable ? 0 : -1;
         card.innerHTML = `
           <span class="upgrade-group"></span>
           <span class="upgrade-icon"></span>
@@ -188,6 +192,7 @@ export class UI {
         const q = (sel) => card.querySelector(sel);
         q('.upgrade-name').textContent = c.name;
         q('.upgrade-text').textContent = c.text;
+        if (c.frozen) card.dataset.frozen = ''; // adds "❄️ Frozen ·" before the group label (CSS)
         if (c.livestock) {
           q('.upgrade-group').textContent = 'Livestock';
           q('.upgrade-icon').innerHTML = `<img alt="" src="${c.image}">`;
@@ -199,11 +204,33 @@ export class UI {
           q('.upgrade-pips').textContent = '●'.repeat(c.level) + '○'.repeat(c.max - c.level);
           q('.upgrade-price').textContent = c.bought ? '✓ Bought' : `🧶 ${c.price}`;
         }
-        card.addEventListener('click', () => this.onBuy?.(c.key));
+        const buy = () => affordable && this.onBuy?.(c.key);
+        card.addEventListener('click', buy);
+        card.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), buy()));
+        if (!c.bought) {
+          const freeze = document.createElement('button');
+          freeze.className = 'freeze-btn';
+          freeze.textContent = '❄️';
+          freeze.title = c.frozen ? 'Unfreeze' : 'Freeze: keep this card for the next wave';
+          freeze.setAttribute('aria-pressed', c.frozen ? 'true' : 'false');
+          freeze.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.onFreeze?.(c.key);
+          });
+          card.appendChild(freeze);
+        }
         return card;
       })
     );
     if (!cards.length) $('shop-cards').textContent = 'Everything is maxed out. Good dog!';
+  }
+
+  denyFreeze() {
+    const el = $('shop-frozen');
+    el.classList.remove('deny');
+    void el.offsetWidth;
+    el.classList.add('deny');
+    setTimeout(() => el.classList.remove('deny'), 600);
   }
 
   // Stat tiles plus what took the sheep and what was bought.

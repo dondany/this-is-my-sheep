@@ -176,6 +176,13 @@ come up about a third as often.
 | 📯 Shepherd's Whistle *(rare)* | Shepherd | 20 | Every 20 / 15 / 10 s the shepherd whistles and every sheep heads back to him | 3 |
 | 🌾 Scarecrow *(rare)* | Shepherd | 20 | Click the meadow to place it; ordinary wolves within 4.5 units get scared (brutes ignore it). Stays for the rest of the run | 2 |
 
+### Freezing cards
+
+Can't afford a card yet? Tap its ❄️ to freeze it: a frozen card stays in the shop for the next
+wave (rerolls don't touch it) until you buy it or unfreeze it. Up to 2 of the 4 cards can be frozen,
+so saving up (with interest) for something specific is a real plan. Frozen cards are saved with
+the run.
+
 ### Livestock
 
 One of the three cards offers an animal. It joins the flock at the start of the next wave and pays
