@@ -4,7 +4,7 @@ A small three.js arcade game: you're the shepherd's dog, and wolves are coming f
 Click the meadow to send the dog running; wolves that get too close to it turn tail.
 
 Design doc: [`shepherd_dog_threejs_game_plan.md`](shepherd_dog_threejs_game_plan.md) ·
-What's next: [`FUTURE_IDEAS.md`](FUTURE_IDEAS.md)
+What's next: [`FUTURE_IDEAS.md`](FUTURE_IDEAS.md) (including open design questions we've parked)
 
 ## Goal: End of Summer
 
