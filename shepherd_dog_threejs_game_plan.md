@@ -2246,3 +2246,18 @@ average     +10      +72      +55       526      505     28 / 63
     at the start sheep react from half as far and herding needs a
     closer pass; at max reach they react from 1.7× as far.
 
+------------------------------------------------------------------------
+
+# 72. Sheep Personal Space (implemented)
+
+-   After the flock update, `keepApart()` in `src/flock.js` pushes any
+    two sheep closer than `SHEEP.minDistance` (1.8 for two normal
+    sheep, scaled by both sizes) apart by 35% of the overlap per frame:
+    a soft positional correction, not a collision. A sheep a wolf is
+    holding doesn't move; the other takes the whole push.
+-   Herding Instinct shrinks the minimum distance by 10% per level
+    (`mods.spacing`), so a tighter, easier-to-guard flock is something
+    you buy.
+-   In a 40-sheep flock the closest pair sits at 1.75 with no overlaps
+    (1.22 with Herding Instinct 3).
+

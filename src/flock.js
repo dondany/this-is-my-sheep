@@ -171,6 +171,34 @@ export function updateGoat(g, ctx, dt) {
   g.faceVelocity(8, dt, 0.3);
 }
 
+// Personal space: push apart any two sheep closer than their minimum distance. A soft positional
+// correction (a fraction of the overlap per frame), not a hard collision. A sheep a wolf is holding
+// doesn't move; the other one gets the whole push.
+function keepApart(sheep, spacing) {
+  const n = sheep.length;
+  for (let i = 0; i < n; i++) {
+    const a = sheep[i];
+    for (let j = i + 1; j < n; j++) {
+      const b = sheep[j];
+      const dx = b.position.x - a.position.x;
+      const dz = b.position.z - a.position.z;
+      const d2 = dx * dx + dz * dz;
+      const min = (SHEEP.minDistance * spacing * (a.type.scale + b.type.scale)) / 2.3;
+      if (d2 >= min * min) continue;
+      const d = Math.sqrt(d2) || 1e-3;
+      const nx = d2 > 1e-8 ? dx / d : Math.random() - 0.5;
+      const nz = d2 > 1e-8 ? dz / d : Math.random() - 0.5;
+      const push = (min - d) * SHEEP.minDistanceStiffness;
+      const wa = a.grabbedBy ? 0 : b.grabbedBy ? 1 : 0.5;
+      const wb = 1 - wa - (a.grabbedBy && b.grabbedBy ? 1 : 0);
+      a.position.x -= nx * push * wa;
+      a.position.z -= nz * push * wa;
+      b.position.x += nx * push * wb;
+      b.position.z += nz * push * wb;
+    }
+  }
+}
+
 export function flockCenter(sheep, out) {
   out.set(0, 0, 0);
   if (!sheep.length) return out;
@@ -477,4 +505,5 @@ export function updateFlock(sheep, ctx, dt) {
     s.faceVelocity(4 + s.fear * 6, dt, 0.25);
     if (dd < 8) s.lookYaw = Math.max(-1.1, Math.min(1.1, angleTo(s.heading, Math.atan2(-ddx, -ddz))));
   }
+  keepApart(sheep, mods.spacing);
 }

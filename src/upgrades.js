@@ -17,7 +17,7 @@ export const UPGRADES = [
   { id: 'pupBark', group: 'dog', icon: '🔊', name: "Pup's Bark", text: 'The second dog scares wolves from further away.', max: 3, cost: 8, requires: 'helper' },
   // --- Shepherd
   { id: 'calm', group: 'shepherd', icon: '🎶', name: 'Calming Song', text: 'Sheep panic 15% less around wolves.', max: 3, cost: 6 },
-  { id: 'herding', group: 'shepherd', icon: '🪄', name: 'Herding Instinct', text: 'The flock sticks together 20% more tightly.', max: 3, cost: 6 },
+  { id: 'herding', group: 'shepherd', icon: '🪄', name: 'Herding Instinct', text: 'The flock sticks together 20% more tightly, and sheep can stand 10% closer to each other.', max: 3, cost: 6 },
   { id: 'whistle', group: 'shepherd', icon: '📯', name: "Shepherd's Whistle", text: 'The shepherd whistles the whole flock back to him every 20 s (5 s sooner per level).', max: 3, cost: 20, rare: true },
   { id: 'crook', group: 'shepherd', icon: '🦯', name: "Shepherd's Crook", text: 'The shepherd swats wolves that come within 3 units of him (+1 per level).', max: 3, cost: 10 },
   { id: 'scarecrow', group: 'shepherd', icon: '🌾', name: 'Scarecrow', text: 'Place a scarecrow that scares off ordinary wolves (not brutes) that come close.', max: 2, cost: 20, rare: true },
@@ -51,6 +51,7 @@ export function modifiers(levels) {
     courage: 0.75 ** l('brave'),
     panic: 0.85 ** l('calm'),
     cohesion: 1 + 0.2 * l('herding'),
+    spacing: 1 - 0.1 * l('herding'), // × SHEEP.minDistance
     grab: 1 + 0.2 * l('fleece'),
     extraSheep: l('more'),
     lambs: l('lambing'),

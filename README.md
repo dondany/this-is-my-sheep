@@ -51,7 +51,9 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early (★ 40). |
 
 Sheep walk on away from the dog when it comes close, which is what makes herding strays back work.
-The flock starts with 6 sheep and grows by a handful each wave (capped at 60). Later waves bring
+Sheep keep a little personal space: two sheep closer than 1.8 units (scaled by size) are gently
+pushed apart every frame, so the flock can't clog into one heap (Herding Instinct lets them stand
+closer). The flock starts with 6 sheep and grows by a handful each wave (capped at 60). Later waves bring
 fewer plain sheep and more troublemakers: wanderers and sleepy sheep go up to two a wave, and a
 second black sheep joins from wave 10. The flock doesn't stay put: every 20–35 s the shepherd leads it to a new grazing spot ("This way,
 girls!"), grazing sheep spread out, and sheep grow uneasy around a dog that parks among them (the
@@ -123,7 +125,7 @@ come up about a third as often.
 | ✂️ Sharp Shears | Flock | 10 | +10% wool from shearing | 3 |
 | 🐷 Piggy Bank | Flock | 8 | Interest cap +2 | 2 |
 | 🎶 Calming Song | Shepherd | 6 | Sheep panic 15% less around wolves | 3 |
-| 🪄 Herding Instinct | Shepherd | 6 | Flock cohesion +20% | 3 |
+| 🪄 Herding Instinct | Shepherd | 6 | Flock cohesion +20%, and sheep can stand 10% closer to each other | 3 |
 | 🧶 Thick Fleece | Flock | 8 | Wolves need 20% longer to take a sheep | 5 |
 | 🐑 Bigger Flock | Flock | 6 | +1 sheep every wave | 3 |
 | 🍼 Lambing Season | Flock | 6 | +1 lamb every wave | 2 |

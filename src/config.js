@@ -133,6 +133,10 @@ export const BIG_BARK = {
 export const SHEEP = {
   cap: 60,
   separationRadius: 1.6,
+  // Personal space: sheep closer than this (for two normal-sized sheep; scaled by size) are gently
+  // pushed apart every frame, so the flock can't clog into one heap. Herding Instinct shrinks it.
+  minDistance: 1.8,
+  minDistanceStiffness: 0.35, // fraction of the overlap corrected per frame
   grazeSpacing: 1.5, // grazing sheep want this much more room than walking ones
   separation: 2.2,
   neighbourRadius: 4,
