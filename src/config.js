@@ -130,7 +130,6 @@ export const BIG_BARK = {
   radius: 12, // every wolf this close flees, brutes included
   cooldown: 15,
   startleRadius: 6, // sheep this close to the dog get startled too
-  hitstop: 0.12,
 };
 
 export const SHEEP = {

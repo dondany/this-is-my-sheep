@@ -28,17 +28,21 @@ export const STATE = {
 const SCORE = { save: 25, comboStep: 10, comboMaxSteps: 9 }; // combo bonus tops out at +90
 const ZOOM = { min: 0.7, max: 1.5 }; // multiplier on the default camera distance
 
-// Game feel: a tiny freeze when a wolf is scared, slow motion for a last-second rescue,
-// and a combo chain for scares in quick succession.
+// Game feel. An ordinary scare only jolts the wolf and the dog (see Wolf/Dog.animate); the whole
+// game freezes only for big moments, slow motion marks a last-second rescue, and scares in quick
+// succession chain into a combo. The Screen effects setting (full / reduced / off) tones it down.
 const FEEL = {
-  hitstop: 0.05, // seconds frozen per scare
-  scatterHitstop: 0.1,
+  bigHitstop: 0.08, // whole-game freeze for Big Bark and a scattered alpha pack
+  freezeGap: 0.5, // at most one whole-game freeze per this many seconds
   closeCall: 0.4, // a rescue with less than this much grab time left counts as a close one
-  slowmo: 0.6, // real seconds of slow motion
-  slowmoScale: 0.25,
+  slowmo: 0.4, // real seconds of slow motion
+  slowmoScale: 0.4,
+  slowmoGap: 5, // at most once per this many seconds
   punch: 0.1, // camera push-in on a close call (fraction of the distance)
   comboWindow: 2.5, // seconds to land the next scare
 };
+const EFFECTS_KEY = 'this-is-my-sheep.effects';
+const EFFECTS = ['full', 'reduced', 'off'];
 const BEST_KEY = 'this-is-my-sheep.best';
 const BEST_SCORE_KEY = 'this-is-my-sheep.bestScore';
 
@@ -100,6 +104,13 @@ export class Game {
     this.roamTimer = 0;
     this.hitstop = 0;
     this.slowmo = 0;
+    this.lastFreeze = -Infinity; // real time (ms) of the last whole-game freeze
+    this.lastSlowmo = -Infinity;
+    try {
+      this.effects = EFFECTS.includes(localStorage.getItem(EFFECTS_KEY)) ? localStorage.getItem(EFFECTS_KEY) : 'full';
+    } catch {
+      this.effects = 'full';
+    }
     this.punch = 0;
     this.combo = { count: 0, timer: 0 };
     this.bigBarkTimer = 0; // cooldown left
@@ -167,7 +178,7 @@ export class Game {
       onAlphaCall: (w) => this.juice.alphaCall(w),
       onPackScattered: (w, count) => {
         this.achievements.add('packScatters');
-        this.freeze(FEEL.scatterHitstop);
+        this.freeze(FEEL.bigHitstop);
         this.juice.packScattered(w, count);
       },
       onWolfCharge: (w) => this.onWolfCharge(w),
@@ -192,6 +203,7 @@ export class Game {
     this.spawnSheep(['ram', 'black', 'bellwether', 'wanderer', 'sleepy', 'lamb', ...Array(7).fill('normal')], false);
     this.ui.setBest(this.best, this.bestScore);
     this.ui.setMuted(this.sfx.muted);
+    this.applyEffects();
     this.ui.show('menu');
 
     this.last = performance.now();
@@ -220,6 +232,7 @@ export class Game {
     ui.onBuy = (id) => this.buy(id);
     ui.on('close-bestiary', () => this.closeOverlay());
     ui.on('achievements', () => this.openAchievements());
+    ui.on('effects', () => this.cycleEffects());
     ui.on('close-achievements', () => this.closeOverlay());
 
     window.addEventListener('keydown', (e) => {
@@ -791,8 +804,8 @@ export class Game {
       if (wolf.kind === 'howler') this.achievements.add('howlers');
     }
     this.addScore(points);
+    if (by === this.dog) this.dog.recoil = 1;
     if (points) {
-      this.freeze(FEEL.hitstop);
       this.addCombo(wolf);
       this.dropBounty(wolf);
     }
@@ -806,8 +819,12 @@ export class Game {
     this.juice.sheepSaved(sheep, SCORE.save);
     // Saved in the nick of time: slow motion and a little camera push.
     if (wolf?.stateTimer < FEEL.closeCall && this.state === STATE.PLAYING) {
-      this.slowmo = FEEL.slowmo;
-      this.punch = 1;
+      const now = performance.now();
+      if (this.effects === 'full' && now - this.lastSlowmo > FEEL.slowmoGap * 1000) {
+        this.slowmo = FEEL.slowmo;
+        this.punch = 1;
+        this.lastSlowmo = now;
+      }
       this.achievements.add('closeCalls');
       this.juice.closeCall(sheep);
     }
@@ -836,7 +853,7 @@ export class Game {
       }
     }
     this.achievements.best('bestBigBark', scared);
-    this.freeze(BIG_BARK.hitstop);
+    this.freeze(FEEL.bigHitstop);
     this.juice.bigBark(dog, radius, scared);
   }
 
@@ -869,8 +886,26 @@ export class Game {
     }
   }
 
+  // Whole-game freeze-frame, kept for big moments and rate-limited so busy waves don't stutter.
   freeze(seconds) {
+    const now = performance.now();
+    if (this.effects !== 'full' || now - this.lastFreeze < FEEL.freezeGap * 1000) return;
+    this.lastFreeze = now;
     this.hitstop = Math.max(this.hitstop, seconds);
+  }
+
+  cycleEffects() {
+    this.effects = EFFECTS[(EFFECTS.indexOf(this.effects) + 1) % EFFECTS.length];
+    try {
+      localStorage.setItem(EFFECTS_KEY, this.effects);
+    } catch {}
+    this.applyEffects();
+    this.sfx.click();
+  }
+
+  applyEffects() {
+    this.juice.intensity = { full: 1, reduced: 0.5, off: 0 }[this.effects];
+    this.ui.setEffects(this.effects);
   }
 
   // Scares landed within FEEL.comboWindow of each other chain into a combo.

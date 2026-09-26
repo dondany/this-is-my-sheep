@@ -20,13 +20,15 @@ export class Juice {
     this.shakeDuration = 1;
     this.shakeAmp = 0;
     this.shakeOffset = new THREE.Vector3();
+    this.intensity = 1; // Screen effects setting: 1 full, 0.5 reduced, 0 off (shakes and flashes)
   }
 
   // --- Primitives ----------------------------------------------------------
 
   shake(amount, ms) {
     // Plan-style amounts (0.03 – 0.12) scaled into world units.
-    const amp = amount * 8;
+    const amp = amount * 8 * this.intensity;
+    if (!amp) return;
     if (amp < this.shakeAmp * (this.shakeTime / this.shakeDuration)) return;
     this.shakeAmp = amp;
     this.shakeDuration = this.shakeTime = ms / 1000;
@@ -55,7 +57,9 @@ export class Juice {
   }
 
   flash(color) {
+    if (!this.intensity) return;
     const el = this.flashEl;
+    el.style.setProperty('--flash-max', this.intensity);
     el.style.background = color;
     el.classList.remove('on');
     void el.offsetWidth; // restart the CSS animation

@@ -408,6 +408,10 @@ export class Dog extends Animal {
     body.position.y = 0.72 + Math.abs(Math.sin(this.phase)) * 0.12 * run - this.sit * 0.16;
     body.rotation.x = Math.cos(this.phase) * 0.08 * run - this.sit * 0.45;
     body.rotation.z = damp(body.rotation.z, clamp(-turn * 0.3, -0.3, 0.3) * run, 8, dt) + shake;
+    // Recoil after scaring a wolf: a quick squash, as if leaning back from the bark.
+    this.recoil = Math.max(0, (this.recoil ?? 0) - dt * 5);
+    const r = Math.sin(this.recoil * Math.PI);
+    body.scale.set(1 + r * 0.1, 1 - r * 0.12, 1 - r * 0.15);
 
     // Head: pant when idle, look at whatever matters, jerk up on a bark.
     this.barkAnim = Math.max(0, this.barkAnim - dt * 4);
@@ -553,8 +557,14 @@ export class Wolf extends Animal {
     this.swingLegs(this.legs, this.phase, 0.8 * Math.min(1, speed / 2));
 
     const st = this.stun > 0 ? 'STUN' : this.howling > 0 ? 'HOWL' : this.resisting ? 'RESIST' : this.state;
+    // The scare jolt: a startled jump and a quick puff-up while it freezes for a beat.
     let hop = 0;
-    if (st === 'FLEE' && this.pause > 0) hop = Math.sin((this.pause / 0.14) * Math.PI) * 0.35;
+    let jolt = 0;
+    if (st === 'FLEE' && this.pause > 0) {
+      jolt = Math.sin((this.pause / 0.14) * Math.PI);
+      hop = jolt * 0.45;
+    }
+    this.body.scale.set(1 + jolt * 0.12, 1 + jolt * 0.2, 1 - jolt * 0.08);
     this.body.position.y = this.bodyY + Math.abs(Math.sin(this.phase)) * 0.08 * run + hop;
     this.body.rotation.y = st === 'ATTACK' ? Math.sin(time * 30) * 0.15 : 0;
     // Snarling in place: small fast shudder. Dazed: slow wobble.

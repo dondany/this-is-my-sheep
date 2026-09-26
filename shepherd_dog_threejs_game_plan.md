@@ -2292,3 +2292,22 @@ average     +10      +72      +55       526      505     28 / 63
 -   The Naturalist achievement now compares against the bestiary's
     length instead of a hard-coded 18.
 
+------------------------------------------------------------------------
+
+# 74. Freeze Rework (implemented)
+
+Playtest: the 50 ms whole-game freeze on every scare made busy waves
+stutter.
+
+-   Ordinary scares no longer freeze the game. The scared wolf's own
+    0.14 s startle pause is the hit: a bigger jump and a squash-and-
+    stretch puff-up; the player's dog recoils (a quick squash).
+-   Whole-game freezes (80 ms) remain only for the Big Bark and a
+    scattered alpha pack, rate-limited to one per 0.5 s.
+-   Close-call slow motion: 0.4 s at 40% speed (was 0.6 s at 25%), at
+    most once every 5 s.
+-   Screen effects setting (Full / Reduced / Off) on the menu and pause
+    screens, saved in localStorage: Reduced drops freezes, slow motion
+    and the camera push-in and halves shakes and flashes; Off removes
+    them all.
+

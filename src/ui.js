@@ -92,6 +92,11 @@ export class UI {
     btn.classList.add('deny');
   }
 
+  setEffects(level) {
+    const label = { full: 'Full', reduced: 'Reduced', off: 'Off' }[level];
+    document.querySelectorAll('.effects-btn').forEach((b) => (b.textContent = `✨ Screen effects: ${label}`));
+  }
+
   setMuted(muted) {
     this.el.mute.textContent = muted ? '🔇' : '🔊';
     this.el.mute.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');

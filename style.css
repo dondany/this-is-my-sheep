@@ -493,7 +493,7 @@ h2 {
 
 @keyframes flash {
   from {
-    opacity: 1;
+    opacity: var(--flash-max, 1);
   }
   to {
     opacity: 0;

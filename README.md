@@ -65,10 +65,11 @@ newcomers each wave.
 
 ## Game feel
 
-- **Hit-stop:** every wolf scared off the flock freezes the game for 50 ms (100 ms when an alpha's
-  pack scatters).
-- **Close calls:** rescuing a sheep with less than 0.4 s of grab time left triggers 0.6 s of
-  slow motion, a camera push-in and "CLOSE ONE!".
+- **Scare jolt:** a scared wolf freezes for a beat with a startled jump and puff-up, and the dog
+  recoils a little. The whole game only freezes (80 ms) for big moments: a Big Bark and a scattered
+  alpha pack, at most once every 0.5 s.
+- **Close calls:** rescuing a sheep with less than 0.4 s of grab time left triggers 0.4 s of
+  slow motion (40% speed), a camera push-in and "CLOSE ONE!", at most once every 5 s.
 - **Combos:** scares within 2.5 s of each other chain up: "COMBO ×N" grows with the chain, scores
   +10 per step (×2 = +10, ×3 = +20, …, capped at +90), plays a rising chime, and a badge under
   the top bar shows the chain and how long you have to extend it.
@@ -76,6 +77,9 @@ newcomers each wave.
 - **Bowling through the flock:** sheep the dog runs through at speed get knocked into a little
   bounce, tilt away from it and get nudged out of its path, with a puff of wool and a "boing"
   (`BUMP` in `src/config.js`).
+
+- **Screen effects setting** (menu and pause screens): Full, Reduced (no freezes or slow motion,
+  half-strength shakes and flashes) or Off. Saved in the browser.
 
 All the numbers are in `FEEL` at the top of `src/game.js`.
 
