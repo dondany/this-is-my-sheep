@@ -2387,3 +2387,24 @@ with star grading was chosen).
 -   Also fixed alongside: starting a new run now resets endless mode,
     the pending win screen, the boss and the per-run achievement records.
 
+------------------------------------------------------------------------
+
+# 79. Summers: Difficulty Levels (implemented)
+
+Phase 3 of the goal proposal, like Balatro's stakes.
+
+-   `SUMMERS` in `src/config.js`: 8 levels, each adding one rule to all
+    the earlier ones (`summerRules(n)` merges them): 4 starting sheep,
+    +1 wolf per wave, 25% shorter stalking, prices +25%, no Big Bark
+    before wave 5, brutes/sneaky wolves/alpha two waves earlier, and a
+    boss with one more drive-off that arrives at 10% of the wave.
+-   `waveConfig(wave, rules)` and `wolfPack(wave, count, rules)` apply
+    them; the game applies prices, the Big Bark lock (the button stays
+    empty until then) and the boss rules.
+-   Winning the highest unlocked summer unlocks the next one ("🔓 Summer
+    N unlocked: ..." on the win screen). The menu shows a ◀ Summer N ▶
+    picker with the level's rules once Summer 2 is unlocked; highest
+    unlocked and won are saved in localStorage.
+-   Achievements: Seasoned Shepherd (win Summer 3), Evergreen (win
+    Summer 8). 37 in total.
+

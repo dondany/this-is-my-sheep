@@ -80,6 +80,14 @@
         <li><span>🐺</span>Get close to a wolf and it runs away.</li>
         <li><span>🐑</span>If a wolf grabs a sheep, you have a second to save it.</li>
       </ul>
+      <div id="summer-picker" class="summer-picker hidden">
+        <button class="icon-btn" data-action="summer-down" aria-label="Easier summer">◀</button>
+        <div>
+          <strong id="summer-name">Summer 1</strong>
+          <small id="summer-rules"></small>
+        </div>
+        <button class="icon-btn" data-action="summer-up" aria-label="Harder summer">▶</button>
+      </div>
       <button class="btn" data-action="play">Play</button>
       <div class="btn-row"><button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button><button class="btn btn-quiet" data-action="achievements">🏆 Achievements</button></div>
       <button class="btn btn-quiet effects-btn" data-action="effects">✨ Screen effects: Full</button>
@@ -113,6 +121,7 @@
       <p id="victory-stars" class="victory-stars">★★★</p>
       <p id="victory-flock" class="big-stat">🐑 30 sheep made it home</p>
       <p id="victory-stats" class="small"></p>
+      <p id="victory-unlock" class="victory-unlock hidden"></p>
       <div id="victory-summary" class="run-summary"></div>
       <p class="small">Keep grazing to play on in endless mode: more wolves every wave, a growing score multiplier, and room for a bigger flock.</p>
       <button class="btn" data-action="keep-grazing">Keep grazing</button>

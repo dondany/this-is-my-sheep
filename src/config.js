@@ -524,6 +524,33 @@ export const BOSS = {
   endlessEvery: 5,
 };
 
+// Difficulty levels unlocked by winning, like Balatro's stakes. Each summer adds its rule on top of
+// all the earlier ones.
+export const SUMMERS = [
+  { text: 'The standard run.' },
+  { text: 'The flock starts with 4 sheep instead of 6.', startSheep: -2 },
+  { text: 'One more wolf every wave.', extraWolves: 1 },
+  { text: 'Wolves stalk 25% less before they attack.', stalk: 0.75 },
+  { text: 'Shop prices +25%.', prices: 1.25 },
+  { text: 'No Big Bark until wave 5.', bigBarkFrom: 5 },
+  { text: 'Brutes, sneaky wolves and the alpha turn up two waves earlier.', earlier: 2 },
+  { text: 'Old Greymuzzle needs one more drive-off and comes early.', bossDrives: 1, bossEarly: true },
+];
+
+// The combined rules for a summer (1-based).
+export function summerRules(summer) {
+  const rules = { summer, startSheep: 0, extraWolves: 0, stalk: 1, prices: 1, bigBarkFrom: 0, earlier: 0, bossDrives: 0, bossEarly: false };
+  for (const s of SUMMERS.slice(1, summer)) {
+    for (const [k, v] of Object.entries(s)) {
+      if (k === 'text') continue;
+      if (k === 'stalk' || k === 'prices') rules[k] *= v;
+      else if (typeof v === 'boolean') rules[k] = v;
+      else rules[k] += v;
+    }
+  }
+  return rules;
+}
+
 export const ENDLESS = {
   extraWolves: 1, // per endless wave, on top of the normal cap of 15...
   maxWolves: 25, // ...up to this many
@@ -548,8 +575,11 @@ export const FIRST_WAVE = {
 
 // Which wolves make up a wave's pack ('pups' is a group of three pups taking one slot).
 // Listed in priority order: when the pack is full, the later kinds are left out.
-export function wolfPack(wave, count) {
-  const from = (kind, n) => (wave >= FIRST_WAVE[kind] ? n : 0);
+const EARLIER = new Set(['brute', 'sneaky', 'alpha']);
+
+export function wolfPack(wave, count, rules = summerRules(1)) {
+  const firstWave = (kind) => FIRST_WAVE[kind] - (EARLIER.has(kind) ? rules.earlier : 0);
+  const from = (kind, n) => (wave >= firstWave(kind) ? n : 0);
   const wanted = [
     ['alpha', from('alpha', 1)],
     ['brute', from('brute', wave < 8 ? 1 : Math.min(3, Math.floor((wave - 4) / 2)))],
@@ -574,12 +604,13 @@ export function wolfPack(wave, count) {
   return pack;
 }
 
-function wolfCount(wave) {
+function wolfCount(wave, rules) {
   const endless = Math.max(0, wave - GOAL.finalWave);
-  return endless ? Math.min(15 + endless * ENDLESS.extraWolves, ENDLESS.maxWolves) : Math.min(1 + wave, 15);
+  const base = endless ? Math.min(15 + endless * ENDLESS.extraWolves, ENDLESS.maxWolves) : Math.min(1 + wave, 15);
+  return base + rules.extraWolves;
 }
 
-export function waveConfig(wave) {
+export function waveConfig(wave, rules = summerRules(1)) {
   const difficulty = 1 + (wave - 1) * 0.15;
   return {
     wave,
@@ -587,7 +618,7 @@ export function waveConfig(wave) {
     // New arrivals each wave. The flock starts small, and later waves bring fewer plain sheep and
     // more troublemakers (wanderers, sleepy sheep, black sheep), so it gets harder to manage
     // rather than just bigger.
-    newSheep: wave === 1 ? 6 : wave < 5 ? 2 : 1, // plain sheep
+    newSheep: wave === 1 ? 6 + rules.startSheep : wave < 5 ? 2 : 1, // plain sheep
     wanderers: wave < FIRST_WAVE.wanderer ? 0 : wave < 6 ? 1 : 2,
     lambs: wave < FIRST_WAVE.lamb ? 0 : 1, // each is paired with a mother
     sleepy: wave < FIRST_WAVE.sleepy ? 0 : wave < 7 ? 1 : 2,
@@ -597,13 +628,13 @@ export function waveConfig(wave) {
     black: wave < FIRST_WAVE.black ? 0 : wave < 10 ? 1 : 2,
     bellwether: wave >= FIRST_WAVE.bellwether ? 1 : 0,
     disguised: wave >= FIRST_WAVE.disguised ? 1 : 0,
-    wolves: wolfCount(wave),
+    wolves: wolfCount(wave, rules),
     duration: Math.min(40 + wave * 5, 90),
     spawnInterval: Math.max(2, 9 - wave * 0.6),
     // Pressure comes mostly from more wolves and shorter stalking, not raw speed.
     wolfSpeed: Math.min(1 + (wave - 1) * 0.05, 1.5),
-    stalkMin: 2.5 / difficulty,
-    stalkMax: 5.5 / difficulty,
-    pack: wolfPack(wave, wolfCount(wave)),
+    stalkMin: (2.5 / difficulty) * rules.stalk,
+    stalkMax: (5.5 / difficulty) * rules.stalk,
+    pack: wolfPack(wave, wolfCount(wave, rules), rules),
   };
 }

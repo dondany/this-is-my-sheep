@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { isThreatening } from './wolves.js';
 import { ENTRIES, ENTRY } from './bestiary.js';
 import { ACHIEVEMENTS } from './achievements.js';
+import { SUMMERS } from './config.js';
 
 const $ = (id) => document.getElementById(id);
 const tmp = new THREE.Vector3();
@@ -228,8 +229,21 @@ export class UI {
     );
   }
 
-  showVictory({ stars, flock, score, wool, upgrades, newBest, summary }) {
+  // Difficulty picker on the menu: only shown once a summer has been won.
+  setSummer(summer, unlocked, won) {
+    $('summer-picker').classList.toggle('hidden', unlocked < 2);
+    $('summer-name').textContent = `Summer ${summer}${summer <= won ? ' ✓' : ''}`;
+    const rules = SUMMERS.slice(1, summer).map((s) => s.text);
+    $('summer-rules').textContent = rules.length ? rules.join(' ') : SUMMERS[0].text;
+    document.querySelector('[data-action=summer-down]').disabled = summer <= 1;
+    document.querySelector('[data-action=summer-up]').disabled = summer >= unlocked;
+  }
+
+  showVictory({ stars, flock, summer, unlocked, score, wool, upgrades, newBest, summary }) {
     this.renderSummary('victory-summary', summary);
+    document.querySelector('#screen-victory h2').textContent = summer > 1 ? `Summer ${summer} won!` : "Summer's End!";
+    $('victory-unlock').classList.toggle('hidden', !unlocked);
+    if (unlocked) $('victory-unlock').textContent = `🔓 Summer ${unlocked.summer} unlocked: ${unlocked.text}`;
     $('victory-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
     $('victory-flock').textContent = flock === 1 ? '🐑 1 sheep made it home' : `🐑 ${flock} sheep made it home`;
     $('victory-stats').textContent = `★ ${score}${newBest ? ' (new best!)' : ''} · 🧶 ${wool} wool left · ${upgrades} upgrades`;

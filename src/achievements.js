@@ -1,6 +1,6 @@
 import { ENTRIES } from './bestiary.js';
 
-// Achievements: 35 goals across runs. Lifetime counters (`life`) and this run's records (`run`) are
+// Achievements: 37 goals across runs. Lifetime counters (`life`) and this run's records (`run`) are
 // updated by the game; `check()` unlocks anything newly met. Unlocks and lifetime counters are saved
 // in localStorage.
 
@@ -15,6 +15,8 @@ export const ACHIEVEMENTS = [
   { id: 'wave15', group: 'Waves', icon: '👑', name: "Summer's End", text: 'Win a run: keep sheep alive to the end of the final wave (15).', done: (l, r) => r.won },
   { id: 'threeStars', group: 'Waves', icon: '🌟', name: 'Three-Star Summer', text: 'Win a run with ★★★ (30 or more sheep).', done: (l, r) => r.stars >= 3 },
   { id: 'goldenSummer', group: 'Waves', icon: '🏆', name: 'Golden Summer', text: 'Win a run with a golden fleece still in the flock.', done: (l, r) => r.goldenAtWin },
+  { id: 'summer3', group: 'Waves', icon: '🍂', name: 'Seasoned Shepherd', text: 'Win Summer 3.', done: (l, r) => r.summerWon >= 3 },
+  { id: 'summer8', group: 'Waves', icon: '🌲', name: 'Evergreen', text: 'Win Summer 8, the hardest summer.', done: (l, r) => r.summerWon >= 8 },
   { id: 'endless20', group: 'Waves', icon: '🌙', name: 'Indian Summer', text: 'Finish wave 20 (endless).', done: (l, r) => r.wave >= 20 },
   { id: 'endless25', group: 'Waves', icon: '❄️', name: 'First Frost', text: 'Finish wave 25 (endless).', done: (l, r) => r.wave >= 25 },
   { id: 'perfect', group: 'Waves', icon: '✨', name: 'Not One Lost', text: 'Finish a wave (from wave 2 on) without losing a sheep.', done: (l, r) => r.perfectWave },
@@ -88,6 +90,7 @@ export class Achievements {
       won: false,
       stars: 0,
       goldenAtWin: false,
+      summerWon: 0,
     };
   }
 

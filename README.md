@@ -19,7 +19,25 @@ Then choose **Menu** or **Keep grazing** for endless mode (like Balatro after th
 - score multiplier ×1.1 for the first endless wave, ×1.2 for the second, and so on;
 - the flock cap rises from 60 to 90, and newcomers that don't fit are sold at market for 1 wool each.
 
-Tuning: `GOAL` and `ENDLESS` in `src/config.js`.
+### Summers (difficulty levels)
+
+Winning unlocks the next summer, like Balatro's stakes; pick it with ◀ ▶ on the menu. Each one adds
+a rule on top of all the earlier ones:
+
+| Summer | Adds |
+| --- | --- |
+| 1 | The standard run |
+| 2 | The flock starts with 4 sheep instead of 6 |
+| 3 | One more wolf every wave |
+| 4 | Wolves stalk 25% less before they attack |
+| 5 | Shop prices +25% |
+| 6 | No Big Bark until wave 5 |
+| 7 | Brutes, sneaky wolves and the alpha turn up two waves earlier |
+| 8 | Old Greymuzzle needs one more drive-off and comes early |
+
+The highest summer unlocked and won are saved; achievements for winning Summer 3 and Summer 8.
+
+Tuning: `GOAL`, `ENDLESS` and `SUMMERS` in `src/config.js`.
 
 ## Controls
 
@@ -197,7 +215,7 @@ tips again" on the menu resets them. The texts are in `src/tips.js`.
 
 ### Achievements
 
-35 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
+37 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
 to "Scare off 250 wolves in total" and "Keep a golden fleece alive for 3 waves". Open them with
 🏆 on the menu, pause, end-of-wave and game-over screens (opening mid-wave pauses). A card pops up
 in the corner when one unlocks. Unlocks and lifetime counters are saved in `localStorage`; the
@@ -238,7 +256,7 @@ with WebAudio, so there are no asset files.
 | `src/ui.js` | HUD, screens, bestiary screen, unlock cards, off-screen wolf indicators |
 | `src/bestiary.js` | Bestiary entries, unlock persistence, portraits rendered from the models |
 | `src/tips.js` | First-time tips and which ones the player has seen |
-| `src/achievements.js` | The 35 achievements, lifetime counters and unlock checks |
+| `src/achievements.js` | The 37 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |
 | `src/helper.js` | AI for the Second Dog upgrade |
 

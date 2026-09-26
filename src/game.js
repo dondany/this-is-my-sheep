@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GOAL, ENDLESS, BOSS, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { GOAL, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -47,6 +47,8 @@ const EFFECTS = ['full', 'reduced', 'off'];
 const BEST_KEY = 'this-is-my-sheep.best';
 const BEST_SCORE_KEY = 'this-is-my-sheep.bestScore';
 const WINS_KEY = 'this-is-my-sheep.wins';
+const SUMMER_KEY = 'this-is-my-sheep.summerUnlocked'; // highest difficulty level unlocked
+const SUMMER_WON_KEY = 'this-is-my-sheep.summerWon'; // highest difficulty level won
 const BEST_STARS_KEY = 'this-is-my-sheep.bestStars';
 
 function readNumber(key) {
@@ -103,6 +105,10 @@ export class Game {
     this.wins = readNumber(WINS_KEY);
     this.bestStars = readNumber(BEST_STARS_KEY);
     this.endless = false; // true once the player keeps going after winning
+    this.summerUnlocked = Math.max(1, Math.min(SUMMERS.length, readNumber(SUMMER_KEY)));
+    this.summerWon = readNumber(SUMMER_WON_KEY);
+    this.summer = this.summerUnlocked; // the difficulty picked on the menu
+    this.rules = summerRules(this.summer);
     this.cfg = null;
     this.center = new THREE.Vector3();
     this.cameraFocus = new THREE.Vector3();
@@ -238,6 +244,7 @@ export class Game {
     this.bindUI();
     this.spawnSheep(['ram', 'black', 'bellwether', 'wanderer', 'sleepy', 'lamb', ...Array(7).fill('normal')], false);
     this.ui.setBest(this.best, this.bestScore, this.wins, this.bestStars);
+    this.ui.setSummer(this.summer, this.summerUnlocked, this.summerWon);
     this.ui.setMuted(this.sfx.muted);
     this.applyEffects();
     this.ui.show('menu');
@@ -264,6 +271,8 @@ export class Game {
     });
     ui.on('bestiary', () => this.openBestiary());
     ui.on('keep-grazing', () => this.keepGrazing());
+    ui.on('summer-down', () => this.pickSummer(-1));
+    ui.on('summer-up', () => this.pickSummer(1));
     ui.on('reroll', () => this.reroll());
     ui.on('bigbark', () => this.bigBark());
     ui.onBuy = (id) => this.buy(id);
@@ -474,11 +483,15 @@ export class Game {
   }
 
   cardPrice(key) {
-    if (key.startsWith('animal:')) {
-      const kind = key.slice(7);
-      return animalPrice(kind, this.ownedAnimals(kind));
-    }
-    return cost(UPGRADE[key], this.levels[key] ?? 0);
+    const base = key.startsWith('animal:') ? animalPrice(key.slice(7), this.ownedAnimals(key.slice(7))) : cost(UPGRADE[key], this.levels[key] ?? 0);
+    return Math.round(base * this.rules.prices);
+  }
+
+  // Difficulty level picked on the menu (only unlocked ones).
+  pickSummer(step) {
+    this.summer = Math.max(1, Math.min(this.summerUnlocked, this.summer + step));
+    this.ui.setSummer(this.summer, this.summerUnlocked, this.summerWon);
+    this.sfx.click();
   }
 
   openShop() {
@@ -571,6 +584,7 @@ export class Game {
     this.combo = { count: 0, timer: 0 };
     this.achievements.newRun();
     this.stats = newRunStats();
+    this.rules = summerRules(this.summer);
     this.levels = {};
     this.pendingAnimals.length = 0;
     this.bigBarkTimer = 0;
@@ -588,7 +602,7 @@ export class Game {
 
   nextWave() {
     this.wave++;
-    const cfg = (this.cfg = this.ctx.cfg = waveConfig(this.wave));
+    const cfg = (this.cfg = this.ctx.cfg = waveConfig(this.wave, this.rules));
     this.ctx.cohesionScale = 1;
 
     // Livestock bought in the shop comes first: it's paid for.
@@ -643,7 +657,9 @@ export class Game {
     const final = this.wave === GOAL.finalWave;
     const sub =
       this.wave === 1
-        ? `Keep the flock safe until the end of summer: wave ${GOAL.finalWave}`
+        ? this.rules.summer > 1
+          ? `Summer ${this.rules.summer}: keep the flock safe until wave ${GOAL.finalWave}`
+          : `Keep the flock safe until the end of summer: wave ${GOAL.finalWave}`
         : final
           ? 'The last wave of summer. Hold on!'
           : this.endless
@@ -738,6 +754,7 @@ export class Game {
     for (const s of this.sheep) s.grabbedBy = null;
     this.ui.setHudVisible(false);
     this.ui.setBest(this.best, this.bestScore, this.wins, this.bestStars);
+    this.ui.setSummer(this.summer, this.summerUnlocked, this.summerWon);
     this.ui.show('menu');
     this.setState(STATE.MENU);
     this.sfx.suspend(false);
@@ -895,7 +912,7 @@ export class Game {
     this.bossSpawned = true;
     const a = Math.atan2(this.center.z - this.dog.position.z, this.center.x - this.dog.position.x) + (Math.random() - 0.5);
     const w = new Wolf(this.world.scene, 'greymuzzle').setPosition(Math.cos(a) * WORLD.spawnRadius, 0, Math.sin(a) * WORLD.spawnRadius);
-    w.drivesLeft = BOSS.driveOffs + Math.floor(Math.max(0, this.wave - GOAL.finalWave) / BOSS.endlessEvery);
+    w.drivesLeft = BOSS.driveOffs + this.rules.bossDrives + Math.floor(Math.max(0, this.wave - GOAL.finalWave) / BOSS.endlessEvery);
     w.drivesTotal = w.drivesLeft;
     this.wolves.push(w);
     toWander(w, this.ctx);
@@ -940,7 +957,27 @@ export class Game {
       localStorage.setItem(BEST_SCORE_KEY, String(this.bestScore));
       localStorage.setItem(BEST_KEY, String(this.best));
     } catch {}
-    this.victoryPanel = { stars, flock, score: this.score, wool: this.wool, upgrades: Object.values(this.levels).reduce((a, b) => a + b, 0), newBest: this.newBestScore, summary: this.runSummary() };
+    // Winning a summer unlocks the next one.
+    const summer = this.rules.summer;
+    const unlocked = summer === this.summerUnlocked && summer < SUMMERS.length ? summer + 1 : 0;
+    this.summerWon = Math.max(this.summerWon, summer);
+    if (unlocked) this.summerUnlocked = this.summer = unlocked;
+    run.summerWon = summer;
+    try {
+      localStorage.setItem(SUMMER_KEY, String(this.summerUnlocked));
+      localStorage.setItem(SUMMER_WON_KEY, String(this.summerWon));
+    } catch {}
+    this.victoryPanel = {
+      stars,
+      flock,
+      summer,
+      unlocked: unlocked && { summer: unlocked, text: SUMMERS[unlocked - 1].text },
+      score: this.score,
+      wool: this.wool,
+      upgrades: Object.values(this.levels).reduce((a, b) => a + b, 0),
+      newBest: this.newBestScore,
+      summary: this.runSummary(),
+    };
     this.juice.victory(this.center);
     this.checkAchievements();
   }
@@ -1009,6 +1046,10 @@ export class Game {
   bigBark() {
     if (!this.input.enabled) return;
     if (this.bigBarkTimer > 0) return this.ui.denyBigBark();
+    if (this.wave < this.rules.bigBarkFrom) {
+      this.juice.floatText(`Big Bark unlocks at wave ${this.rules.bigBarkFrom}`, { follow: this.dog, offsetY: 3, cls: 'warn', duration: 1.4 });
+      return this.ui.denyBigBark();
+    }
     this.bigBarkTimer = BIG_BARK.cooldown * this.ctx.mods.bigBarkCooldown;
     const dog = this.dog;
     dog.barkAnim = 1;
@@ -1167,7 +1208,8 @@ export class Game {
           this.whistleTimer = this.ctx.mods.whistle;
           this.whistle();
         }
-        if (this.isBossWave() && !this.bossSpawned && this.waveTime >= this.cfg.duration * BOSS.arriveAt) this.spawnBoss();
+        const arriveAt = this.rules.bossEarly ? Math.min(BOSS.arriveAt, 0.1) : BOSS.arriveAt;
+        if (this.isBossWave() && !this.bossSpawned && this.waveTime >= this.cfg.duration * arriveAt) this.spawnBoss();
         // The boss wave only ends once Old Greymuzzle has been driven off for good.
         if (this.waveTime >= this.cfg.duration) {
           if (!this.bossActive()) this.completeWave();
@@ -1206,7 +1248,8 @@ export class Game {
     const boss = this.bossActive() ? this.boss : null;
     this.ui.setBoss(boss && { name: 'Old Greymuzzle', done: boss.drivesTotal - boss.drivesLeft, left: boss.drivesLeft });
     this.bigBarkTimer = Math.max(0, this.bigBarkTimer - dt);
-    this.ui.setBigBark(1 - this.bigBarkTimer / (BIG_BARK.cooldown * this.ctx.mods.bigBarkCooldown));
+    const barkLocked = this.wave < this.rules.bigBarkFrom;
+    this.ui.setBigBark(barkLocked ? 0 : 1 - this.bigBarkTimer / (BIG_BARK.cooldown * this.ctx.mods.bigBarkCooldown));
     const c = this.combo;
     c.timer = Math.max(0, c.timer - dt);
     if (!c.timer) c.count = 0;
