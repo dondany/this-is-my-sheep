@@ -606,7 +606,8 @@ export function wolfPack(wave, count, rules = summerRules(1)) {
 
 function wolfCount(wave, rules) {
   const endless = Math.max(0, wave - GOAL.finalWave);
-  const base = endless ? Math.min(15 + endless * ENDLESS.extraWolves, ENDLESS.maxWolves) : Math.min(1 + wave, 15);
+  // Waves 1-2 ease you in; from wave 3 there's one extra wolf.
+  const base = endless ? Math.min(15 + endless * ENDLESS.extraWolves, ENDLESS.maxWolves) : wave < 3 ? 1 + wave : Math.min(2 + wave, 15);
   return base + rules.extraWolves;
 }
 
@@ -630,11 +631,12 @@ export function waveConfig(wave, rules = summerRules(1)) {
     disguised: wave >= FIRST_WAVE.disguised ? 1 : 0,
     wolves: wolfCount(wave, rules),
     duration: Math.min(40 + wave * 5, 90),
-    spawnInterval: Math.max(2, 9 - wave * 0.6),
+    spawnInterval: Math.max(2, 7 - wave * 0.5),
+    pairs: wave >= 2, // wolves arrive two at a time, from opposite sides
     // Pressure comes mostly from more wolves and shorter stalking, not raw speed.
     wolfSpeed: Math.min(1 + (wave - 1) * 0.05, 1.5),
-    stalkMin: (2.5 / difficulty) * rules.stalk,
-    stalkMax: (5.5 / difficulty) * rules.stalk,
+    stalkMin: (2 / difficulty) * rules.stalk,
+    stalkMax: (4.5 / difficulty) * rules.stalk,
     pack: wolfPack(wave, wolfCount(wave, rules), rules),
   };
 }

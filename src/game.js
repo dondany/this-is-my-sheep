@@ -1003,13 +1003,14 @@ export class Game {
     this.juice.disguiseRevealed(w, mode);
   }
 
-  spawnWolf(kind) {
+  spawnWolf(kind, angle) {
     // Spread arrivals around the meadow rather than bunching on one side.
     // Sneaky wolves slip in on the far side of the flock from the dog.
     const base =
       kind === 'sneaky'
         ? Math.atan2(this.center.z - this.dog.position.z, this.center.x - this.dog.position.x)
-        : this.wolvesSpawned * 2.4 + Math.random() * 1.2;
+        : (angle ?? this.wolvesSpawned * 2.4 + Math.random() * 1.2);
+    this.lastSpawnAngle = base;
     const at = (a) => [Math.cos(a) * WORLD.spawnRadius, 0, Math.sin(a) * WORLD.spawnRadius];
 
     if (kind === 'pups') {
@@ -1362,9 +1363,15 @@ export class Game {
       case STATE.PLAYING:
         this.waveTime += dt;
         if (this.wolvesSpawned < this.cfg.wolves && this.waveTime >= this.nextWolfAt) {
+          // From wave 2 wolves arrive in pairs from opposite sides, so the dog can't cover both.
+          const pair = this.cfg.pairs && this.wolvesSpawned + 1 < this.cfg.wolves;
           this.spawnWolf(this.cfg.pack[this.wolvesSpawned] ?? 'normal');
           this.wolvesSpawned++;
-          this.nextWolfAt += this.cfg.spawnInterval;
+          if (pair) {
+            this.spawnWolf(this.cfg.pack[this.wolvesSpawned] ?? 'normal', this.lastSpawnAngle + Math.PI);
+            this.wolvesSpawned++;
+          }
+          this.nextWolfAt += this.cfg.spawnInterval * (pair ? 1.6 : 1);
         }
         this.updateDisguises(dt);
         if ((this.roamTimer -= dt) <= 0) this.roam();

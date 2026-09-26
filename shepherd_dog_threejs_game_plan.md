@@ -2434,3 +2434,23 @@ Phase 3 of the goal proposal, like Balatro's stakes.
     the reset part of `startGame()` became `resetRun()`, so New Game and
     Continue share them.
 
+------------------------------------------------------------------------
+
+# 81. Early-Wave Pressure (implemented)
+
+Playtest: the first few waves were easy to get through without losing a
+sheep. Bots agreed: a strong bot lost nothing until wave 4.
+
+-   From wave 2 wolves arrive in pairs from opposite sides of the meadow
+    (`cfg.pairs`), so the dog can't cover both at once; the next pair
+    comes 1.6 × the spawn interval later.
+-   One extra wolf per wave from wave 3 (`1 + wave` → `2 + wave`, still
+    capped at 15); waves 1-2 stay as the intro.
+-   Faster arrivals early: spawn interval `7 - 0.5 × wave` (was
+    `9 - 0.6 × wave`), minimum 2 s.
+-   Shorter stalking: 2-4.5 s before difficulty scaling (was 2.5-5.5 s).
+-   Bots, waves 1-5 (3 runs each): strong keeps waves 1-2 clean and loses
+    1-4 sheep a wave from wave 3; average from wave 3 with the odd bad
+    wave; a very slow casual bot (reacting every 2 s) struggles and died
+    in 1 of 3 runs by wave 5.
+

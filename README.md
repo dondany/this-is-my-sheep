@@ -85,6 +85,8 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early (★ 40). |
 | 👑 | **Old Greymuzzle** (boss: huge, grey muzzle, mane and scars) | 15, and every 5 endless waves | Arrives a quarter of the way into the final wave with a low howl. Needs the dog next to it for 3 s (fear meter) and leads the pack like an alpha. Must be driven off 3 times (+1 per return in endless): after each of the first ones it comes back with two fresh wolves; the last time it leaves for good and drops a 10-wool tuft. The wave can't end until it's gone (overtime). ★ 150. |
 
+From wave 2 wolves arrive in pairs from opposite sides of the meadow, and from wave 3 there's one
+extra wolf per wave, so the dog has to choose which threat to deal with first.
 Sheep walk on away from the dog when it comes close, which is what makes herding strays back work.
 Sheep keep a little personal space: two sheep closer than 1.8 units (scaled by size) are gently
 pushed apart every frame, so the flock can't clog into one heap (Herding Instinct lets them stand
