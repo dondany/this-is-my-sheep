@@ -557,6 +557,11 @@ export class Game {
     this.wave = 0;
     this.wool = 0;
     this.score = 0;
+    this.endless = false;
+    this.victoryPanel = null;
+    this.boss = null;
+    this.combo = { count: 0, timer: 0 };
+    this.achievements.newRun();
     this.levels = {};
     this.pendingAnimals.length = 0;
     this.bigBarkTimer = 0;
