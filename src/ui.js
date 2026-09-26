@@ -188,14 +188,56 @@ export class UI {
     if (!cards.length) $('shop-cards').textContent = 'Everything is maxed out. Good dog!';
   }
 
-  showVictory({ stars, flock, score, wool, upgrades, newBest }) {
+  // Stat tiles plus what took the sheep and what was bought.
+  renderSummary(id, s) {
+    const tiles = [
+      ['🐺', s.scared, 'wolves scared'],
+      ['🛟', s.saved, s.closeCalls ? `saved (${s.closeCalls} close ${s.closeCalls === 1 ? 'call' : 'calls'})` : 'sheep saved'],
+      ['💀', s.lost, 'sheep lost'],
+      ['🔥', `×${s.bestCombo}`, 'best combo'],
+      ['📢', s.bigBarks, 'Big Barks'],
+      ['🧶', s.woolEarned, `wool earned · ${s.woolSpent} spent`],
+    ];
+    const lines = [];
+    const lostTo = Object.entries(s.lostTo).sort((a, b) => b[1] - a[1]);
+    if (lostTo.length) lines.push(['Lost to', lostTo.map(([name, n]) => `${name} ×${n}`).join(' · ')]);
+    if (s.upgrades.length) lines.push(['Upgrades', s.upgrades.map((u) => `${u.icon} ${u.name}${u.level > 1 ? ' ' + u.level : ''}`).join(' · ')]);
+    if (s.animals.length) lines.push(['Bought', s.animals.join(' · ')]);
+    if (s.tufts) lines.push(['Bounty tufts', String(s.tufts)]);
+    const el = $(id);
+    el.innerHTML = '<div class="summary-tiles"></div><dl class="summary-lines"></dl>';
+    el.firstChild.append(
+      ...tiles.map(([icon, value, label]) => {
+        const t = document.createElement('div');
+        t.className = 'summary-tile';
+        t.innerHTML = '<span class="summary-icon"></span><strong></strong><small></small>';
+        t.children[0].textContent = icon;
+        t.children[1].textContent = value;
+        t.children[2].textContent = label;
+        return t;
+      })
+    );
+    el.lastChild.append(
+      ...lines.flatMap(([k, v]) => {
+        const dt = document.createElement('dt');
+        const dd = document.createElement('dd');
+        dt.textContent = k;
+        dd.textContent = v;
+        return [dt, dd];
+      })
+    );
+  }
+
+  showVictory({ stars, flock, score, wool, upgrades, newBest, summary }) {
+    this.renderSummary('victory-summary', summary);
     $('victory-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
     $('victory-flock').textContent = flock === 1 ? '🐑 1 sheep made it home' : `🐑 ${flock} sheep made it home`;
     $('victory-stats').textContent = `★ ${score}${newBest ? ' (new best!)' : ''} · 🧶 ${wool} wool left · ${upgrades} upgrades`;
     this.show('victory');
   }
 
-  showGameOver({ wave, endless, best, score, bestScore, newBest }) {
+  showGameOver({ wave, endless, best, score, bestScore, newBest, summary }) {
+    this.renderSummary('over-summary', summary);
     $('over-score').textContent = `★ ${score}${newBest ? ' · new best!' : ''}`;
     $('over-waves').textContent = endless
       ? `Summer won, then ${endless - 1} endless ${endless - 1 === 1 ? 'wave' : 'waves'}`

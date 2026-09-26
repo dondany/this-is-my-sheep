@@ -2372,3 +2372,18 @@ with star grading was chosen).
     dismiss. Seen tips are stored in localStorage; the menu has "Show
     the first-time tips again".
 
+------------------------------------------------------------------------
+
+# 78. Run Summary (implemented)
+
+-   `Game.stats` (reset in `startGame()`) counts, per run: wolves scared
+    (scored scares), sheep saved and close calls, sheep lost and which
+    wolf type took each one (`onSheepLost(sheep, wolf)`), best combo,
+    Big Barks, bounty tufts, wool earned (shearing + tufts) and spent,
+    and animals bought.
+-   `runSummary()` adds the upgrades owned; the win and game-over
+    screens render it as six stat tiles plus "Lost to", "Upgrades",
+    "Bought" and "Bounty tufts" lines.
+-   Also fixed alongside: starting a new run now resets endless mode,
+    the pending win screen, the boss and the per-run achievement records.
+

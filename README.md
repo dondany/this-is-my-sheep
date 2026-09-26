@@ -182,6 +182,12 @@ shows up in a game (sneaky wolves once they come close, the disguised wolf once 
 a card popping up in the corner. Portraits are rendered from the in-game models (`src/bestiary.js`).
 Unlocks are saved in the browser's `localStorage`.
 
+### Run summary
+
+The win and game-over screens sum up the run: wolves scared, sheep saved (and close calls), sheep
+lost and what took them ("Lost to: Runner ×3 · Brute ×2…"), best combo, Big Barks, wool earned
+and spent, bounty tufts, the upgrades you owned and the animals you bought.
+
 ### First-time tips
 
 The first time something happens in a game (a wolf closes in, a sheep is grabbed, the first shop,

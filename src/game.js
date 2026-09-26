@@ -58,6 +58,11 @@ function readNumber(key) {
 }
 
 const between = ([min, max]) => min + Math.random() * (max - min);
+
+// What happened this run, for the summary on the win and game-over screens.
+function newRunStats() {
+  return { scared: 0, saved: 0, closeCalls: 0, lost: 0, lostTo: {}, bestCombo: 0, bigBarks: 0, tufts: 0, woolEarned: 0, woolSpent: 0, animals: [] };
+}
 const tmp = new THREE.Vector3();
 
 export class Game {
@@ -74,6 +79,7 @@ export class Game {
     this.juice = new Juice({ scene, camera, particles: this.particles, sfx: this.sfx });
     this.bestiary = new Bestiary();
     this.achievements = new Achievements();
+    this.stats = newRunStats();
     this.tips = new Tips();
     this.overlay = null; // 'bestiary' | 'achievements' while one of those screens is open
     this.achievementCheck = 0;
@@ -215,7 +221,7 @@ export class Game {
         this.tip('grabbed');
       },
       onSheepSaved: (s, w) => this.onSheepSaved(s, w),
-      onSheepLost: (s) => this.onSheepLost(s),
+      onSheepLost: (s, w) => this.onSheepLost(s, w),
     };
 
     this.input = new MouseController(renderer.domElement, camera, {
@@ -354,7 +360,7 @@ export class Game {
     const panelDue = this.panelTimer <= 0;
     this.ui.show({ [STATE.MENU]: 'menu', [STATE.PAUSED]: 'pause' }[this.state] ?? null);
     if (panelDue && this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore });
+    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore, summary: this.runSummary() });
   }
 
   // Unlock anything on the field that hasn't been seen before (sneaky wolves once they show up,
@@ -515,6 +521,8 @@ export class Game {
     const price = this.cardPrice(key);
     if (this.shop.bought.has(key) || this.wool < price) return;
     this.wool -= price;
+    this.stats.woolSpent += price;
+    if (key.startsWith('animal:')) this.stats.animals.push(key.slice(7));
     this.shop.bought.add(key);
     if (key.startsWith('animal:')) this.pendingAnimals.push(key.slice(7));
     else {
@@ -562,6 +570,7 @@ export class Game {
     this.boss = null;
     this.combo = { count: 0, timer: 0 };
     this.achievements.newRun();
+    this.stats = newRunStats();
     this.levels = {};
     this.pendingAnimals.length = 0;
     this.bigBarkTimer = 0;
@@ -669,6 +678,7 @@ export class Game {
     const perfect = this.flockSize() === this.waveStartSheep ? SHEARING.perfect : 0;
     const interest = Math.min(Math.floor(this.wool / SHEARING.interestPer), SHEARING.interestMax + this.ctx.mods.interest);
     const reward = sheared + calm + perfect + interest;
+    this.stats.woolEarned += reward;
     this.wool += reward;
 
     const run = this.achievements.run;
@@ -865,6 +875,14 @@ export class Game {
     return this.endless ? `${this.wave} ∞` : `${this.wave} / ${GOAL.finalWave}`;
   }
 
+  // The run summary shown on the win and game-over screens.
+  runSummary() {
+    const upgrades = Object.entries(this.levels)
+      .filter(([, level]) => level > 0)
+      .map(([id, level]) => ({ icon: UPGRADE[id].icon, name: UPGRADE[id].name, level }));
+    return { ...this.stats, upgrades, animals: this.stats.animals.map((k) => ENTRY[k]?.name ?? k) };
+  }
+
   // --- The goal ------------------------------------------------------------
 
   // Old Greymuzzle comes on the final wave, and every few endless waves.
@@ -922,7 +940,7 @@ export class Game {
       localStorage.setItem(BEST_SCORE_KEY, String(this.bestScore));
       localStorage.setItem(BEST_KEY, String(this.best));
     } catch {}
-    this.victoryPanel = { stars, flock, score: this.score, wool: this.wool, upgrades: Object.values(this.levels).reduce((a, b) => a + b, 0), newBest: this.newBestScore };
+    this.victoryPanel = { stars, flock, score: this.score, wool: this.wool, upgrades: Object.values(this.levels).reduce((a, b) => a + b, 0), newBest: this.newBestScore, summary: this.runSummary() };
     this.juice.victory(this.center);
     this.checkAchievements();
   }
@@ -954,6 +972,7 @@ export class Game {
     const points = threatening && this.state === STATE.PLAYING ? wolf.type.points : 0;
     if (points) {
       this.achievements.add('scares');
+      this.stats.scared++;
       if (wolf.kind === 'brute') this.achievements.add('brutes');
       if (wolf.kind === 'howler') this.achievements.add('howlers');
     }
@@ -969,6 +988,7 @@ export class Game {
 
   onSheepSaved(sheep, wolf) {
     this.achievements.add('saves');
+    this.stats.saved++;
     this.addScore(SCORE.save);
     this.juice.sheepSaved(sheep, SCORE.save);
     // Saved in the nick of time: slow motion and a little camera push.
@@ -980,6 +1000,7 @@ export class Game {
         this.lastSlowmo = now;
       }
       this.achievements.add('closeCalls');
+      this.stats.closeCalls++;
       this.juice.closeCall(sheep);
     }
   }
@@ -1007,6 +1028,7 @@ export class Game {
       }
     }
     this.achievements.best('bestBigBark', scared);
+    this.stats.bigBarks++;
     this.freeze(FEEL.bigHitstop);
     this.juice.bigBark(dog, radius, scared);
   }
@@ -1032,6 +1054,8 @@ export class Game {
         this.addWool(t.value);
         this.waveBounty += t.value;
         this.achievements.add('tufts');
+        this.stats.tufts++;
+        this.stats.woolEarned += t.value;
         this.juice.tuftCollected(t);
       } else if (t.life <= 0) this.juice.tuftLost(t);
       if (picked || t.life <= 0) {
@@ -1069,6 +1093,7 @@ export class Game {
     c.count = c.timer > 0 ? c.count + 1 : 1;
     c.timer = FEEL.comboWindow;
     this.achievements.best('bestCombo', c.count);
+    this.stats.bestCombo = Math.max(this.stats.bestCombo, c.count);
     if (c.count < 2) return;
     const bonus = SCORE.comboStep * Math.min(c.count - 1, SCORE.comboMaxSteps);
     this.addScore(bonus);
@@ -1082,7 +1107,12 @@ export class Game {
     sheep.destroy();
   }
 
-  onSheepLost(sheep) {
+  onSheepLost(sheep, wolf) {
+    if (!sheep.type.fake) {
+      this.stats.lost++;
+      const by = wolf ? ENTRY[entryId(wolf)]?.name ?? 'Wolf' : 'Wolf';
+      this.stats.lostTo[by] = (this.stats.lostTo[by] ?? 0) + 1;
+    }
     this.removeSheep(sheep);
     this.juice.sheepLost(sheep.position);
     if (this.wave <= 5 && !sheep.type.fake) this.achievements.run.lostBy5++;
@@ -1153,7 +1183,7 @@ export class Game {
           this.panelTimer -= dt;
           if (this.panelTimer <= 0 && !this.overlay) {
             if (this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-            else this.ui.showGameOver({ wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore });
+            else this.ui.showGameOver({ wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore, summary: this.runSummary() });
           }
         }
         break;
@@ -1161,7 +1191,7 @@ export class Game {
 
     this.simulate(dt);
     if (this.state !== STATE.MENU) {
-      if (!this.tips.seen.has('wolfComing') && this.wolves.some((w) => w.state === 'APPROACH')) this.tip('wolfComing');
+      if (this.state === STATE.PLAYING && !this.tips.seen.has('wolfComing') && this.wolves.some((w) => w.state === 'APPROACH')) this.tip('wolfComing');
       this.discover();
       this.achievements.best('maxFlock', this.flockSize());
       if ((this.achievementCheck -= dt) <= 0) {
