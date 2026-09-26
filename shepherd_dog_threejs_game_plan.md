@@ -2408,3 +2408,29 @@ Phase 3 of the goal proposal, like Balatro's stakes.
 -   Achievements: Seasoned Shepherd (win Summer 3), Evergreen (win
     Summer 8). 37 in total.
 
+------------------------------------------------------------------------
+
+# 80. Save and Continue (implemented)
+
+-   `saveRun()` writes the run to localStorage (`this-is-my-sheep.run`,
+    versioned) at checkpoints: at the end of `beginWave()` (the start of
+    every wave, after arrivals) and on the end-of-wave screen (after
+    shearing, and again after every purchase, reroll and "Keep
+    grazing").
+-   Saved: wave, summer, endless flag, wool, score, upgrade levels, run
+    stats and achievement run records; every sheep's kind, position,
+    heading, mother link, sleep state, golden streak and (for the
+    disguised wolf) reveal timer; the goat; scarecrows; the shepherd's
+    position; and at the shop, the cards, purchases, reroll cost,
+    pending livestock, the end-of-wave panel and any pending win screen.
+-   `continueRun()` rebuilds all of that (`resetRun()` + restore) and
+    either restarts the wave via `beginWave()` or reopens the end-of-
+    wave screen. Mid-wave state (wolves, timers) isn't saved: a wave
+    you left restarts from its beginning.
+-   Menu: "Continue · wave N (done)" plus "New Game", which needs a
+    second click ("Start over? Your saved run will be lost"). Game over
+    deletes the save.
+-   `nextWave()` was split into spawning arrivals and `beginWave()`, and
+    the reset part of `startGame()` became `resetRun()`, so New Game and
+    Continue share them.
+

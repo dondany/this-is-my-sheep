@@ -102,6 +102,23 @@ export class UI {
     this.set('boss', `${boss.name} ${pips}`, (v) => ($('hud-boss-text').textContent = v));
   }
 
+  // Menu: a Continue button when there's a saved run; Play becomes a (quieter) New Game.
+  setContinue(label) {
+    const cont = $('continue-btn');
+    const play = $('play-btn');
+    cont.classList.toggle('hidden', !label);
+    if (label) cont.textContent = label;
+    play.textContent = label ? 'New Game' : 'Play';
+    play.classList.toggle('btn-quiet', !!label);
+    play.classList.remove('armed');
+  }
+
+  armNewGame() {
+    const play = $('play-btn');
+    play.textContent = 'Start over? Your saved run will be lost';
+    play.classList.add('armed');
+  }
+
   setEffects(level) {
     const label = { full: 'Full', reduced: 'Reduced', off: 'Off' }[level];
     document.querySelectorAll('.effects-btn').forEach((b) => (b.textContent = `✨ Screen effects: ${label}`));

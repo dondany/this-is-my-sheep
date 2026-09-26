@@ -200,6 +200,15 @@ shows up in a game (sneaky wolves once they come close, the disguised wolf once 
 a card popping up in the corner. Portraits are rendered from the in-game models (`src/bestiary.js`).
 Unlocks are saved in the browser's `localStorage`.
 
+### Saving and continuing
+
+The run in progress is saved in `localStorage` at two checkpoints: the start of each wave, and the
+end-of-wave screen (updated as you buy or reroll). With a saved run the menu shows **Continue ·
+wave 7** (or "wave 7 done") and **New Game**, which asks for a second click before overwriting the
+save. Continuing after quitting or closing the browser mid-wave restarts that wave from its
+beginning with the flock as it was; continuing from the end-of-wave screen brings back the same
+shop (or the win screen). Losing deletes the save.
+
 ### Run summary
 
 The win and game-over screens sum up the run: wolves scared, sheep saved (and close calls), sheep

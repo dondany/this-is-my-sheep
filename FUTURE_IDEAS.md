@@ -25,5 +25,4 @@ meadow, and cosmetic unlocks (dog hats, other breeds) bought with lifetime wool.
 - Day/night progression over the waves, with fireflies and more wolves at night (section 46).
 
 ## Quality of life
-- Save and continue a run (currently only the best wave and the bestiary are saved).
 - Settings: volume slider, camera sensitivity, reduced screen shake.

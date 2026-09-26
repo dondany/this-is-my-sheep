@@ -1561,3 +1561,11 @@ h2 {
   max-height: calc(100vh - 32px);
   overflow-y: auto;
 }
+
+#play-btn.armed {
+  font-size: 16px;
+  color: #fffaf0;
+  background: var(--danger);
+  box-shadow: 0 4px 0 #8f3a2c;
+}
+

@@ -51,6 +51,26 @@ const SUMMER_KEY = 'this-is-my-sheep.summerUnlocked'; // highest difficulty leve
 const SUMMER_WON_KEY = 'this-is-my-sheep.summerWon'; // highest difficulty level won
 const BEST_STARS_KEY = 'this-is-my-sheep.bestStars';
 
+// The run in progress, saved at checkpoints (the start of each wave, and the end-of-wave shop) so
+// it can be continued from the menu after quitting or closing the browser.
+const RUN_KEY = 'this-is-my-sheep.run';
+const RUN_VERSION = 1;
+
+function readSavedRun() {
+  try {
+    const data = JSON.parse(localStorage.getItem(RUN_KEY));
+    return data?.v === RUN_VERSION ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearSavedRun() {
+  try {
+    localStorage.removeItem(RUN_KEY);
+  } catch {}
+}
+
 function readNumber(key) {
   try {
     return Number(localStorage.getItem(key)) || 0;
@@ -247,6 +267,7 @@ export class Game {
     this.ui.setSummer(this.summer, this.summerUnlocked, this.summerWon);
     this.ui.setMuted(this.sfx.muted);
     this.applyEffects();
+    this.refreshContinue();
     this.ui.show('menu');
 
     this.last = performance.now();
@@ -255,7 +276,16 @@ export class Game {
 
   bindUI() {
     const ui = this.ui;
-    ui.on('play', () => this.startGame());
+    ui.on('play', () => {
+      // With a saved run, New Game asks for a second click before throwing it away.
+      if (readSavedRun() && !this.newGameArmed) {
+        this.newGameArmed = true;
+        this.ui.armNewGame();
+        return;
+      }
+      this.startGame();
+    });
+    ui.on('continue', () => this.continueRun());
     ui.on('next', () => {
       this.sfx.click();
       this.nextWave();
@@ -546,6 +576,7 @@ export class Game {
     }
     this.sfx.upgrade();
     this.showShop();
+    this.saveRun();
   }
 
   reroll() {
@@ -556,6 +587,7 @@ export class Game {
     this.shop.bought.clear();
     this.sfx.click();
     this.showShop();
+    this.saveRun();
   }
 
   // --- Flow ----------------------------------------------------------------
@@ -563,6 +595,13 @@ export class Game {
   startGame() {
     this.sfx.unlock();
     this.sfx.click();
+    clearSavedRun();
+    this.resetRun();
+    this.nextWave();
+  }
+
+  // Clear the field and all per-run state (used by New Game and Continue).
+  resetRun() {
     for (const w of this.wolves) w.destroy();
     this.wolves.length = 0;
     for (const s of this.sheep) s.destroy();
@@ -597,7 +636,6 @@ export class Game {
     this.scarecrows.length = 0;
     this.applyUpgrades();
     this.ui.setHudVisible(true);
-    this.nextWave();
   }
 
   nextWave() {
@@ -633,7 +671,13 @@ export class Game {
       this.juice.soldAtMarket(this.shepherd, sold, sold * ENDLESS.marketWool);
     }
     for (let i = 0; i < cfg.disguised; i++) this.spawnDisguise();
+    this.beginWave();
+  }
 
+  // Everything that happens once the wave's flock is in place: reset per-wave state, announce the
+  // wave, start the intro and save a checkpoint. A continued run starts here too.
+  beginWave() {
+    const cfg = this.cfg;
     this.waveStartSheep = this.flockSize();
     this.waveStartScore = this.score;
     this.boss = null;
@@ -676,6 +720,7 @@ export class Game {
     this.roamTimer = between(ROAM.interval) * 0.6;
     this.setState(STATE.INTRO);
     this.applyUpgrades(); // shows the scarecrow placement hint if one is waiting
+    this.saveRun();
   }
 
   completeWave() {
@@ -728,10 +773,12 @@ export class Game {
       score: this.score - this.waveStartScore,
     };
     this.openShop();
+    this.saveRun();
   }
 
   gameOver() {
     this.setState(STATE.GAME_OVER);
+    clearSavedRun();
     this.best = Math.max(this.best, this.wave - 1);
     this.newBestScore = this.score > this.bestScore;
     this.bestScore = Math.max(this.bestScore, this.score);
@@ -745,6 +792,121 @@ export class Game {
     this.pendingPanel = null;
   }
 
+  // --- Saving and continuing a run ----------------------------------------
+
+  // Checkpoint: during the end-of-wave screen (shop or win screen) it saves that screen; otherwise
+  // the start of the current wave.
+  saveRun() {
+    const atShop = this.state === STATE.WAVE_COMPLETE;
+    const index = new Map(this.sheep.map((s, i) => [s, i]));
+    const r = (v) => Math.round(v * 100) / 100;
+    const data = {
+      v: RUN_VERSION,
+      at: atShop ? 'shop' : 'wave',
+      wave: this.wave,
+      summer: this.rules.summer,
+      endless: this.endless,
+      wool: this.wool,
+      score: this.score,
+      waveStartScore: this.waveStartScore,
+      levels: this.levels,
+      stats: this.stats,
+      run: this.achievements.run,
+      shepherd: [r(this.shepherd.position.x), r(this.shepherd.position.z)],
+      goat: this.goat ? [r(this.goat.position.x), r(this.goat.position.z)] : null,
+      scarecrows: this.scarecrows.map((sc) => [r(sc.position.x), r(sc.position.z), r(sc.root.rotation.y)]),
+      sheep: this.sheep.map((s) => ({
+        k: s.kind,
+        x: r(s.position.x),
+        z: r(s.position.z),
+        h: r(s.heading),
+        p: s.parent ? (index.get(s.parent) ?? -1) : -1,
+        a: s.asleep ? 1 : 0,
+        g: s.wavesSurvived ?? 0,
+        r: s.type.fake ? r(s.revealIn) : undefined,
+      })),
+      pendingAnimals: this.pendingAnimals,
+      shop: atShop && this.shop ? { cards: this.shop.cards, bought: [...this.shop.bought], rerollCost: this.shop.rerollCost } : null,
+      panel: atShop ? this.pendingPanel : null,
+      victory: atShop ? this.victoryPanel : null,
+    };
+    try {
+      localStorage.setItem(RUN_KEY, JSON.stringify(data));
+    } catch {}
+  }
+
+  continueRun() {
+    const data = readSavedRun();
+    if (!data) return this.startGame();
+    this.sfx.unlock();
+    this.sfx.click();
+    this.summer = data.summer;
+    this.resetRun();
+
+    this.wave = data.wave;
+    this.wool = data.wool;
+    this.score = data.score;
+    this.waveStartScore = data.waveStartScore ?? data.score;
+    this.endless = data.endless;
+    this.levels = data.levels;
+    this.stats = { ...newRunStats(), ...data.stats };
+    Object.assign(this.achievements.run, data.run);
+    this.applyUpgrades(); // brings back the second dog if it was bought
+
+    this.shepherd.setPosition(data.shepherd[0], 0, data.shepherd[1]);
+    for (const [x, z, ry] of data.scarecrows) {
+      const sc = new Scarecrow(this.world.scene).setPosition(x, 0, z);
+      sc.root.rotation.y = ry;
+      this.scarecrows.push(sc);
+    }
+    for (const d of data.sheep) {
+      const s = new Sheep(this.world.scene, d.k).setPosition(d.x, 0, d.z);
+      s.heading = d.h;
+      s.root.rotation.y = d.h;
+      s.asleep = !!d.a;
+      s.sleepPose = s.asleep ? 1 : 0;
+      s.wavesSurvived = d.g;
+      if (s.type.fake) {
+        s.revealIn = d.r ?? 15;
+        s.sniff = 0;
+      }
+      this.sheep.push(s);
+    }
+    data.sheep.forEach((d, i) => {
+      const mother = this.sheep[d.p];
+      if (mother) {
+        this.sheep[i].parent = mother;
+        mother.child = this.sheep[i];
+      }
+    });
+    if (data.goat) this.goat = new Goat(this.world.scene).setPosition(data.goat[0], 0, data.goat[1]);
+    flockCenter(this.sheep, this.center);
+    this.cfg = this.ctx.cfg = waveConfig(this.wave, this.rules);
+    this.ctx.cohesionScale = 1;
+
+    if (data.at === 'wave') {
+      this.beginWave(); // the wave restarts from its beginning
+    } else {
+      this.pendingAnimals.push(...data.pendingAnimals);
+      this.shop = { cards: data.shop.cards, bought: new Set(data.shop.bought), rerollCost: data.shop.rerollCost };
+      this.pendingPanel = data.panel;
+      this.victoryPanel = data.victory;
+      this.setState(STATE.WAVE_COMPLETE);
+      this.panelTimer = 0;
+      this.showWavePanel();
+    }
+  }
+
+  // Menu: "Continue" when there's a saved run.
+  refreshContinue() {
+    const data = readSavedRun();
+    this.newGameArmed = false;
+    if (!data) return this.ui.setContinue(null);
+    const where = data.at === 'shop' ? `wave ${data.wave} done` : `wave ${data.wave}`;
+    const extras = [data.summer > 1 && `Summer ${data.summer}`, data.endless && 'endless'].filter(Boolean);
+    this.ui.setContinue(`Continue · ${where}${extras.length ? ' · ' + extras.join(' · ') : ''}`);
+  }
+
   toMenu() {
     for (const w of this.wolves) w.destroy();
     this.wolves.length = 0;
@@ -755,6 +917,7 @@ export class Game {
     this.ui.setHudVisible(false);
     this.ui.setBest(this.best, this.bestScore, this.wins, this.bestStars);
     this.ui.setSummer(this.summer, this.summerUnlocked, this.summerWon);
+    this.refreshContinue();
     this.ui.show('menu');
     this.setState(STATE.MENU);
     this.sfx.suspend(false);
@@ -988,6 +1151,7 @@ export class Game {
     this.victoryPanel = null;
     this.sfx.click();
     this.showWavePanel();
+    this.saveRun();
   }
 
   onWolfCharge(wolf) {
