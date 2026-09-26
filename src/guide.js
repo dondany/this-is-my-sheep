@@ -7,7 +7,8 @@ import {
   TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, waveConfig,
 } from './config.js';
 import { UPGRADES, SHOP, LIVESTOCK, cost, animalPrice, modifiers } from './upgrades.js';
-import { ACHIEVEMENTS } from './achievements.js';
+import { ACHIEVEMENTS, ACHIEVEMENT } from './achievements.js';
+import { WARDROBE, SLOTS, rewardFor } from './cosmetics.js';
 import { ENTRIES, Bestiary } from './bestiary.js';
 
 const $ = (id) => document.getElementById(id);
@@ -263,6 +264,19 @@ $('livestock-body').innerHTML = `
     ])
   )}`;
 
+// --- Wardrobe -------------------------------------------------------------------
+
+$('wardrobe-body').innerHTML = table(
+  ['Slot', 'Item', 'Unlocked by'],
+  SLOTS.flatMap((slot) =>
+    WARDROBE[slot].items.map((it) => [
+      WARDROBE[slot].title,
+      esc(it.name),
+      it.unlock ? `${ACHIEVEMENT[it.unlock].icon} ${esc(ACHIEVEMENT[it.unlock].name)} <small>(${esc(ACHIEVEMENT[it.unlock].text)})</small>` : '<small>available from the start</small>',
+    ])
+  )
+);
+
 // --- Achievements ------------------------------------------------------------
 
 const groups = [...new Set(ACHIEVEMENTS.map((a) => a.group))];
@@ -272,7 +286,7 @@ $('achievements-body').innerHTML =
     .map(
       (g) =>
         `<h3>${esc(g)}</h3><ul class="achievements">${ACHIEVEMENTS.filter((a) => a.group === g)
-          .map((a) => `<li><span>${a.icon}</span><strong>${esc(a.name)}</strong> ${esc(a.text)}</li>`)
+          .map((a) => `<li><span>${a.icon}</span><strong>${esc(a.name)}</strong> ${esc(a.text)}${rewardFor(a.id) ? ` <small>🎁 ${esc(rewardFor(a.id).name)}</small>` : ''}</li>`)
           .join('')}</ul>`
     )
     .join('');

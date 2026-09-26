@@ -58,10 +58,17 @@ function instanced(geometry, material, count, { shadow = false, receive = false 
   return m;
 }
 
+// Give each instance a fixed random pick, so a theme can recolour it later from any palette.
+function paint(mesh, palette) {
+  const color = new THREE.Color();
+  const picks = (mesh.userData.picks ??= Array.from({ length: mesh.count }, Math.random));
+  for (let i = 0; i < mesh.count; i++) mesh.setColorAt(i, color.setHex(palette[(picks[i] * palette.length) | 0]));
+  mesh.instanceColor.needsUpdate = true;
+}
+
 function createDecorations() {
   const group = new THREE.Group();
   const dummy = new THREE.Object3D();
-  const color = new THREE.Color();
   const white = toon(0xffffff);
 
   // Trees ring the meadow; wolves emerge from between them.
@@ -81,7 +88,6 @@ function createDecorations() {
       dummy.rotation.set(Math.random(), Math.random() * 3, Math.random());
       dummy.updateMatrix();
       leaves.setMatrixAt(i * 2 + k, dummy.matrix);
-      leaves.setColorAt(i * 2 + k, color.setHex(COLORS.leaves[(Math.random() * COLORS.leaves.length) | 0]));
     }
   });
   group.add(trunks, leaves);
@@ -108,7 +114,6 @@ function createDecorations() {
     dummy.scale.setScalar(0.6 + Math.random() * 0.8);
     dummy.updateMatrix();
     tufts.setMatrixAt(i, dummy.matrix);
-    tufts.setColorAt(i, color.setHex(Math.random() < 0.5 ? COLORS.grassDark : COLORS.grass2));
   });
   group.add(tufts);
 
@@ -120,10 +125,10 @@ function createDecorations() {
     dummy.scale.setScalar(0.8 + Math.random() * 0.6);
     dummy.updateMatrix();
     flowers.setMatrixAt(i, dummy.matrix);
-    flowers.setColorAt(i, color.setHex(COLORS.flowers[(Math.random() * COLORS.flowers.length) | 0]));
   });
   group.add(flowers);
 
+  group.userData = { leaves, tufts, flowers };
   return group;
 }
 
@@ -154,8 +159,28 @@ export function createWorld(container) {
   sun.shadow.normalBias = 0.03;
   scene.add(sun, sun.target);
 
-  scene.add(createGround());
-  scene.add(createDecorations());
+  const ground = createGround();
+  const decorations = createDecorations();
+  scene.add(ground, decorations);
+  const groundColors = ground.geometry.attributes.color;
+  const baseGround = groundColors.array.slice();
+
+  // Meadow theme (Wardrobe): recolour the trees, tufts and flowers, and tint the grass.
+  const setTheme = ({ leaves, flowers, grass, tufts } = {}) => {
+    const d = decorations.userData;
+    paint(d.leaves, leaves ?? COLORS.leaves);
+    paint(d.flowers, flowers ?? COLORS.flowers);
+    paint(d.tufts, tufts ?? [COLORS.grassDark, COLORS.grass2]);
+    const tint = new THREE.Color(grass ?? 0);
+    const c = new THREE.Color();
+    for (let i = 0; i < groundColors.count; i++) {
+      c.fromArray(baseGround, i * 3);
+      if (grass) c.lerp(tint, 0.4);
+      c.toArray(groundColors.array, i * 3);
+    }
+    groundColors.needsUpdate = true;
+  };
+  setTheme();
 
   // Camera rig: looks down at ~58° from the +Z side and eases toward a focus point.
   const focus = new THREE.Vector3(0, 0, 0);
@@ -186,6 +211,7 @@ export function createWorld(container) {
     scene,
     camera,
     updateCamera,
+    setTheme,
     onResize(fn) {
       resizeHandlers.push(fn);
       fn();

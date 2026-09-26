@@ -215,7 +215,12 @@ export class Bestiary {
 
   // A PNG data URL of the entry's model, rendered once and cached.
   portrait(id) {
-    if (this.portraits.has(id)) return this.portraits.get(id);
+    return this.render(id, ENTRY[id].make);
+  }
+
+  // Render any set of models (`make(scene)` returns them) to a cached portrait.
+  render(key, make) {
+    if (this.portraits.has(key)) return this.portraits.get(key);
     if (!this.renderer) {
       this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
       this.renderer.setPixelRatio(1);
@@ -229,7 +234,7 @@ export class Bestiary {
     }
     const stage = new THREE.Group();
     this.scene.add(stage);
-    const animals = ENTRY[id].make(stage);
+    const animals = make(stage);
     for (const a of animals) {
       a.root.rotation.y = a.heading = 0.6; // three-quarter view
       for (let i = 0; i < 30; i++) a.animate?.(1 / 30, i / 30); // settle poses (sleeping, howling…)
@@ -248,7 +253,8 @@ export class Bestiary {
     this.renderer.render(this.scene, this.camera);
     const url = this.renderer.domElement.toDataURL('image/png');
     this.scene.remove(stage);
-    this.portraits.set(id, url);
+    for (const a of animals) a.destroy?.(); // the dog's ring is added to the stage's scene
+    this.portraits.set(key, url);
     return url;
   }
 }

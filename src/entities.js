@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { COLORS, DOG, WORLD, SHEEP_TYPES, WOLF_TYPES, BLACK, ALPHA, GOAT, ROAM, BUMP } from './config.js';
 import { GEO, mesh } from './materials.js';
+import { dressDog } from './cosmetics.js';
 
 const TAU = Math.PI * 2;
 
@@ -258,11 +259,15 @@ export class Sheep extends Animal {
 // ---------------------------------------------------------------------------
 
 export class Dog extends Animal {
-  // look: optional { body, light, scale } for a differently coloured dog (the helper).
+  // look: optional { body, light, scale, legs, pointyEars, hat, neck } for a different coat,
+  // shape or cosmetics (the helper dog, the Wardrobe).
   constructor(scene, look = {}) {
     super(scene);
     const dark = look.body ?? COLORS.dog;
     const light = look.light ?? COLORS.dogLight;
+    const legs = look.legs ?? 1; // shorter legs (a corgi) sit the body lower
+    this.legY = 0.6 * legs;
+    this.bodyY = 0.72 - 0.6 * (1 - legs);
     this.stats = { ...DOG };
     this.target = new THREE.Vector3();
     this.hasTarget = false;
@@ -277,7 +282,7 @@ export class Dog extends Animal {
     this.onArrive = null;
 
     const body = (this.body = new THREE.Group());
-    body.position.y = 0.72;
+    body.position.y = this.bodyY;
     this.root.add(body);
     body.add(mesh(GEO.sphere, dark, { scale: [0.33, 0.3, 0.62], shadow: true }));
     body.add(mesh(GEO.sphere, light, { position: [0, -0.04, 0.36], scale: 0.26 }));
@@ -296,7 +301,8 @@ export class Dog extends Animal {
     this.ears = [-1, 1].map((side) => {
       const pivot = new THREE.Group();
       pivot.position.set(side * 0.19, 0.18, -0.02);
-      pivot.add(mesh(GEO.sphere, dark, { position: [side * 0.04, -0.09, 0], scale: [0.09, 0.16, 0.06] }));
+      if (look.pointyEars) pivot.add(mesh(GEO.cone, dark, { position: [side * 0.02, 0.12, 0], scale: [0.11, 0.26, 0.07], rotation: [0, Math.PI / 4, side * -0.25] }));
+      else pivot.add(mesh(GEO.sphere, dark, { position: [side * 0.04, -0.09, 0], scale: [0.09, 0.16, 0.06] }));
       pivot.userData.side = side;
       head.add(pivot);
       return pivot;
@@ -308,8 +314,9 @@ export class Dog extends Animal {
     tail.add(mesh(GEO.leg, dark, { scale: [0.065, 0.5, 0.065] }));
     tail.add(mesh(GEO.sphere, light, { position: [0, -0.5, 0], scale: 0.08 }));
 
-    this.legs = addLegs(this.root, light, { x: 0.17, zFront: 0.33, zBack: -0.36, y: 0.6, length: 0.6, width: 0.075 });
+    this.legs = addLegs(this.root, light, { x: 0.17, zFront: 0.33, zBack: -0.36, y: this.legY, length: this.legY, width: 0.075 });
     this.root.scale.setScalar(look.scale ?? 1.25);
+    dressDog(this, look);
 
     // Faint circle showing how close the dog needs to get to scare a wolf.
     this.ring = new THREE.Mesh(
@@ -380,7 +387,7 @@ export class Dog extends Animal {
     this.animate(dt, time, speed, turn);
   }
 
-  animate(dt, time, speed, turn) {
+  animate(dt, time, speed = this.speed, turn = 0) {
     const run = Math.min(speed / this.stats.maxSpeed, 1);
     const stride = Math.min(1, speed / 3);
     const idle = 1 - stride;
@@ -402,10 +409,10 @@ export class Dog extends Animal {
     fr.rotation.x = Math.sin(this.phase + 0.5) * a;
     bl.rotation.x = Math.sin(this.phase + Math.PI) * a - 1.1 * this.sit;
     br.rotation.x = Math.sin(this.phase + Math.PI + 0.5) * a - 1.1 * this.sit;
-    bl.position.y = br.position.y = 0.6 - 0.2 * this.sit;
+    bl.position.y = br.position.y = this.legY - 0.2 * this.sit;
 
     const body = this.body;
-    body.position.y = 0.72 + Math.abs(Math.sin(this.phase)) * 0.12 * run - this.sit * 0.16;
+    body.position.y = this.bodyY + Math.abs(Math.sin(this.phase)) * 0.12 * run - this.sit * 0.16;
     body.rotation.x = Math.cos(this.phase) * 0.08 * run - this.sit * 0.45;
     body.rotation.z = damp(body.rotation.z, clamp(-turn * 0.3, -0.3, 0.3) * run, 8, dt) + shake;
     // Recoil after scaring a wolf: a quick squash, as if leaning back from the bark.

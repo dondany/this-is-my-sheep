@@ -231,6 +231,16 @@ a tuft drops, a brute resists, a stampede winds up, the boss arrives…) a short
 the Big Bark button. Each tip shows once per player (saved in `localStorage`); "Show the first-time
 tips again" on the menu resets them. The texts are in `src/tips.js`.
 
+### Wardrobe
+
+🎀 on the menu: cosmetics for the dog and the meadow, each unlocked by an achievement (nothing to
+grind). Coats (Border Collie, Blue Merle, Red Collie, Golden, and a short-legged Corgi), neckwear
+(bandanas, a tartan scarf, a bell collar, a flower garland), hats (straw hat, flower crown, a tiny
+shepherd's hat, winter beanie, golden crown) and meadow themes (Summer, Blossom, Autumn, Lavender).
+Each item shows a preview of the dog wearing it; locked ones show the achievement that unlocks
+them, and the achievements screen shows each one's 🎁 reward. Choices are saved in `localStorage`;
+the list is in `src/cosmetics.js`.
+
 ### Achievements
 
 36 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
@@ -286,6 +296,7 @@ http://localhost:8000/guide.html.
 | `src/ui.js` | HUD, screens, bestiary screen, unlock cards, off-screen wolf indicators |
 | `src/bestiary.js` | Bestiary entries, unlock persistence, portraits rendered from the models |
 | `src/guide.js` | Builds the internal field guide (`guide.html`) from the game's data |
+| `src/cosmetics.js` | Wardrobe items, how accessories are built, and the saved choices |
 | `src/tips.js` | First-time tips and which ones the player has seen |
 | `src/achievements.js` | The 36 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |

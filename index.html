@@ -90,7 +90,7 @@
       </div>
       <button id="continue-btn" class="btn hidden" data-action="continue">Continue</button>
       <button id="play-btn" class="btn" data-action="play">Play</button>
-      <div class="btn-row"><button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button><button class="btn btn-quiet" data-action="achievements">🏆 Achievements</button></div>
+      <div class="btn-row"><button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button><button class="btn btn-quiet" data-action="achievements">🏆 Achievements</button><button class="btn btn-quiet" data-action="wardrobe">🎀 Wardrobe</button></div>
       <button class="btn btn-quiet effects-btn" data-action="effects">✨ Screen effects: Full</button>
       <button class="link-btn" data-action="reset-tips">💡 Show the first-time tips again</button>
       <p id="menu-best" class="small"></p>
@@ -183,6 +183,23 @@
       </div>
       <div id="achievements-list" class="achievements-list"></div>
       <button class="btn btn-quiet" data-action="close-achievements">Back</button>
+    </div>
+  </section>
+
+  <section id="screen-wardrobe" class="screen hidden">
+    <div class="panel panel-wide">
+      <div class="bestiary-head">
+        <h2>Wardrobe</h2>
+        <span class="small">Unlocked by achievements</span>
+      </div>
+      <div class="wardrobe-body">
+        <div class="wardrobe-current">
+          <img id="wardrobe-current" alt="Your dog">
+          <strong id="wardrobe-current-name"></strong>
+        </div>
+        <div id="wardrobe-slots" class="wardrobe-slots"></div>
+      </div>
+      <button class="btn btn-quiet" data-action="close-wardrobe">Back</button>
     </div>
   </section>
 

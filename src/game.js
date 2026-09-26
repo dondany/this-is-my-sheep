@@ -13,6 +13,7 @@ import { UI } from './ui.js';
 import { Bestiary, ENTRY, entryId } from './bestiary.js';
 import { Achievements } from './achievements.js';
 import { Tips } from './tips.js';
+import { Wardrobe, rewardFor } from './cosmetics.js';
 import { UPGRADE, SHOP, ANIMAL, cost, modifiers, drawCards, drawAnimal, animalPrice, canOffer } from './upgrades.js';
 
 export const STATE = {
@@ -103,11 +104,13 @@ export class Game {
     this.achievements = new Achievements();
     this.stats = newRunStats();
     this.tips = new Tips();
+    this.wardrobe = new Wardrobe((id) => this.achievements.has(id));
     this.overlay = null; // 'bestiary' | 'achievements' while one of those screens is open
     this.achievementCheck = 0;
 
     this.shepherd = new Shepherd(scene);
-    this.dog = new Dog(scene).setPosition(0, 0, 7);
+    this.dog = new Dog(scene, this.wardrobe.dogStyle()).setPosition(0, 0, 7);
+    this.world.setTheme(this.wardrobe.theme());
     this.dog.onArrive = (p) => this.juice.dogArrival(p);
     this.sheep = []; // includes any wolf in sheep's clothing; see sheepCount() / flockSize()
     this.wolves = [];
@@ -310,6 +313,9 @@ export class Game {
     ui.onFreeze = (id) => this.toggleFreeze(id);
     ui.on('close-bestiary', () => this.closeOverlay());
     ui.on('achievements', () => this.openAchievements());
+    ui.on('wardrobe', () => this.openWardrobe());
+    ui.on('close-wardrobe', () => this.closeOverlay());
+    ui.onPickCosmetic = (slot, id) => this.pickCosmetic(slot, id);
     ui.on('effects', () => this.cycleEffects());
     ui.on('reset-tips', () => {
       this.tips.reset();
@@ -380,6 +386,33 @@ export class Game {
     this.ui.openAchievements(this.achievements);
   }
 
+  // --- Wardrobe (cosmetics) --------------------------------------------------
+
+  openWardrobe() {
+    this.openOverlay('wardrobe');
+    this.ui.openWardrobe(this.wardrobe, this.bestiary);
+  }
+
+  pickCosmetic(slot, id) {
+    if (!this.wardrobe.pick(slot, id)) return;
+    this.sfx.click();
+    if (slot === 'meadow') this.world.setTheme(this.wardrobe.theme());
+    else this.restyleDog();
+    this.ui.openWardrobe(this.wardrobe, this.bestiary);
+  }
+
+  // Swap the dog for one in the new coat/accessories, keeping where it is and what it's doing.
+  restyleDog() {
+    const old = this.dog;
+    const dog = new Dog(this.world.scene, this.wardrobe.dogStyle()).setPosition(old.position.x, 0, old.position.z);
+    dog.heading = old.heading;
+    dog.root.rotation.y = old.heading;
+    dog.onArrive = old.onArrive;
+    this.dog = this.ctx.dog = this.ctx.guards[0] = dog;
+    old.destroy();
+    this.applyUpgrades();
+  }
+
   // Show a first-time tip (only ever once per player).
   tip(id) {
     const text = this.tips.take(id);
@@ -390,7 +423,7 @@ export class Game {
   checkAchievements() {
     this.achievements.life.discovered = this.bestiary.unlocked.size;
     for (const a of this.achievements.check()) {
-      this.ui.toastAchievement(a, () => this.openAchievements());
+      this.ui.toastAchievement(a, () => this.openAchievements(), rewardFor(a.id));
       this.sfx.upgrade();
     }
   }

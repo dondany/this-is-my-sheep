@@ -3,6 +3,9 @@ import { isThreatening } from './wolves.js';
 import { ENTRIES, ENTRY } from './bestiary.js';
 import { ACHIEVEMENTS } from './achievements.js';
 import { SUMMERS } from './config.js';
+import { ACHIEVEMENT } from './achievements.js';
+import { WARDROBE, SLOTS, item, rewardFor } from './cosmetics.js';
+import { Dog } from './entities.js';
 
 const $ = (id) => document.getElementById(id);
 const tmp = new THREE.Vector3();
@@ -364,7 +367,8 @@ export class UI {
           card.innerHTML = '<span class="achievement-icon"></span><span><strong></strong><small></small></span>';
           card.querySelector('.achievement-icon').textContent = a.icon;
           card.querySelector('strong').textContent = a.name;
-          card.querySelector('small').textContent = a.text;
+          const reward = rewardFor(a.id);
+          card.querySelector('small').textContent = reward ? `${a.text} 🎁 ${reward.name}` : a.text;
           grid.appendChild(card);
         }
         return [h, grid];
@@ -373,8 +377,54 @@ export class UI {
     this.show('achievements');
   }
 
-  toastAchievement(a, onClick) {
-    this.pushToast(`<span class="toast-icon">${a.icon}</span><span><small>Achievement unlocked</small><strong></strong></span>`, a.name, onClick, 'achievement-toast');
+  toastAchievement(a, onClick, reward) {
+    const label = reward ? `Achievement unlocked · 🎁 ${reward.name}` : 'Achievement unlocked';
+    this.pushToast(`<span class="toast-icon">${a.icon}</span><span><small></small><strong></strong></span>`, a.name, onClick, 'achievement-toast');
+    $('toast-layer').lastChild.querySelector('small').textContent = label;
+  }
+
+  // Wardrobe: a preview of the current look, then every item by slot. Locked items show which
+  // achievement unlocks them.
+  openWardrobe(wardrobe, bestiary) {
+    const dogPortrait = (overrides = {}) => {
+      const style = wardrobe.dogStyle(overrides);
+      const key = `dog:${style.body}|${style.hat}|${style.neck}|${style.legs ?? 1}`;
+      return bestiary.render(key, (scene) => [new Dog(scene, style)]);
+    };
+    $('wardrobe-current').src = dogPortrait();
+    $('wardrobe-current-name').textContent = SLOTS.map((slot) => item(slot, wardrobe.picked[slot]).name)
+      .filter((name) => name !== 'Nothing')
+      .join(' · ');
+    $('wardrobe-slots').replaceChildren(
+      ...SLOTS.flatMap((slot) => {
+        const h = document.createElement('h3');
+        h.textContent = WARDROBE[slot].title;
+        const grid = document.createElement('div');
+        grid.className = 'wardrobe-grid';
+        for (const it of WARDROBE[slot].items) {
+          const open = wardrobe.available(slot, it.id);
+          const card = document.createElement('button');
+          card.className = `wardrobe-item${open ? '' : ' locked'}${wardrobe.picked[slot] === it.id ? ' selected' : ''}`;
+          if (slot === 'meadow') {
+            const colors = [...it.theme.leaves, ...it.theme.flowers].map((c) => `#${c.toString(16).padStart(6, '0')}`);
+            card.innerHTML = `<span class="swatch" style="background: linear-gradient(135deg, ${colors.join(', ')})"></span>`;
+          } else card.innerHTML = `<img alt="" src="${dogPortrait({ [slot]: it.id })}">`;
+          const name = document.createElement('strong');
+          name.textContent = it.name;
+          card.appendChild(name);
+          if (!open) {
+            const hint = document.createElement('small');
+            hint.textContent = `🔒 ${ACHIEVEMENT[it.unlock].name}`;
+            card.appendChild(hint);
+            card.title = `Unlock with the achievement "${ACHIEVEMENT[it.unlock].name}": ${ACHIEVEMENT[it.unlock].text}`;
+          }
+          card.addEventListener('click', () => open && this.onPickCosmetic?.(slot, it.id));
+          grid.appendChild(card);
+        }
+        return [h, grid];
+      })
+    );
+    this.show('wardrobe');
   }
 
   // Small card sliding in from the corner when something new is unlocked.

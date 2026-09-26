@@ -2494,3 +2494,30 @@ Borrowed from Super Auto Pets:
 -   Internal: not linked from the game, `noindex, nofollow`; public to
     anyone with the URL (GitHub Pages has no private pages).
 
+------------------------------------------------------------------------
+
+# 84. Wardrobe: Cosmetics (implemented)
+
+-   `src/cosmetics.js`: four slots, 21 items, each unlocked by an
+    achievement (`unlock`) so there's nothing to grind:
+    -   Coat: Border Collie (default), Blue Merle (win a run), Red
+        Collie (250 wolves), Golden (three-star win), Corgi (complete
+        the bestiary; short legs and pointy ears).
+    -   Neckwear: red / blue bandana, tartan scarf, bell collar, flower
+        garland.
+    -   Hat: straw hat, flower crown, shepherd's hat, winter beanie,
+        golden crown (win Summer 8).
+    -   Meadow: Summer (default), Blossom, Autumn (win Summer 3),
+        Lavender: recolours trees, tufts and flowers and tints the grass
+        (`world.setTheme()`; each instance keeps a fixed random pick so
+        any palette can be applied).
+-   The dog takes `{ body, light, legs, pointyEars, hat, neck }`;
+    `dressDog()` adds the accessories. Changing the coat or an
+    accessory rebuilds the dog in place (`Game.restyleDog()`).
+-   Wardrobe screen from the menu: the current look, then every item
+    with a portrait of the dog wearing it (the bestiary renderer's new
+    general `render(key, make)`), locked ones as silhouettes with the
+    unlocking achievement. The achievements screen and unlock cards
+    show each one's 🎁 reward. Choices saved in localStorage; the field
+    guide lists every item and how to unlock it.
+

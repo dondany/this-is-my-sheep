@@ -5,8 +5,8 @@ and the [design doc](shepherd_dog_threejs_game_plan.md) (sections 60 onwards cov
 since the original plan).
 
 ## More upgrades
-Ideas not built yet: fence posts along one side of the meadow, and cosmetic unlocks (dog hats,
-other breeds) bought with lifetime wool.
+Ideas not built yet: fence posts along one side of the meadow. More cosmetics (the Wardrobe is
+in): shepherd outfits, sheep with bows or bells, more meadow themes (snow for endless mode).
 
 ## Balance
 - Needs checking with real players. Bots (design doc sections 68, 70, 76) suggest a strong player
