@@ -12,6 +12,7 @@ import { MouseController } from './input.js';
 import { UI } from './ui.js';
 import { Bestiary, ENTRY, entryId } from './bestiary.js';
 import { Achievements } from './achievements.js';
+import { Tips } from './tips.js';
 import { UPGRADE, SHOP, ANIMAL, cost, modifiers, drawCards, drawAnimal, animalPrice } from './upgrades.js';
 
 export const STATE = {
@@ -73,6 +74,7 @@ export class Game {
     this.juice = new Juice({ scene, camera, particles: this.particles, sfx: this.sfx });
     this.bestiary = new Bestiary();
     this.achievements = new Achievements();
+    this.tips = new Tips();
     this.overlay = null; // 'bestiary' | 'achievements' while one of those screens is open
     this.achievementCheck = 0;
 
@@ -139,15 +141,30 @@ export class Game {
       onSheepPanic: (s) => this.juice.sheepPanic(s),
       onSheepBump: (s) => this.juice.sheepBump(s),
       onSheepTossed: (s) => this.juice.sheepBump(s),
-      onRascalDash: (w) => this.juice.rascalDash(w),
-      onSheepStray: (s) => this.juice.sheepStray(s),
-      onWolfResist: (w) => this.juice.wolfResist(w),
-      onLambOrphaned: (s) => this.juice.lambOrphaned(s),
+      onRascalDash: (w) => {
+        this.juice.rascalDash(w);
+        this.tip('rascal');
+      },
+      onSheepStray: (s) => {
+        this.juice.sheepStray(s);
+        this.tip('stray');
+      },
+      onWolfResist: (w) => {
+        this.juice.wolfResist(w);
+        this.tip('brute');
+      },
+      onLambOrphaned: (s) => {
+        this.juice.lambOrphaned(s);
+        this.tip('orphan');
+      },
       onLambReunited: (s) => {
         this.achievements.add('reunions');
         this.juice.lambReunited(s);
       },
-      onStampedeWarning: (s) => this.juice.stampedeWarning(s),
+      onStampedeWarning: (s) => {
+        this.juice.stampedeWarning(s);
+        this.tip('stampede');
+      },
       onStampede: (s) => this.juice.stampede(s),
       onStampedeStopped: (s) => {
         this.achievements.add('stampedes');
@@ -172,7 +189,10 @@ export class Game {
         w.position.z += (kz / kd) * GOAT.knockback;
         this.juice.goatButt(g, w);
       },
-      onHowlStart: (w) => this.juice.howlStart(w),
+      onHowlStart: (w) => {
+        this.juice.howlStart(w);
+        this.tip('howl');
+      },
       onHowl: (w) => this.juice.howl(w),
       onFeint: (w) => this.juice.feint(w),
       onPupsSplit: (w) => this.juice.pupsSplit(w),
@@ -190,7 +210,10 @@ export class Game {
       },
       onWolfCharge: (w) => this.onWolfCharge(w),
       onWolfScared: (w, threatening, by) => this.onWolfScared(w, threatening, by),
-      onSheepGrabbed: (s, w) => this.juice.sheepGrabbed(s),
+      onSheepGrabbed: (s, w) => {
+        this.juice.sheepGrabbed(s);
+        this.tip('grabbed');
+      },
       onSheepSaved: (s, w) => this.onSheepSaved(s, w),
       onSheepLost: (s) => this.onSheepLost(s),
     };
@@ -241,6 +264,11 @@ export class Game {
     ui.on('close-bestiary', () => this.closeOverlay());
     ui.on('achievements', () => this.openAchievements());
     ui.on('effects', () => this.cycleEffects());
+    ui.on('reset-tips', () => {
+      this.tips.reset();
+      this.sfx.click();
+      this.ui.showTip('💡 Tips will show again the first time things happen.');
+    });
     ui.on('close-achievements', () => this.closeOverlay());
 
     window.addEventListener('keydown', (e) => {
@@ -267,6 +295,7 @@ export class Game {
     this.ctx.huntingAllowed = state === STATE.PLAYING;
     this.ctx.stampedes = state === STATE.PLAYING;
     this.achievements.enabled = state !== STATE.MENU;
+    this.tips.enabled = state !== STATE.MENU;
   }
 
   // Real sheep only: a wolf in sheep's clothing doesn't count.
@@ -302,6 +331,12 @@ export class Game {
   openAchievements() {
     this.openOverlay('achievements');
     this.ui.openAchievements(this.achievements);
+  }
+
+  // Show a first-time tip (only ever once per player).
+  tip(id) {
+    const text = this.tips.take(id);
+    if (text) this.ui.showTip(text);
   }
 
   // Unlock whatever has been achieved since the last check, with a card for each.
@@ -397,6 +432,7 @@ export class Game {
       if (Math.hypot(x - from.x, z - from.z) < ROAM.minMove) continue;
       this.shepherd.walkTarget = { x, z };
       this.juice.shepherdMoves(this.shepherd);
+      this.tip('roam');
       return;
     }
   }
@@ -472,6 +508,7 @@ export class Game {
     if (this.victoryPanel) return this.ui.showVictory(this.victoryPanel);
     this.ui.showWaveComplete(this.pendingPanel);
     this.showShop();
+    this.tip('shop');
   }
 
   buy(key) {
@@ -602,6 +639,9 @@ export class Game {
               : `${cfg.wolves} wolves are coming`;
     const title = this.endless ? `Endless ${this.wave - GOAL.finalWave}` : final ? 'Final wave' : `Wave ${this.wave}`;
     this.ui.banner(title, sub);
+    if (this.wave === 1) setTimeout(() => this.tip('move'), 800);
+    if (this.wave === 2) this.tip('bigBark');
+    if (this.sheep.some((s) => s.kind === 'sleepy')) this.tip('sleepy');
     this.whistleTimer = this.ctx.mods.whistle;
     this.roamTimer = between(ROAM.interval) * 0.6;
     this.setState(STATE.INTRO);
@@ -839,6 +879,7 @@ export class Game {
     w.stateTimer = 2;
     this.boss = w;
     this.juice.bossArrives(w);
+    this.tip('boss');
   }
 
   onBossDriven(boss, left) {
@@ -974,6 +1015,7 @@ export class Game {
     const t = new Tuft(this.world.scene, color, value, BOUNTY.life * this.ctx.mods.tuftLife).setPosition(wolf.position.x, 0, wolf.position.z);
     this.tufts.push(t);
     this.juice.tuftDropped(t);
+    this.tip('tuft');
   }
 
   updateTufts(dt) {
@@ -1114,6 +1156,7 @@ export class Game {
 
     this.simulate(dt);
     if (this.state !== STATE.MENU) {
+      if (!this.tips.seen.has('wolfComing') && this.wolves.some((w) => w.state === 'APPROACH')) this.tip('wolfComing');
       this.discover();
       this.achievements.best('maxFlock', this.flockSize());
       if ((this.achievementCheck -= dt) <= 0) {

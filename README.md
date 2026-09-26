@@ -182,6 +182,13 @@ shows up in a game (sneaky wolves once they come close, the disguised wolf once 
 a card popping up in the corner. Portraits are rendered from the in-game models (`src/bestiary.js`).
 Unlocks are saved in the browser's `localStorage`.
 
+### First-time tips
+
+The first time something happens in a game (a wolf closes in, a sheep is grabbed, the first shop,
+a tuft drops, a brute resists, a stampede winds up, the boss arrives…) a short tip slides in above
+the Big Bark button. Each tip shows once per player (saved in `localStorage`); "Show the first-time
+tips again" on the menu resets them. The texts are in `src/tips.js`.
+
 ### Achievements
 
 35 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
@@ -224,6 +231,7 @@ with WebAudio, so there are no asset files.
 | `src/input.js` | Pointer → ground-plane raycast |
 | `src/ui.js` | HUD, screens, bestiary screen, unlock cards, off-screen wolf indicators |
 | `src/bestiary.js` | Bestiary entries, unlock persistence, portraits rendered from the models |
+| `src/tips.js` | First-time tips and which ones the player has seen |
 | `src/achievements.js` | The 35 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |
 | `src/helper.js` | AI for the Second Dog upgrade |

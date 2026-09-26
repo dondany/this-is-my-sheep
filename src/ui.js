@@ -298,6 +298,29 @@ export class UI {
     setTimeout(() => el.remove(), 4500);
   }
 
+  // First-time tips: one at a time, each for a few seconds (click to dismiss), queued if several
+  // come up together.
+  showTip(text) {
+    this.tipQueue = this.tipQueue ?? [];
+    this.tipQueue.push(text);
+    if (!this.tipShowing) this.nextTip();
+  }
+
+  nextTip() {
+    const el = $('tip');
+    clearTimeout(this.tipTimer);
+    const text = this.tipQueue.shift();
+    this.tipShowing = !!text;
+    el.classList.toggle('hidden', !text);
+    if (!text) return;
+    el.textContent = text;
+    el.onclick = () => this.nextTip();
+    el.classList.remove('pop');
+    void el.offsetWidth;
+    el.classList.add('pop');
+    this.tipTimer = setTimeout(() => this.nextTip(), 4000 + text.length * 40);
+  }
+
   // A persistent instruction at the bottom of the screen (e.g. placing a scarecrow).
   hint(text) {
     const el = $('hint');

@@ -83,6 +83,7 @@
       <button class="btn" data-action="play">Play</button>
       <div class="btn-row"><button class="btn btn-quiet" data-action="bestiary">📖 Bestiary</button><button class="btn btn-quiet" data-action="achievements">🏆 Achievements</button></div>
       <button class="btn btn-quiet effects-btn" data-action="effects">✨ Screen effects: Full</button>
+      <button class="link-btn" data-action="reset-tips">💡 Show the first-time tips again</button>
       <p id="menu-best" class="small"></p>
     </div>
   </section>
@@ -172,6 +173,7 @@
 
   <div id="toast-layer"></div>
   <div id="hint" class="hidden"></div>
+  <button id="tip" class="tip hidden" aria-live="polite"></button>
 
   <script type="module" src="src/main.js"></script>
 </body>

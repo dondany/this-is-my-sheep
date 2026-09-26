@@ -2357,3 +2357,18 @@ with star grading was chosen).
     average bot wins with ★ (14 sheep). Both go straight for a resisting
     boss, so humans will likely find it harder.
 
+------------------------------------------------------------------------
+
+# 77. First-time Tips (implemented)
+
+-   15 tips (`src/tips.js`), each shown the first time its moment
+    happens in a real game (not the menu scene): moving the dog (wave 1),
+    a wolf approaching, a sheep grabbed, the Big Bark (wave 2), the
+    shop, bounty tufts, strays, orphaned lambs, brutes resisting,
+    stampedes, sleepy sheep, the shepherd moving, howls, rascal dashes
+    and the boss.
+-   One at a time in a card above the Big Bark button (out of the dog's
+    way), queued if several fire together, 4 s + reading time, click to
+    dismiss. Seen tips are stored in localStorage; the menu has "Show
+    the first-time tips again".
+

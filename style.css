@@ -1398,3 +1398,49 @@ h2 {
   }
 }
 
+/* --- First-time tips ------------------------------------------------------ */
+
+.tip {
+  position: fixed;
+  right: 16px;
+  bottom: 128px;
+  z-index: 20;
+  width: min(400px, calc(100% - 32px));
+  padding: 12px 18px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  color: var(--ink);
+  background: #fffaf0;
+  border: 3px solid var(--accent);
+  border-radius: 16px;
+  box-shadow: 0 6px 0 rgba(74, 52, 38, 0.3);
+  cursor: pointer;
+}
+
+.tip.pop {
+  animation: tip-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@keyframes tip-pop {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.95);
+  }
+}
+
+.link-btn {
+  display: block;
+  margin: 10px auto 0;
+  padding: 2px 4px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
