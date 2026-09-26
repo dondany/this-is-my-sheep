@@ -254,6 +254,11 @@ export class Juice {
     this.sfx.bleat(true);
   }
 
+  rascalDash(wolf) {
+    this.floatText('WHEEE!', { follow: wolf, offsetY: 2.6, cls: 'warn', duration: 0.9 });
+    this.sfx.yip();
+  }
+
   feint(wolf) {
     this.floatText('HEH!', { follow: wolf, offsetY: 2.4, cls: 'warn', duration: 1 });
   }

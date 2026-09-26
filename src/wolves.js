@@ -1,4 +1,4 @@
-import { WOLF, WORLD, SNEAKY, ALPHA, PUPS, HOWLER, TRICKSTER, SCARECROW } from './config.js';
+import { WOLF, WORLD, SNEAKY, ALPHA, PUPS, HOWLER, TRICKSTER, SCARECROW, RASCAL } from './config.js';
 import { angleTo } from './entities.js';
 
 // Wolf states:
@@ -21,13 +21,14 @@ import { angleTo } from './entities.js';
 //   howler  never attacks: prowls a little inside the tree line and howls, panicking the flock.
 //   trickster  once the dog heads its way, switches to a sheep on the far side of the flock.
 //   pup     comes in groups of three that move together and split up when the dog gets close.
+//   rascal  never takes a sheep: DASHes straight through the flock a few times, tossing sheep aside.
 //
 // Any wolf can be stunned by the goat for a moment (`stun`).
 // Besides the player's dog, a helper dog (ctx.guards) and scarecrows (ctx.scarecrows) can scare wolves.
 
 const between = ([min, max]) => min + Math.random() * (max - min);
 
-const THREATENING = new Set(['APPROACH', 'CHASE', 'ATTACK']);
+const THREATENING = new Set(['APPROACH', 'CHASE', 'ATTACK', 'DASH']);
 
 export function toWander(w, ctx) {
   const cfg = ctx.cfg;
@@ -64,6 +65,48 @@ export function stunWolf(w, ctx, seconds) {
   w.target = null;
   w.stun = seconds;
   w.velocity.set(0, 0, 0);
+}
+
+// Aim a rascal's dash through the middle of the flock and out the other side.
+function startDash(w, ctx) {
+  const dx = ctx.center.x - w.position.x;
+  const dz = ctx.center.z - w.position.z;
+  const d = Math.hypot(dx, dz) || 1;
+  let tx = w.position.x + (dx / d) * (d + RASCAL.overshoot);
+  let tz = w.position.z + (dz / d) * (d + RASCAL.overshoot);
+  const r = Math.hypot(tx, tz);
+  const max = WORLD.playRadius + 2;
+  if (r > max) {
+    tx *= max / r;
+    tz *= max / r;
+  }
+  w.state = 'DASH';
+  w.dashTo = { x: tx, z: tz };
+  w.dashesLeft = (w.dashesLeft || RASCAL.passes[0] + Math.round(Math.random() * (RASCAL.passes[1] - RASCAL.passes[0]))) - 1;
+  ctx.onRascalDash?.(w);
+}
+
+// Sheep in the rascal's path get tossed aside with a big bounce.
+function tossSheep(w, ctx) {
+  const vx = w.velocity.x;
+  const vz = w.velocity.z;
+  const v = Math.hypot(vx, vz) || 1;
+  for (const s of ctx.sheep) {
+    if (s.grabbedBy || s.bumpCooldown > 0) continue;
+    const sx = s.position.x - w.position.x;
+    const sz = s.position.z - w.position.z;
+    if (Math.hypot(sx, sz) > RASCAL.tossRadius * s.type.scale) continue;
+    const side = Math.sign(sx * (vz / v) - sz * (vx / v)) || 1;
+    s.velocity.x += (vz / v) * side * RASCAL.toss + (vx / v) * RASCAL.toss * 0.5;
+    s.velocity.z += (-vx / v) * side * RASCAL.toss + (vz / v) * RASCAL.toss * 0.5;
+    s.bump = 1;
+    s.bumpSide = side;
+    s.bumpPower = RASCAL.tossHeight;
+    s.bumpCooldown = 0.8;
+    s.fear = Math.max(s.fear, 0.8);
+    s.asleep = false;
+    ctx.onSheepTossed?.(s, w);
+  }
 }
 
 export function isThreatening(w) {
@@ -320,6 +363,10 @@ export function updateWolves(wolves, ctx, dt) {
           }
           break;
         }
+        if (w.stateTimer <= 0 && T.rascal && ctx.huntingAllowed && ctx.sheep.length) {
+          startDash(w, ctx);
+          break;
+        }
         if (w.stateTimer <= 0 && inPosition && ctx.huntingAllowed && ctx.sheep.length) {
           w.state = 'APPROACH';
           w.retarget = 0;
@@ -380,6 +427,24 @@ export function updateWolves(wolves, ctx, dt) {
           w.state = 'CHASE';
           ctx.onWolfCharge?.(w);
         }
+        break;
+      }
+
+      case 'DASH': {
+        const tx = w.dashTo.x - px;
+        const tz = w.dashTo.z - pz;
+        const td = Math.hypot(tx, tz);
+        if (td < 1.5) {
+          if (w.dashesLeft > 0 && ctx.huntingAllowed && ctx.sheep.length) startDash(w, ctx);
+          else {
+            w.dashesLeft = 0;
+            toWander(w, ctx);
+          }
+          break;
+        }
+        vx = (tx / td) * RASCAL.speed * speedScale;
+        vz = (tz / td) * RASCAL.speed * speedScale;
+        tossSheep(w, ctx);
         break;
       }
 

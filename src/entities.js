@@ -166,7 +166,8 @@ export class Sheep extends Animal {
     this.asleep = kind === 'sleepy';
     this.sleepPose = this.asleep ? 1 : 0;
     this.wakeTimer = 0;
-    this.bump = 0; // 1 → 0 while bouncing off the running dog
+    this.bump = 0; // 1 → 0 while bouncing off the running dog (or tossed by a rascal)
+    this.bumpPower = 1;
     this.bumpSide = 1;
     this.bumpCooldown = 0;
     this.stress = 0; // seconds spent panicking this wave
@@ -223,12 +224,15 @@ export class Sheep extends Animal {
     // Knocked by the running dog: a quick boing with a tilt away from it.
     let bumpTilt = 0;
     if (this.bump > 0) {
-      this.bump = Math.max(0, this.bump - dt * 2.8);
+      this.bump = Math.max(0, this.bump - dt * (2.8 / Math.sqrt(this.bumpPower)));
       const arc = Math.sin(this.bump * Math.PI);
-      y += arc * BUMP.height;
+      y += arc * BUMP.height * this.bumpPower;
       bumpTilt = arc * 0.65 * this.bumpSide;
       this.body.scale.set(1 - arc * 0.08, 1 + arc * 0.12, 1 - arc * 0.08); // stretch in the air
-    } else this.body.scale.set(1, 1, 1);
+    } else {
+      this.body.scale.set(1, 1, 1);
+      this.bumpPower = 1;
+    }
     this.body.position.y = y;
     this.body.rotation.x = Math.sin(this.phase * 2) * 0.05 * moving;
 
@@ -436,6 +440,7 @@ const WOLF_LOOKS = {
   brute: { body: COLORS.brute, light: COLORS.bruteLight, eye: COLORS.bruteEye, girth: 1.15, ears: 0.8 },
   sneaky: { body: COLORS.sneaky, light: COLORS.sneakyLight, eye: COLORS.sneakyEye, girth: 0.95, ears: 0.8, legs: 0.65 },
   alpha: { body: COLORS.alpha, light: COLORS.alphaMane, eye: COLORS.alphaEye, girth: 1.05, ears: 1.1 },
+  rascal: { body: COLORS.rascal, light: COLORS.rascalLight, eye: COLORS.wolfEye, girth: 0.85, ears: 1.35, legs: 0.95, head: 1.15 },
   pup: { body: COLORS.pup, light: COLORS.pupLight, eye: COLORS.wolfEye, girth: 1.1, ears: 1.3, legs: 0.8, head: 1.35 },
   howler: { body: COLORS.howler, light: COLORS.howlerLight, eye: 0x9fd3ff, girth: 1, ears: 1.2 },
   trickster: { body: COLORS.fox, light: COLORS.foxLight, eye: COLORS.wolfEye, girth: 0.8, ears: 1.6, legColor: COLORS.foxDark, bushy: true },
@@ -487,6 +492,12 @@ export class Wolf extends Animal {
           body.add(mesh(GEO.box, COLORS.bruteScar, { position: [side * 0.29, 0.05, z], scale: [0.02, 0.32, 0.05], rotation: [0.5, 0, 0] }));
         }
       }
+    }
+
+    if (kind === 'rascal') {
+      // A red bandana: easy to spot in a crowd.
+      body.add(mesh(GEO.box, COLORS.bandana, { position: [0, 0.08, 0.5], scale: [0.5, 0.2, 0.2], rotation: [0.3, 0, 0] }));
+      body.add(mesh(GEO.cone, COLORS.bandana, { position: [0, 0.2, 0.42], scale: [0.1, 0.22, 0.06], rotation: [-0.9, Math.PI / 4, 0] }));
     }
 
     if (kind === 'disguised') {
@@ -552,10 +563,10 @@ export class Wolf extends Animal {
     this.body.rotation.x = damp(this.body.rotation.x, st === 'HOWL' ? -0.35 : 0, 8, dt);
 
     // Head low while stalking, up while fleeing. Tail tucked when scared.
-    const dip = { WANDER: 0.1, APPROACH: 0.3, CHASE: 0.15, ATTACK: 0.45, RESIST: 0.35, FLEE: -0.25, LEAVE: 0, HOWL: -0.9, STUN: 0.4 }[st] ?? 0;
+    const dip = { WANDER: 0.1, APPROACH: 0.3, CHASE: 0.15, ATTACK: 0.45, RESIST: 0.35, FLEE: -0.25, LEAVE: 0, HOWL: -0.9, STUN: 0.4, DASH: -0.1 }[st] ?? 0;
     this.headDip = damp(this.headDip, dip + (st === 'FLEE' ? 0 : this.prowl), 8, dt);
     this.head.rotation.x = this.headDip;
-    const tail = { FLEE: 0.35, CHASE: 1.6, ATTACK: 1.7, RESIST: 1.9, APPROACH: 1.0 }[st] ?? 1.2;
+    const tail = { FLEE: 0.35, CHASE: 1.6, ATTACK: 1.7, RESIST: 1.9, APPROACH: 1.0, DASH: 2.2 }[st] ?? 1.2;
     this.tailLift = damp(this.tailLift, tail, 8, dt);
     this.tail.rotation.x = this.tailLift;
     this.tail.rotation.z = Math.sin(time * 6 + this.phase) * 0.15;

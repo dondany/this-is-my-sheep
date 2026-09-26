@@ -425,6 +425,7 @@ export function updateFlock(sheep, ctx, dt) {
       s.velocity.x += vz * side * BUMP.push;
       s.velocity.z += -vx * side * BUMP.push;
       s.bump = 1;
+      s.bumpPower = 1;
       s.bumpSide = side;
       s.bumpCooldown = BUMP.cooldown;
       ctx.onSheepBump?.(s);
@@ -448,8 +449,10 @@ export function updateFlock(sheep, ctx, dt) {
       const wx = px - w.position.x;
       const wz = pz - w.position.z;
       const wd = Math.hypot(wx, wz) || 1e-3;
-      if (wd < SHEEP.wolfFearRadius) {
-        const k = 1 - wd / SHEEP.wolfFearRadius;
+      // A rascal looks like play, not a hunt: sheep only notice it at the last moment.
+      const fearRadius = SHEEP.wolfFearRadius * (w.type.rascal ? 0.45 : 1);
+      if (wd < fearRadius) {
+        const k = 1 - wd / fearRadius;
         dx += (wx / wd) * k * SHEEP.wolfFear * panic;
         dz += (wz / wd) * k * SHEEP.wolfFear * panic;
         fear = Math.max(fear, k * 1.5 * panic);

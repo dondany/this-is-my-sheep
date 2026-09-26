@@ -110,6 +110,14 @@ export const ENTRIES = [
     make: (scene) => [new Wolf(scene, 'runner')],
   },
   {
+    id: 'rascal',
+    side: 'wolves',
+    name: 'Rascal',
+    text: "A young wolf that doesn't hunt, it plays. It sprints straight through the flock again and again, tossing sheep in every direction.",
+    tip: 'Cut across its path to scare it off before the flock is scattered all over the meadow. ★ 15.',
+    make: (scene) => [new Wolf(scene, 'rascal')],
+  },
+  {
     id: 'howler',
     side: 'wolves',
     name: 'Howler',

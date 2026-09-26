@@ -1957,7 +1957,7 @@ wolf-side animal appears each wave (`FIRST_WAVE`):
 
 ``` text
 wave 2   wanderer       pup pack
-wave 3   lamb           runner
+wave 3   lamb           runner, rascal
 wave 4   sleepy sheep   howler
 wave 5   old ram        sneaky wolf
 wave 6   golden fleece  brute
@@ -2272,4 +2272,23 @@ average     +10      +72      +55       526      505     28 / 63
     scare before chasing again (`HELPER` in `src/config.js`).
 -   Alone it now keeps ~55% in waves 3-4 and can't hold later waves by
     itself: a helper, not a replacement.
+
+------------------------------------------------------------------------
+
+# 73. Rascal Wolf (implemented)
+
+-   A young wolf (lighter coat, red bandana) from wave 3, one per pack
+    (two from wave 8). It never grabs a sheep.
+-   After stalking it enters a `DASH` state: it aims through the flock
+    centre and 7 units out the other side at 10.5 u/s ("WHEEE!"),
+    2-3 runs in a row, then goes back to prowling.
+-   Sheep within 2.2 × their size of its path are tossed: a sideways
+    and forward shove (8), a 1.7× bounce (reuses the dog-bump
+    animation with `bumpPower`), panic, and sleepy sheep wake up.
+-   Sheep notice a rascal from only 45% of the usual wolf-fear distance,
+    so it actually hits them instead of just scaring them away.
+-   Counts as threatening (indicators, helper dog, score ★ 15). Test:
+    4 runs toss ~10 sheep and spread the flock from 6.5 to 10.9 units.
+-   The Naturalist achievement now compares against the bestiary's
+    length instead of a hard-coded 18.
 

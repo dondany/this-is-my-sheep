@@ -45,6 +45,9 @@ export const COLORS = {
   foxDark: 0x2b2826,
   howler: 0x7d7a8a,
   howlerLight: 0xb4b0c0,
+  rascal: 0x9a8a74,
+  rascalLight: 0xe3d6bf,
+  bandana: 0xc94f3d,
   pup: 0x8a867e,
   pupLight: 0xbdb8ae,
 
@@ -444,9 +447,22 @@ Object.assign(WOLF_TYPES, {
   howler: { ...WOLF_TYPES.normal, scale: 1.15, speed: 0.9, howler: true, points: 20 },
   // Fox-like feinter: fakes an attack on one side, then switches to the far side once the dog commits.
   trickster: { ...WOLF_TYPES.normal, scale: 0.95, speed: 1.3, stalk: 0.8, threatScale: 1.4, fleeTime: 1.2, feint: true, points: 30 },
+  // Doesn't take sheep: dashes through the flock and scatters it (see RASCAL).
+  rascal: { ...WOLF_TYPES.normal, scale: 1.05, stalk: 0.8, rascal: true, points: 15 },
   // What's under the sheepskin (see DISGUISE).
   disguised: { ...WOLF_TYPES.normal, points: 40 },
 });
+
+// Rascal: a young wolf that doesn't hunt. It sprints straight through the flock a few times,
+// tossing sheep aside, then goes back to prowling.
+export const RASCAL = {
+  speed: 10.5,
+  passes: [2, 3], // dashes per run
+  overshoot: 7, // how far past the middle of the flock each dash carries on
+  tossRadius: 2.2, // × the sheep's size
+  toss: 8, // sideways shove
+  tossHeight: 1.7, // × BUMP.height
+};
 
 export const PUPS = {
   count: 3,
@@ -490,7 +506,7 @@ function shuffle(list) {
 // When each kind first appears. One new flock-side and one new wolf-side animal per wave, 2 to 9.
 export const FIRST_WAVE = {
   wanderer: 2, pups: 2,
-  lamb: 3, runner: 3,
+  lamb: 3, runner: 3, rascal: 3,
   sleepy: 4, howler: 4,
   ram: 5, sneaky: 5,
   golden: 6, brute: 6,
@@ -510,6 +526,7 @@ export function wolfPack(wave, count) {
     ['sneaky', from('sneaky', wave < 9 ? 1 : Math.min(3, Math.floor((wave - 5) / 2)))],
     ['trickster', from('trickster', wave < 10 ? 1 : 2)],
     ['runner', from('runner', wave < 8 ? 1 : Math.min(5, Math.floor((wave - 2) / 2)))],
+    ['rascal', from('rascal', wave < 8 ? 1 : 2)],
     ['howler', from('howler', wave < 9 ? 1 : 2)],
     ['pups', from('pups', wave < 6 ? 1 : 2)],
   ];

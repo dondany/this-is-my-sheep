@@ -1,3 +1,5 @@
+import { ENTRIES } from './bestiary.js';
+
 // Achievements: 30 goals across runs. Lifetime counters (`life`) and this run's records (`run`) are
 // updated by the game; `check()` unlocks anything newly met. Unlocks and lifetime counters are saved
 // in localStorage.
@@ -40,7 +42,7 @@ export const ACHIEVEMENTS = [
   { id: 'goat', group: 'Economy', icon: '🐐', name: 'Good Goat', text: 'Have the goat head-butt 10 wolves in total.', done: (l) => l.goatButts >= 10 },
   { id: 'loudMax', group: 'Economy', icon: '🎯', name: 'Long Reach', text: "Max out the Dog's Reach upgrade.", done: (l, r) => r.loudMax },
   // --- Collection
-  { id: 'naturalist', group: 'Collection', icon: '📖', name: 'Naturalist', text: 'Discover every animal in the bestiary.', done: (l) => l.discovered >= 18 },
+  { id: 'naturalist', group: 'Collection', icon: '📖', name: 'Naturalist', text: 'Discover every animal in the bestiary.', done: (l) => l.discovered >= ENTRIES.length },
 ];
 
 export const ACHIEVEMENT = Object.fromEntries(ACHIEVEMENTS.map((a) => [a.id, a]));

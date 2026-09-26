@@ -121,6 +121,8 @@ export class Game {
       scarecrows: this.scarecrows,
       onSheepPanic: (s) => this.juice.sheepPanic(s),
       onSheepBump: (s) => this.juice.sheepBump(s),
+      onSheepTossed: (s) => this.juice.sheepBump(s),
+      onRascalDash: (w) => this.juice.rascalDash(w),
       onSheepStray: (s) => this.juice.sheepStray(s),
       onWolfResist: (w) => this.juice.wolfResist(w),
       onLambOrphaned: (s) => this.juice.lambOrphaned(s),

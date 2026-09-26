@@ -212,6 +212,12 @@ export class Sfx {
     this.noiseBurst({ dur: 0.14, gain: 0.2, filter: 'bandpass', freq: 600, q: 2, at: 0.25 });
   }
 
+  yip() {
+    if (!this.ready || !this.throttle('yip', 400)) return;
+    this.tone({ type: 'triangle', freq: 900, freqEnd: 1400, dur: 0.07, gain: 0.1 });
+    this.tone({ type: 'triangle', freq: 1000, freqEnd: 1600, dur: 0.07, gain: 0.1, at: 0.1 });
+  }
+
   yelp() {
     if (!this.ready || !this.throttle('yelp', 150)) return;
     this.tone({ type: 'triangle', freq: 700, freqEnd: 1500, dur: 0.09, gain: 0.15 });
