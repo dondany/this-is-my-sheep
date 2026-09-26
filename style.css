@@ -87,6 +87,7 @@ body {
 
 .hud-label .hud-value {
   font-size: 20px;
+  text-transform: none;
 }
 
 .meter {
@@ -1327,3 +1328,29 @@ h2 {
 .achievement-toast {
   border-color: #d9a441;
 }
+
+/* --- Victory -------------------------------------------------------------- */
+
+.victory-panel {
+  border-color: #d9a441;
+  box-shadow: 0 8px 0 rgba(217, 164, 65, 0.5), 0 0 0 6px rgba(217, 164, 65, 0.25);
+}
+
+.victory-kicker {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-dark);
+}
+
+.victory-stars {
+  margin: 4px 0;
+  font-size: 56px;
+  line-height: 1;
+  letter-spacing: 6px;
+  color: #e5a33b;
+  text-shadow: 0 3px 0 var(--ink);
+}
+

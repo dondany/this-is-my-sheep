@@ -2311,3 +2311,25 @@ stutter.
     and the camera push-in and halves shakes and flashes; Off removes
     them all.
 
+------------------------------------------------------------------------
+
+# 75. End of Summer: Goal and Endless Mode (implemented, part 1)
+
+The run now has a goal (design options in the agent proposal; option A
+with star grading was chosen).
+
+-   Goal: survive wave 15 (`GOAL.finalWave`). The HUD shows "n / 15";
+    wave 1's banner states the goal, wave 15's is "Final wave".
+-   Winning (in `completeWave()` of wave 15): a "Summer's End!" screen
+    with 1-3 stars by flock size (any / 15+ / 30+), the flock count,
+    score, wool left and upgrades bought. Wins, best stars, best score
+    and best wave are saved. Buttons: Keep grazing (endless) or Menu.
+-   Endless (`ENDLESS`): +1 wolf per endless wave up to 25, extra pack
+    slots filled with random special wolves plus a second alpha; score
+    ×(1 + 0.1 × endless waves); flock cap 90; newcomers that don't fit
+    are sold at market for 1 wool each. The HUD shows "17 ∞".
+-   Achievements: the wave-15 one is now "Summer's End" (win a run);
+    new: Three-Star Summer, Golden Summer (win with a golden fleece),
+    Indian Summer (wave 20) and First Frost (wave 25). 35 in total.
+-   Part 2 adds the final boss.
+

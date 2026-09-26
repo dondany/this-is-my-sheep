@@ -58,7 +58,7 @@ export class UI {
       this.el.sheepBar.style.transform = `scaleX(${v})`;
       this.el.sheepBar.classList.toggle('low', v < 0.5);
     });
-    this.set('wave', String(wave).padStart(2, '0'), (v) => (this.el.wave.textContent = v));
+    this.set('wave', wave, (v) => (this.el.wave.textContent = v));
     this.set('timer', Math.round(timeLeft * 200) / 200, (v) => (this.el.timerBar.style.transform = `scaleX(${v})`));
     this.set('wool', wool, (v) => (this.el.wool.textContent = v));
   }
@@ -179,9 +179,20 @@ export class UI {
     if (!cards.length) $('shop-cards').textContent = 'Everything is maxed out. Good dog!';
   }
 
-  showGameOver({ wave, best, score, bestScore, newBest }) {
+  showVictory({ stars, flock, score, wool, upgrades, newBest }) {
+    $('victory-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+    $('victory-flock').textContent = flock === 1 ? '🐑 1 sheep made it home' : `🐑 ${flock} sheep made it home`;
+    $('victory-stats').textContent = `★ ${score}${newBest ? ' (new best!)' : ''} · 🧶 ${wool} wool left · ${upgrades} upgrades`;
+    this.show('victory');
+  }
+
+  showGameOver({ wave, endless, best, score, bestScore, newBest }) {
     $('over-score').textContent = `★ ${score}${newBest ? ' · new best!' : ''}`;
-    $('over-waves').textContent = wave - 1 === 1 ? 'You survived 1 wave' : `You survived ${wave - 1} waves`;
+    $('over-waves').textContent = endless
+      ? `Summer won, then ${endless - 1} endless ${endless - 1 === 1 ? 'wave' : 'waves'}`
+      : wave - 1 === 1
+        ? 'You survived 1 wave'
+        : `You survived ${wave - 1} waves`;
     $('over-stats').textContent = `Best: ★ ${bestScore} · wave ${best}`;
     this.show('over');
   }
@@ -285,8 +296,9 @@ export class UI {
     if (text) el.textContent = text;
   }
 
-  setBest(best, bestScore) {
-    $('menu-best').textContent = best || bestScore ? `Best: ★ ${bestScore} · wave ${best}` : '';
+  setBest(best, bestScore, wins = 0, bestStars = 0) {
+    const won = wins ? ` · summers won: ${wins} (best ${'★'.repeat(bestStars)})` : '';
+    $('menu-best').textContent = best || bestScore ? `Best: ★ ${bestScore} · wave ${best}${won}` : '';
   }
 
   // Arrows at the screen edge pointing at off-screen wolves.

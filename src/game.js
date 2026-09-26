@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { GOAL, ENDLESS, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -45,6 +45,8 @@ const EFFECTS_KEY = 'this-is-my-sheep.effects';
 const EFFECTS = ['full', 'reduced', 'off'];
 const BEST_KEY = 'this-is-my-sheep.best';
 const BEST_SCORE_KEY = 'this-is-my-sheep.bestScore';
+const WINS_KEY = 'this-is-my-sheep.wins';
+const BEST_STARS_KEY = 'this-is-my-sheep.bestStars';
 
 function readNumber(key) {
   try {
@@ -86,9 +88,13 @@ export class Game {
     this.wave = 0;
     this.wool = 0;
     this.score = 0;
+    this.endless = false;
     this.achievements.newRun();
     this.best = readNumber(BEST_KEY);
     this.bestScore = readNumber(BEST_SCORE_KEY);
+    this.wins = readNumber(WINS_KEY);
+    this.bestStars = readNumber(BEST_STARS_KEY);
+    this.endless = false; // true once the player keeps going after winning
     this.cfg = null;
     this.center = new THREE.Vector3();
     this.cameraFocus = new THREE.Vector3();
@@ -201,7 +207,7 @@ export class Game {
 
     this.bindUI();
     this.spawnSheep(['ram', 'black', 'bellwether', 'wanderer', 'sleepy', 'lamb', ...Array(7).fill('normal')], false);
-    this.ui.setBest(this.best, this.bestScore);
+    this.ui.setBest(this.best, this.bestScore, this.wins, this.bestStars);
     this.ui.setMuted(this.sfx.muted);
     this.applyEffects();
     this.ui.show('menu');
@@ -227,6 +233,7 @@ export class Game {
       ui.setMuted(this.sfx.muted);
     });
     ui.on('bestiary', () => this.openBestiary());
+    ui.on('keep-grazing', () => this.keepGrazing());
     ui.on('reroll', () => this.reroll());
     ui.on('bigbark', () => this.bigBark());
     ui.onBuy = (id) => this.buy(id);
@@ -311,7 +318,7 @@ export class Game {
     const panelDue = this.panelTimer <= 0;
     this.ui.show({ [STATE.MENU]: 'menu', [STATE.PAUSED]: 'pause' }[this.state] ?? null);
     if (panelDue && this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ wave: this.wave, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore });
+    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore });
   }
 
   // Unlock anything on the field that hasn't been seen before (sneaky wolves once they show up,
@@ -414,7 +421,7 @@ export class Game {
   // Animals that have turned up this run (a lamb always), and only one of each unique kind.
   canBuyAnimal(kind) {
     if (kind !== 'lamb' && this.wave < FIRST_WAVE[kind]) return false;
-    if (this.flockSize() + this.pendingAnimals.length >= SHEEP.cap) return false;
+    if (this.flockSize() + this.pendingAnimals.length >= this.flockCap()) return false;
     return !(ANIMAL[kind].unique && this.ownedAnimals(kind) > 0);
   }
 
@@ -461,6 +468,7 @@ export class Game {
   }
 
   showWavePanel() {
+    if (this.victoryPanel) return this.ui.showVictory(this.victoryPanel);
     this.ui.showWaveComplete(this.pendingPanel);
     this.showShop();
   }
@@ -550,7 +558,14 @@ export class Game {
     const mods = this.ctx.mods;
     for (let i = 0; i < cfg.lambs + mods.lambs; i++) kinds.push('lamb');
     for (let i = 0; i < cfg.newSheep + (this.wave > 1 ? mods.extraSheep : 0); i++) kinds.push('normal');
-    this.spawnSheep(kinds.slice(0, Math.max(0, SHEEP.cap - this.flockSize())), this.wave > 1);
+    const room = Math.max(0, this.flockCap() - this.flockSize());
+    this.spawnSheep(kinds.slice(0, room), this.wave > 1);
+    // Endless: newcomers that don't fit are sold at market.
+    const sold = this.endless ? Math.max(0, kinds.length - room) : 0;
+    if (sold) {
+      this.addWool(sold * ENDLESS.marketWool);
+      this.juice.soldAtMarket(this.shepherd, sold, sold * ENDLESS.marketWool);
+    }
     for (let i = 0; i < cfg.disguised; i++) this.spawnDisguise();
 
     this.waveStartSheep = this.flockSize();
@@ -570,13 +585,19 @@ export class Game {
     const newcomers = Object.keys(FIRST_WAVE)
       .filter((k) => FIRST_WAVE[k] === this.wave && k !== 'disguised' && k !== 'goat')
       .map((k) => ENTRY[k === 'pups' ? 'pup' : k].name);
+    const final = this.wave === GOAL.finalWave;
     const sub =
       this.wave === 1
-        ? 'Click the meadow to move your dog'
-        : newcomers.length
-          ? `New: ${newcomers.join(' & ')}. See the 📖 bestiary`
-          : `${cfg.wolves} wolves are coming`;
-    this.ui.banner(`Wave ${this.wave}`, sub);
+        ? `Keep the flock safe until the end of summer: wave ${GOAL.finalWave}`
+        : final
+          ? 'The last wave of summer. Hold on!'
+          : this.endless
+            ? `${cfg.wolves} wolves · score ×${this.scoreMultiplier().toFixed(1)}`
+            : newcomers.length
+              ? `New: ${newcomers.join(' & ')}. See the 📖 bestiary`
+              : `${cfg.wolves} wolves are coming`;
+    const title = this.endless ? `Endless ${this.wave - GOAL.finalWave}` : final ? 'Final wave' : `Wave ${this.wave}`;
+    this.ui.banner(title, sub);
     this.whistleTimer = this.ctx.mods.whistle;
     this.roamTimer = between(ROAM.interval) * 0.6;
     this.setState(STATE.INTRO);
@@ -615,7 +636,8 @@ export class Game {
     this.juice.waveComplete(this.center);
     this.juice.shearing(flock, this.shepherd, reward);
     this.shepherd.play('clap', 2);
-    this.panelTimer = 1.8;
+    if (this.wave === GOAL.finalWave && !this.endless) this.victory();
+    this.panelTimer = this.victoryPanel ? 2.6 : 1.8;
     this.pendingPanel = {
       wave: this.wave,
       survived: this.flockSize(),
@@ -656,7 +678,7 @@ export class Game {
     if (this.sheep.length < 8) this.spawnSheep(Array(12 - this.sheep.length).fill('normal'), false);
     for (const s of this.sheep) s.grabbedBy = null;
     this.ui.setHudVisible(false);
-    this.ui.setBest(this.best, this.bestScore);
+    this.ui.setBest(this.best, this.bestScore, this.wins, this.bestStars);
     this.ui.show('menu');
     this.setState(STATE.MENU);
     this.sfx.suspend(false);
@@ -777,8 +799,55 @@ export class Game {
     this.wool += amount;
   }
 
+  // Endless waves multiply the score: ×1.1 for the first, ×1.2 for the second, and so on.
   addScore(amount) {
-    this.score += amount;
+    this.score += Math.round(amount * this.scoreMultiplier());
+  }
+
+  scoreMultiplier() {
+    return this.endless ? 1 + ENDLESS.scoreBonus * Math.max(0, this.wave - GOAL.finalWave) : 1;
+  }
+
+  flockCap() {
+    return this.endless ? ENDLESS.flockCap : SHEEP.cap;
+  }
+
+  waveLabel() {
+    return this.endless ? `${this.wave} ∞` : `${this.wave} / ${GOAL.finalWave}`;
+  }
+
+  // --- The goal ------------------------------------------------------------
+
+  // End of summer: the final wave is over and there are sheep left.
+  victory() {
+    const flock = this.sheepCount();
+    const stars = flock >= GOAL.stars[1] ? 3 : flock >= GOAL.stars[0] ? 2 : 1;
+    const run = this.achievements.run;
+    run.won = true;
+    run.stars = stars;
+    run.goldenAtWin = this.sheep.some((s) => s.kind === 'golden');
+    this.wins++;
+    this.bestStars = Math.max(this.bestStars, stars);
+    this.newBestScore = this.score > this.bestScore;
+    this.bestScore = Math.max(this.bestScore, this.score);
+    this.best = Math.max(this.best, this.wave);
+    try {
+      localStorage.setItem(WINS_KEY, String(this.wins));
+      localStorage.setItem(BEST_STARS_KEY, String(this.bestStars));
+      localStorage.setItem(BEST_SCORE_KEY, String(this.bestScore));
+      localStorage.setItem(BEST_KEY, String(this.best));
+    } catch {}
+    this.victoryPanel = { stars, flock, score: this.score, wool: this.wool, upgrades: Object.values(this.levels).reduce((a, b) => a + b, 0), newBest: this.newBestScore };
+    this.juice.victory(this.center);
+    this.checkAchievements();
+  }
+
+  // Carry on after winning: back to the usual end-of-wave shop, then endless waves.
+  keepGrazing() {
+    this.endless = true;
+    this.victoryPanel = null;
+    this.sfx.click();
+    this.showWavePanel();
   }
 
   onWolfCharge(wolf) {
@@ -990,7 +1059,7 @@ export class Game {
           this.panelTimer -= dt;
           if (this.panelTimer <= 0 && !this.overlay) {
             if (this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-            else this.ui.showGameOver({ wave: this.wave, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore });
+            else this.ui.showGameOver({ wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore });
           }
         }
         break;
@@ -1019,7 +1088,7 @@ export class Game {
       this.ui.setHud({
         sheep: this.flockSize(),
         sheepMax: this.waveStartSheep,
-        wave: this.wave,
+        wave: this.waveLabel(),
         timeLeft: this.cfg ? Math.max(0, 1 - this.waveTime / this.cfg.duration) : 1,
         wool: this.wool,
         score: this.score,

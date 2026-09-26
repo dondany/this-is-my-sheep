@@ -1,6 +1,6 @@
 import { ENTRIES } from './bestiary.js';
 
-// Achievements: 30 goals across runs. Lifetime counters (`life`) and this run's records (`run`) are
+// Achievements: 35 goals across runs. Lifetime counters (`life`) and this run's records (`run`) are
 // updated by the game; `check()` unlocks anything newly met. Unlocks and lifetime counters are saved
 // in localStorage.
 
@@ -12,7 +12,11 @@ export const ACHIEVEMENTS = [
   { id: 'firstShift', group: 'Waves', icon: '🌅', name: 'First Shift', text: 'Finish wave 1.', done: (l, r) => r.wave >= 1 },
   { id: 'wave5', group: 'Waves', icon: '🐕', name: 'Good Boy', text: 'Finish wave 5.', done: (l, r) => r.wave >= 5 },
   { id: 'wave10', group: 'Waves', icon: '🏅', name: 'Veteran Sheepdog', text: 'Finish wave 10.', done: (l, r) => r.wave >= 10 },
-  { id: 'wave15', group: 'Waves', icon: '👑', name: 'Legend of the Meadow', text: 'Finish wave 15.', done: (l, r) => r.wave >= 15 },
+  { id: 'wave15', group: 'Waves', icon: '👑', name: "Summer's End", text: 'Win a run: keep sheep alive to the end of the final wave (15).', done: (l, r) => r.won },
+  { id: 'threeStars', group: 'Waves', icon: '🌟', name: 'Three-Star Summer', text: 'Win a run with ★★★ (30 or more sheep).', done: (l, r) => r.stars >= 3 },
+  { id: 'goldenSummer', group: 'Waves', icon: '🏆', name: 'Golden Summer', text: 'Win a run with a golden fleece still in the flock.', done: (l, r) => r.goldenAtWin },
+  { id: 'endless20', group: 'Waves', icon: '🌙', name: 'Indian Summer', text: 'Finish wave 20 (endless).', done: (l, r) => r.wave >= 20 },
+  { id: 'endless25', group: 'Waves', icon: '❄️', name: 'First Frost', text: 'Finish wave 25 (endless).', done: (l, r) => r.wave >= 25 },
   { id: 'perfect', group: 'Waves', icon: '✨', name: 'Not One Lost', text: 'Finish a wave (from wave 2 on) without losing a sheep.', done: (l, r) => r.perfectWave },
   { id: 'flawless5', group: 'Waves', icon: '💎', name: 'Flawless Five', text: 'Finish waves 1 to 5 without losing a single sheep.', done: (l, r) => r.wave >= 5 && r.lostBy5 === 0 },
   // --- Wolves
@@ -81,6 +85,9 @@ export class Achievements {
       bestWaveWool: 0,
       maxInterest: false,
       loudMax: false,
+      won: false,
+      stars: 0,
+      goldenAtWin: false,
     };
   }
 

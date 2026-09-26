@@ -181,6 +181,19 @@ export class Juice {
     this.particles.puff(tmp.copy(tuft.position).setY(0.6), 6);
   }
 
+  victory(center) {
+    const p = tmp.copy(center).setY(1);
+    this.particles.confetti(p, 120);
+    this.floatText("SUMMER'S END!", { position: center, offsetY: 6, cls: 'big', duration: 2.6, size: 56 });
+    this.flash('rgba(255, 240, 208, 0.55)');
+    this.shake(0.12, 300);
+    this.sfx.waveComplete();
+  }
+
+  soldAtMarket(shepherd, count, wool) {
+    this.floatText(`${count} sold at market: +${wool} 🧶`, { follow: shepherd, offsetY: 4.2, cls: 'good', duration: 2 });
+  }
+
   combo(dog, count, bonus) {
     this.floatText(`COMBO ×${count}! +${bonus}`, { follow: dog, offsetY: 3.9, cls: 'combo', duration: 1.2, size: Math.min(22 + count * 4, 44) });
     this.particles.sparkle(tmp.copy(dog.position).setY(1.5), 4 + count * 2, [0xfff3b0, COLORS.accent, 0xffffff]);

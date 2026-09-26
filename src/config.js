@@ -502,6 +502,21 @@ function shuffle(list) {
   return list;
 }
 
+// The run's goal: survive to the end of summer (the final wave). After that the player can keep
+// going in endless mode, which has its own scaling.
+export const GOAL = {
+  finalWave: 15,
+  stars: [15, 30], // flock size at the win for ★★ and ★★★ (★ for any survivors)
+};
+
+export const ENDLESS = {
+  extraWolves: 1, // per endless wave, on top of the normal cap of 15...
+  maxWolves: 25, // ...up to this many
+  flockCap: 90,
+  scoreBonus: 0.1, // score multiplier grows by this much per endless wave
+  marketWool: 1, // new sheep that don't fit in the flock are sold for this much wool each
+};
+
 // When each kind first appears. One new flock-side and one new wolf-side animal per wave, 2 to 9.
 export const FIRST_WAVE = {
   wanderer: 2, pups: 2,
@@ -529,14 +544,23 @@ export function wolfPack(wave, count) {
     ['howler', from('howler', wave < 9 ? 1 : 2)],
     ['pups', from('pups', wave < 6 ? 1 : 2)],
   ];
+  if (wave > GOAL.finalWave) wanted.unshift(['alpha', 1]); // endless: a second alpha
   const pack = [];
   for (const [kind, n] of wanted) for (let i = 0; i < n && pack.length < count; i++) pack.push(kind);
+  // Endless: the extra slots go to special wolves rather than plain ones.
+  const extras = ['runner', 'rascal', 'brute', 'sneaky', 'trickster', 'pups', 'howler'];
+  while (wave > GOAL.finalWave && pack.length < count - 1) pack.push(extras[(Math.random() * extras.length) | 0]);
   while (pack.length < count) pack.push('normal');
   shuffle(pack);
   // Lead with a normal wolf so the special ones arrive mid-wave.
   const first = pack.indexOf('normal');
   if (first > 0) [pack[0], pack[first]] = [pack[first], pack[0]];
   return pack;
+}
+
+function wolfCount(wave) {
+  const endless = Math.max(0, wave - GOAL.finalWave);
+  return endless ? Math.min(15 + endless * ENDLESS.extraWolves, ENDLESS.maxWolves) : Math.min(1 + wave, 15);
 }
 
 export function waveConfig(wave) {
@@ -557,13 +581,13 @@ export function waveConfig(wave) {
     black: wave < FIRST_WAVE.black ? 0 : wave < 10 ? 1 : 2,
     bellwether: wave >= FIRST_WAVE.bellwether ? 1 : 0,
     disguised: wave >= FIRST_WAVE.disguised ? 1 : 0,
-    wolves: Math.min(1 + wave, 15),
+    wolves: wolfCount(wave),
     duration: Math.min(40 + wave * 5, 90),
     spawnInterval: Math.max(2, 9 - wave * 0.6),
     // Pressure comes mostly from more wolves and shorter stalking, not raw speed.
     wolfSpeed: Math.min(1 + (wave - 1) * 0.05, 1.5),
     stalkMin: 2.5 / difficulty,
     stalkMax: 5.5 / difficulty,
-    pack: wolfPack(wave, Math.min(1 + wave, 15)),
+    pack: wolfPack(wave, wolfCount(wave)),
   };
 }

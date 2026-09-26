@@ -6,6 +6,21 @@ Click the meadow to send the dog running; wolves that get too close to it turn t
 Design doc: [`shepherd_dog_threejs_game_plan.md`](shepherd_dog_threejs_game_plan.md) ·
 What's next: [`FUTURE_IDEAS.md`](FUTURE_IDEAS.md)
 
+## Goal: End of Summer
+
+Keep the flock safe until the end of summer: **survive wave 15** with at least one sheep and you
+win the run (the top bar shows "Wave 7 / 15"). The win screen rates the flock you brought home:
+★ for any survivors, ★★ for 15 or more, ★★★ for 30 or more. Wins and your best star rating are
+saved and shown on the menu.
+
+Then choose **Menu** or **Keep grazing** for endless mode (like Balatro after the last ante):
+
+- one more wolf every wave (up to 25), the extra slots all special wolves, and a second alpha;
+- score multiplier ×1.1 for the first endless wave, ×1.2 for the second, and so on;
+- the flock cap rises from 60 to 90, and newcomers that don't fit are sold at market for 1 wool each.
+
+Tuning: `GOAL` and `ENDLESS` in `src/config.js`.
+
 ## Controls
 
 | Input | Action |
@@ -168,7 +183,7 @@ Unlocks are saved in the browser's `localStorage`.
 
 ### Achievements
 
-30 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
+35 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
 to "Scare off 250 wolves in total" and "Keep a golden fleece alive for 3 waves". Open them with
 🏆 on the menu, pause, end-of-wave and game-over screens (opening mid-wave pauses). A card pops up
 in the corner when one unlocks. Unlocks and lifetime counters are saved in `localStorage`; the
@@ -208,7 +223,7 @@ with WebAudio, so there are no asset files.
 | `src/input.js` | Pointer → ground-plane raycast |
 | `src/ui.js` | HUD, screens, bestiary screen, unlock cards, off-screen wolf indicators |
 | `src/bestiary.js` | Bestiary entries, unlock persistence, portraits rendered from the models |
-| `src/achievements.js` | The 30 achievements, lifetime counters and unlock checks |
+| `src/achievements.js` | The 35 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |
 | `src/helper.js` | AI for the Second Dog upgrade |
 
