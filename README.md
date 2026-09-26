@@ -257,6 +257,18 @@ No build step. Push to `main`, then in the repo's **Settings → Pages** set the
 three.js is loaded from jsDelivr via the import map in `index.html`; all sounds are synthesized
 with WebAudio, so there are no asset files.
 
+## Field guide (internal)
+
+`guide.html` is a reference page describing everything in the game: how to play, the goal and
+Summers, the economy, every animal (with its in-game portrait and stats), a wave-by-wave table, all
+upgrades with prices per level, livestock and achievements. It's generated in the browser from the
+game's own data (`src/guide.js` reads `config.js`, `upgrades.js`, `bestiary.js` and
+`achievements.js`), so it stays in sync with the code.
+
+It's deliberately **not linked from the game** and asks search engines not to index it. It's still
+public: anyone with the URL (`…/this-is-my-sheep/guide.html`) can open it. Locally:
+http://localhost:8000/guide.html.
+
 ## Code map
 
 | File | What it does |
@@ -273,6 +285,7 @@ with WebAudio, so there are no asset files.
 | `src/input.js` | Pointer → ground-plane raycast |
 | `src/ui.js` | HUD, screens, bestiary screen, unlock cards, off-screen wolf indicators |
 | `src/bestiary.js` | Bestiary entries, unlock persistence, portraits rendered from the models |
+| `src/guide.js` | Builds the internal field guide (`guide.html`) from the game's data |
 | `src/tips.js` | First-time tips and which ones the player has seen |
 | `src/achievements.js` | The 36 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |

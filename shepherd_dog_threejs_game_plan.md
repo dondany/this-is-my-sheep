@@ -2475,3 +2475,22 @@ Borrowed from Super Auto Pets:
 -   Shop cards became `div role="button"` (so the ❄️ button can sit
     inside them); unaffordable cards dim everything except the ❄️.
 
+------------------------------------------------------------------------
+
+# 83. Field Guide (implemented, internal)
+
+-   `guide.html` + `guide.css` + `src/guide.js`: a standalone reference
+    page on the same static site, with no build step.
+-   Generated from the game's modules: dog stats (`DOG`, `BIG_BARK`,
+    `BUMP`), the goal, boss, endless and Summers (`GOAL`, `BOSS`,
+    `ENDLESS`, `SUMMERS`), the economy (`SHEEP_TYPES` wool, `SHEARING`,
+    `BOUNTY`, `SHOP`), every animal (bestiary text and tip, the same 3D
+    portrait renderer as the in-game bestiary, and stat chips from
+    `SHEEP_TYPES` / `WOLF_TYPES` plus each animal's constants), a
+    wave-by-wave table (`waveConfig()` for waves 1-15, 16, 20, 25),
+    upgrades with prices per level (`cost()`), livestock
+    (`animalPrice()`), and achievements.
+-   Hand-written: how to play, what happens in a wave, the goal text.
+-   Internal: not linked from the game, `noindex, nofollow`; public to
+    anyone with the URL (GitHub Pages has no private pages).
+

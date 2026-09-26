@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Internal reference page: not linked from the game, and kept out of search engines. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Field Guide · This Is My Sheep</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📘</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="guide.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="hero">
+    <p class="kicker">Internal reference</p>
+    <h1>This Is My Sheep · Field Guide</h1>
+    <p class="lede">Everything in the game, in one place. Numbers, animals, upgrades and waves are read straight from the game's code, so this page is always up to date.</p>
+    <nav id="toc" class="toc"></nav>
+  </header>
+
+  <main>
+    <section id="how-to-play">
+      <h2>How to play</h2>
+      <p>You're the shepherd's dog. Wolves come in waves and try to grab sheep; the dog scares them off just by getting close. Keep as many sheep alive as you can until the end of summer.</p>
+      <table>
+        <thead><tr><th>Input</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>Click / tap the meadow</td><td>Send the dog there. Hold and drag to steer.</td></tr>
+          <tr><td>Right-click, Space, or the 🐕 button</td><td><strong>Big Bark</strong>: every wolf nearby flees, brutes included, but nearby sheep get startled too.</td></tr>
+          <tr><td>Scroll, pinch, <kbd>+</kbd> / <kbd>-</kbd></td><td>Zoom</td></tr>
+          <tr><td><kbd>Esc</kbd> / <kbd>P</kbd></td><td>Pause</td></tr>
+          <tr><td><kbd>B</kbd></td><td>Bestiary</td></tr>
+        </tbody>
+      </table>
+      <h3>A wave</h3>
+      <ol>
+        <li>New sheep join the flock (and any animals you bought).</li>
+        <li>Wolves arrive from the tree line, prowl for a few seconds, then go for a sheep. From wave 2 they come in pairs from opposite sides.</li>
+        <li>A wolf inside the dog's reach (the faint ring around it) gets scared and runs. A grabbed sheep is let go if the dog gets there in time.</li>
+        <li>The shepherd moves the flock to fresh grass every 20-35 s, so the dog has to keep repositioning.</li>
+        <li>When the timer runs out, the surviving sheep are sheared for wool, and you spend it in the shop.</li>
+      </ol>
+      <div id="dog-stats"></div>
+    </section>
+
+    <section id="goal">
+      <h2>The goal: End of Summer</h2>
+      <div id="goal-body"></div>
+    </section>
+
+    <section id="economy">
+      <h2>Economy</h2>
+      <p>There are two numbers: <strong>★ score</strong>, which is only for bragging, and <strong>🧶 wool</strong>, which is what you spend. Wool only comes from the flock.</p>
+      <div id="economy-body"></div>
+    </section>
+
+    <section id="flock">
+      <h2>The flock</h2>
+      <div id="flock-list" class="beasts"></div>
+    </section>
+
+    <section id="wolves">
+      <h2>The wolves</h2>
+      <div id="wolf-list" class="beasts"></div>
+    </section>
+
+    <section id="waves">
+      <h2>Wave by wave</h2>
+      <p>What each wave brings. Special wolves are placed in random order within a wave; the first to arrive is usually a plain wolf.</p>
+      <div class="table-wrap"><table id="wave-table"></table></div>
+    </section>
+
+    <section id="upgrades">
+      <h2>Upgrades</h2>
+      <div id="upgrades-body"></div>
+    </section>
+
+    <section id="livestock">
+      <h2>Livestock</h2>
+      <div id="livestock-body"></div>
+    </section>
+
+    <section id="achievements">
+      <h2>Achievements</h2>
+      <div id="achievements-body"></div>
+    </section>
+  </main>
+
+  <footer class="foot">Generated from <code>src/config.js</code>, <code>src/upgrades.js</code>, <code>src/bestiary.js</code> and <code>src/achievements.js</code>.</footer>
+
+  <script type="module" src="src/guide.js"></script>
+</body>
+</html>
