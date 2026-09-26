@@ -55,7 +55,18 @@ export class UI {
     apply(value);
   }
 
-  setHud({ sheep, sheepMax, wave, timeLeft, wool, score }) {
+  setHud({ sheep, sheepMax, wave, timeLeft, wool, score, quota = 0, strikes = 0, maxStrikes = 3 }) {
+    // The shepherd's quota: "need 9" plus hearts, and a mark on the flock bar.
+    this.set('quota', `${quota}|${strikes}|${sheep}|${sheepMax}`, () => {
+      const el = $('hud-quota');
+      const mark = $('hud-quota-mark');
+      el.classList.toggle('hidden', !quota && !strikes);
+      mark.classList.toggle('hidden', !quota || !sheepMax);
+      const hearts = '❤️'.repeat(maxStrikes - strikes) + '🤍'.repeat(strikes);
+      el.textContent = quota ? `need ${quota} · ${hearts}` : hearts;
+      el.classList.toggle('short', quota > 0 && sheep < quota);
+      if (quota && sheepMax) mark.style.left = `${Math.min(100, (quota / sheepMax) * 100)}%`;
+    });
     this.set('score', score, (v) => (this.el.score.textContent = v));
     this.set('sheep', `${sheep} / ${sheepMax}`, (v) => (this.el.sheep.textContent = v));
     this.set('sheepBar', sheepMax ? sheep / sheepMax : 1, (v) => {
@@ -141,7 +152,7 @@ export class UI {
     el.classList.add('show');
   }
 
-  showWaveComplete({ wave, survived, total, lines, bounty, reward, score }) {
+  showWaveComplete({ wave, survived, total, lines, bounty, reward, score, quota }) {
     $('wave-title').textContent = `Wave ${wave} complete!`;
     $('wave-sheep').textContent = `🐑 ${survived} / ${total}`;
     $('wave-score').textContent = `★ +${score}`;
@@ -163,6 +174,14 @@ export class UI {
       li.className = 'bounty';
       li.innerHTML = `<span>Bounty tufts collected during the wave</span><span>🧶 +${bounty}</span>`;
       extra.push(li);
+    }
+    if (quota) {
+      const li = document.createElement('li');
+      li.className = quota.missed ? 'quota missed' : 'quota';
+      li.innerHTML = '<span></span><span></span>';
+      li.firstChild.textContent = quota.missed ? `Quota missed: ${quota.have} of ${quota.need} sheep` : `Quota: ${quota.have} of ${quota.need} sheep`;
+      li.lastChild.textContent = quota.missed ? `${'❤️'.repeat(quota.left)} left` : '✓';
+      extra.unshift(li);
     }
     $('wave-breakdown').replaceChildren(...rows, sum, ...extra);
     this.show('wave');
@@ -297,7 +316,8 @@ export class UI {
     this.show('victory');
   }
 
-  showGameOver({ wave, endless, best, score, bestScore, newBest, summary }) {
+  showGameOver({ reason, wave, endless, best, score, bestScore, newBest, summary }) {
+    $('over-title').textContent = reason === 'quota' ? "The shepherd couldn't fill his orders" : 'The wolves got the flock';
     this.renderSummary('over-summary', summary);
     $('over-score').textContent = `★ ${score}${newBest ? ' · new best!' : ''}`;
     $('over-waves').textContent = endless

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GOAL, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { GOAL, quotaFor, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -434,7 +434,7 @@ export class Game {
     const panelDue = this.panelTimer <= 0;
     this.ui.show({ [STATE.MENU]: 'menu', [STATE.PAUSED]: 'pause' }[this.state] ?? null);
     if (panelDue && this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore, summary: this.runSummary() });
+    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ reason: this.gameOverReason, wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore, summary: this.runSummary() });
   }
 
   // Unlock anything on the field that hasn't been seen before (sneaky wolves once they show up,
@@ -673,6 +673,7 @@ export class Game {
     this.wave = 0;
     this.wool = 0;
     this.score = 0;
+    this.strikes = 0; // quotas missed this run
     this.endless = false;
     this.victoryPanel = null;
     this.boss = null;
@@ -736,6 +737,7 @@ export class Game {
   beginWave() {
     const cfg = this.cfg;
     this.waveStartSheep = this.flockSize();
+    this.quota = quotaFor(this.wave);
     this.waveStartScore = this.score;
     this.boss = null;
     this.bossSpawned = false;
@@ -769,7 +771,8 @@ export class Game {
               ? `New: ${newcomers.join(' & ')}. See the 📖 bestiary`
               : `${cfg.wolves} wolves are coming`;
     const title = this.endless ? `Endless ${this.wave - GOAL.finalWave}` : final ? 'Final wave' : `Wave ${this.wave}`;
-    this.ui.banner(title, sub);
+    this.ui.banner(title, this.quota ? `${sub} · bring home ${this.quota} sheep` : sub);
+    if (this.quota) this.tip('quota');
     if (this.wave === 1) setTimeout(() => this.tip('move'), 800);
     if (this.wave === 2) this.tip('bigBark');
     if (this.sheep.some((s) => s.kind === 'sleepy')) this.tip('sleepy');
@@ -789,6 +792,16 @@ export class Game {
       w.howling = 0;
       if (w.state !== 'FLEE') w.state = 'LEAVE';
     }
+
+    // The shepherd's quota: too few sheep costs a strike; the last strike ends the run.
+    const quotaMissed = this.quota > 0 && this.sheepCount() < this.quota;
+    if (quotaMissed) {
+      this.strikes++;
+      this.juice.quotaMissed(this.shepherd, GOAL.strikes - this.strikes);
+      if (this.strikes >= GOAL.strikes) return this.gameOver('quota');
+    }
+    if (this.wave === GOAL.finalWave && !this.endless) this.achievements.run.noStrikes = this.strikes === 0;
+
     // Shearing Day: every surviving sheep pays its wool, calm ones a little extra.
     const flock = this.sheep.filter((s) => !s.type.fake);
     const sheared = Math.floor(flock.reduce((sum, s) => sum + s.type.wool, 0) * this.ctx.mods.shears);
@@ -825,6 +838,7 @@ export class Game {
         ['Perfect flock', perfect],
         [`Interest (1 per ${SHEARING.interestPer} saved)`, interest],
       ],
+      quota: this.quota ? { need: this.quota, have: this.sheepCount(), missed: quotaMissed, left: GOAL.strikes - this.strikes } : null,
       bounty: this.waveBounty,
       reward,
       score: this.score - this.waveStartScore,
@@ -833,7 +847,9 @@ export class Game {
     this.saveRun();
   }
 
-  gameOver() {
+  // reason: 'wolves' (the flock is gone) or 'quota' (too many missed quotas)
+  gameOver(reason = 'wolves') {
+    this.gameOverReason = reason;
     this.setState(STATE.GAME_OVER);
     clearSavedRun();
     this.best = Math.max(this.best, this.wave - 1);
@@ -865,6 +881,7 @@ export class Game {
       endless: this.endless,
       wool: this.wool,
       score: this.score,
+      strikes: this.strikes,
       waveStartScore: this.waveStartScore,
       levels: this.levels,
       stats: this.stats,
@@ -904,6 +921,7 @@ export class Game {
     this.wave = data.wave;
     this.wool = data.wool;
     this.score = data.score;
+    this.strikes = data.strikes ?? 0;
     this.waveStartScore = data.waveStartScore ?? data.score;
     this.endless = data.endless;
     this.levels = data.levels;
@@ -1455,7 +1473,7 @@ export class Game {
           this.panelTimer -= dt;
           if (this.panelTimer <= 0 && !this.overlay) {
             if (this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-            else this.ui.showGameOver({ wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore, summary: this.runSummary() });
+            else this.ui.showGameOver({ reason: this.gameOverReason, wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore, summary: this.runSummary() });
           }
         }
         break;
@@ -1489,6 +1507,8 @@ export class Game {
         sheep: this.flockSize(),
         sheepMax: this.waveStartSheep,
         wave: this.waveLabel(),
+        quota: this.quota,
+        strikes: this.strikes,
         timeLeft: this.cfg ? Math.max(0, 1 - this.waveTime / this.cfg.duration) : 1,
         wool: this.wool,
         score: this.score,

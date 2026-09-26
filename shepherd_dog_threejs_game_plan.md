@@ -2521,3 +2521,30 @@ Borrowed from Super Auto Pets:
     show each one's 🎁 reward. Choices saved in localStorage; the field
     guide lists every item and how to unlock it.
 
+------------------------------------------------------------------------
+
+# 85. The Shepherd's Quota (implemented)
+
+Playtest: it was hard to lose. The run only ended when the last sheep
+was gone, so a small flock with the dog glued to it was the safest
+strategy.
+
+-   From wave 3 (`GOAL.quotaFrom`) each wave must end with at least
+    round(1.6 × wave) real sheep (`quotaFor()`; the goat doesn't count):
+    5, 6, 8, 10, 11, 13, 14, 16, 18, 19, 21, 22, 24 for waves 3-15, then
+    +2 per endless wave.
+-   Missing it costs a strike (❤️); the 3rd strike (`GOAL.strikes`) ends
+    the run with "The shepherd couldn't fill his orders". The final wave
+    checks the quota before the win.
+-   Shown in the HUD ("need 9 · ❤️❤️❤️", a mark on the flock bar, red
+    when short), the wave banner ("bring home 9 sheep"), the end-of-wave
+    breakdown, a first-time tip, and the field guide. Strikes are saved
+    with the run.
+-   Achievement: Full Orders (win without missing a quota). 37 in total.
+-   Bots through wave 15 (quota 1.8 × wave was tried first: the strong
+    bot lost 1 of 2 runs, too harsh): at 1.6 × wave the strong bot won
+    3 of 3 (★★, ★★, ★★★) with no strikes; the average bot's flock
+    collapses around waves 6-8 and the quota ends its run at 8-9;
+    a very slow casual bot ends around wave 5-7. Keeping a tiny flock
+    now fails by about wave 5.
+

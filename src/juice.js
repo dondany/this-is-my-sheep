@@ -206,6 +206,13 @@ export class Juice {
     this.sfx.waveComplete();
   }
 
+  quotaMissed(shepherd, left) {
+    this.floatText(left > 0 ? `QUOTA MISSED · ${'❤️'.repeat(left)} left` : 'QUOTA MISSED', { follow: shepherd, offsetY: 4.4, cls: 'danger', duration: 2.4, size: 30 });
+    this.flash('rgba(201, 87, 69, 0.3)');
+    this.shake(0.06, 200);
+    this.sfx.lost();
+  }
+
   soldAtMarket(shepherd, count, wool) {
     this.floatText(`${count} sold at market: +${wool} 🧶`, { follow: shepherd, offsetY: 4.2, cls: 'good', duration: 2 });
   }

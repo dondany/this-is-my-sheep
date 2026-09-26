@@ -13,9 +13,16 @@ Greymuzzle, with at least one sheep left, and you win the run (the top bar shows
 ★ for any survivors, ★★ for 15 or more, ★★★ for 30 or more. Wins and your best star rating are
 saved and shown on the menu.
 
+**The shepherd's quota.** From wave 3 the shepherd has orders to fill: each wave must end with at
+least 1.6 × the wave number of sheep (5 in wave 3, 8 in wave 5, 13 in wave 8, 19 in wave 12, 24 in
+the final wave; the goat doesn't count). The top bar shows "need 9 · ❤️❤️❤️" and a mark on the flock
+bar. Missing a quota costs a ❤️; the third miss ends the run ("The shepherd couldn't fill his
+orders"). So a tiny flock guarded by the dog isn't a safe strategy: the flock has to grow.
+
 Then choose **Menu** or **Keep grazing** for endless mode (like Balatro after the last ante):
 
 - one more wolf every wave (up to 25), the extra slots all special wolves, and a second alpha;
+- the quota keeps rising by 2 sheep per wave;
 - score multiplier ×1.1 for the first endless wave, ×1.2 for the second, and so on;
 - the flock cap rises from 60 to 90, and newcomers that don't fit are sold at market for 1 wool each.
 
@@ -243,7 +250,7 @@ the list is in `src/cosmetics.js`.
 
 ### Achievements
 
-36 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
+37 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
 to "Scare off 250 wolves in total" and "Keep a golden fleece alive for 3 waves". Open them with
 🏆 on the menu, pause, end-of-wave and game-over screens (opening mid-wave pauses). A card pops up
 in the corner when one unlocks. Unlocks and lifetime counters are saved in `localStorage`; the
@@ -298,7 +305,7 @@ http://localhost:8000/guide.html.
 | `src/guide.js` | Builds the internal field guide (`guide.html`) from the game's data |
 | `src/cosmetics.js` | Wardrobe items, how accessories are built, and the saved choices |
 | `src/tips.js` | First-time tips and which ones the player has seen |
-| `src/achievements.js` | The 36 achievements, lifetime counters and unlock checks |
+| `src/achievements.js` | The 37 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |
 | `src/helper.js` | AI for the Second Dog upgrade |
 

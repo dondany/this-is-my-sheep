@@ -2,7 +2,7 @@
 // it stays in sync with the code. Not linked from the game.
 
 import {
-  DOG, BIG_BARK, BUMP, ROAM, SHEEP, SHEEP_TYPES, WOLF, WOLF_TYPES, FIRST_WAVE, GOAL, ENDLESS, BOSS, SUMMERS,
+  quotaFor, DOG, BIG_BARK, BUMP, ROAM, SHEEP, SHEEP_TYPES, WOLF, WOLF_TYPES, FIRST_WAVE, GOAL, ENDLESS, BOSS, SUMMERS,
   SHEARING, BOUNTY, GOAT, LAMB, BLACK, BELL, SLEEPY, GOLDEN, DISGUISE, RAM_CALM, RASCAL, PUPS, HOWLER,
   TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, waveConfig,
 } from './config.js';
@@ -57,6 +57,9 @@ $('goal-body').innerHTML = `
     ['★★', `${GOAL.stars[0]}+ sheep`],
     ['★★★', `${GOAL.stars[1]}+ sheep`],
   ])}
+  <h3>The shepherd's quota</h3>
+  <p>From wave ${GOAL.quotaFrom}, each wave must end with at least this many sheep (the goat doesn't count). Missing it costs a ❤️; after ${GOAL.strikes} misses the run is over. It keeps rising by ${GOAL.quotaEndlessStep} per wave in endless mode.</p>
+  ${table(['Wave', ...Array.from({ length: GOAL.finalWave - GOAL.quotaFrom + 1 }, (_, i) => String(GOAL.quotaFrom + i))], [['Sheep needed', ...Array.from({ length: GOAL.finalWave - GOAL.quotaFrom + 1 }, (_, i) => String(quotaFor(GOAL.quotaFrom + i)))]])}
   <h3>The boss</h3>
   <p>Old Greymuzzle arrives ${Math.round(BOSS.arriveAt * 100)}% of the way into the final wave. Like a brute, the dog has to stay next to him until his fear meter fills; like an alpha, he leads the pack. He has to be driven off <strong>${BOSS.driveOffs} times</strong>, coming back with ${BOSS.reinforcements} fresh wolves after each of the first ones, and drops a ${BOSS.tuft}-wool tuft when he's gone for good. The wave can't end until he is (overtime).</p>
   <h3>Endless mode</h3>

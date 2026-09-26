@@ -8,6 +8,7 @@ export const TIPS = {
   wolfComing: '🐺 A wolf is heading for the flock. Run your dog at it!',
   grabbed: '😱 A wolf grabbed a sheep! Get your dog there fast and it lets go.',
   bigBark: '🐕 Right-click, press Space or tap the 🐕 button for a Big Bark: it scares every wolf nearby. It recharges in 15 s.',
+  quota: '📋 The shepherd has orders to fill: bring home at least the number of sheep shown under the flock counter. Miss it three times and the summer is over.',
   shop: "🧶 Wool comes from shearing the sheep that survive. Can't afford a card yet? Tap ❄️ to keep it for the next wave, and save up (unspent wool earns interest).",
   tuft: '🎾 That wolf dropped a tuft of fur. Grab it with the dog for wool before it blows away!',
   stray: '❓ A sheep has wandered off. Get behind it and walk it back to the flock.',

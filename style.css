@@ -1769,3 +1769,40 @@ h2 {
   }
 }
 
+/* --- Shepherd's quota ----------------------------------------------------- */
+
+.meter {
+  position: relative;
+}
+
+.quota-mark {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 3px;
+  margin-left: -1px;
+  background: var(--ink);
+  border-radius: 2px;
+}
+
+.hud-quota {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-soft);
+}
+
+.hud-quota.short {
+  color: var(--danger);
+}
+
+.breakdown .quota {
+  font-weight: 700;
+  color: #4d7a2a;
+}
+
+.breakdown .quota.missed {
+  color: var(--danger);
+}
+

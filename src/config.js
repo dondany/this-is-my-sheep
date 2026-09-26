@@ -512,7 +512,19 @@ function shuffle(list) {
 export const GOAL = {
   finalWave: 15,
   stars: [15, 30], // flock size at the win for ★★ and ★★★ (★ for any survivors)
+  // The shepherd's quota: from `quotaFrom`, each wave must end with at least round(perWave × wave)
+  // sheep (the goat doesn't count). Missing it costs a strike; `strikes` misses end the run.
+  quotaFrom: 3,
+  quotaPerWave: 1.6,
+  quotaEndlessStep: 2, // extra sheep needed per endless wave
+  strikes: 3,
 };
+
+export function quotaFor(wave) {
+  if (wave < GOAL.quotaFrom) return 0;
+  if (wave <= GOAL.finalWave) return Math.round(GOAL.quotaPerWave * wave);
+  return Math.round(GOAL.quotaPerWave * GOAL.finalWave) + (wave - GOAL.finalWave) * GOAL.quotaEndlessStep;
+}
 
 // Old Greymuzzle, the final boss: arrives partway through the final wave (and every 5 endless
 // waves). A brute's courage and an alpha's pack; it has to be driven off several times.

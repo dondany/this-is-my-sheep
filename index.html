@@ -31,7 +31,8 @@
         <span class="hud-icon">🐑</span>
         <div>
           <div id="hud-sheep" class="hud-value">10 / 10</div>
-          <div class="meter"><div id="hud-sheep-bar" class="meter-fill"></div></div>
+          <div class="meter"><div id="hud-sheep-bar" class="meter-fill"></div><div id="hud-quota-mark" class="quota-mark hidden"></div></div>
+          <div id="hud-quota" class="hud-quota hidden"></div>
         </div>
       </div>
       <div class="hud-wave">
@@ -145,7 +146,7 @@
 
   <section id="screen-over" class="screen hidden">
     <div class="panel">
-      <h2>The wolves got the flock</h2>
+      <h2 id="over-title">The wolves got the flock</h2>
       <p id="over-score" class="big-stat">★ 0</p>
       <p id="over-waves" class="reward">You survived 3 waves</p>
       <p id="over-stats" class="small"></p>
