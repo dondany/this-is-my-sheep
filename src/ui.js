@@ -92,6 +92,15 @@ export class UI {
     btn.classList.add('deny');
   }
 
+  // Boss bar under the HUD: how many more times it has to be driven off.
+  setBoss(boss) {
+    const el = $('hud-boss');
+    el.classList.toggle('hidden', !boss);
+    if (!boss) return;
+    const pips = '●'.repeat(boss.done) + '○'.repeat(boss.left);
+    this.set('boss', `${boss.name} ${pips}`, (v) => ($('hud-boss-text').textContent = v));
+  }
+
   setEffects(level) {
     const label = { full: 'Full', reduced: 'Reduced', off: 'Off' }[level];
     document.querySelectorAll('.effects-btn').forEach((b) => (b.textContent = `✨ Screen effects: ${label}`));
@@ -338,6 +347,7 @@ export class UI {
       el.classList.toggle('runner', wolf.kind === 'runner');
       el.classList.toggle('brute', wolf.kind === 'brute');
       el.classList.toggle('alpha', wolf.kind === 'alpha');
+      el.classList.toggle('boss', !!wolf.type.boss);
       el.classList.toggle('howler', wolf.kind === 'howler');
     }
     for (let i = used; i < this.indicators.length; i++) this.indicators[i].style.display = 'none';
@@ -351,7 +361,7 @@ export class UI {
     for (const wolf of wolves) {
       if (!wolf.type.courage || wolf.fear <= 0) continue;
       tmp.copy(wolf.position);
-      tmp.y += 3.3;
+      tmp.y += 1.2 + wolf.type.scale * 1.8; // above its head, however big it is
       tmp.project(camera);
       if (tmp.z > 1) continue;
       let el = this.meters[used];

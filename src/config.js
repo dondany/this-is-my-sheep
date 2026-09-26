@@ -40,6 +40,9 @@ export const COLORS = {
   alpha: 0x55524d,
   alphaMane: 0xd8d2c6,
   alphaEye: 0xffd35c,
+  greymuzzle: 0x4a4744,
+  greymuzzleLight: 0xe6e0d6,
+  bossEye: 0xff5a3d,
   fox: 0xd9793a,
   foxLight: 0xf4e8d0,
   foxDark: 0x2b2826,
@@ -448,6 +451,8 @@ Object.assign(WOLF_TYPES, {
   trickster: { ...WOLF_TYPES.normal, scale: 0.95, speed: 1.3, stalk: 0.8, threatScale: 1.4, fleeTime: 1.2, feint: true, points: 30 },
   // Doesn't take sheep: dashes through the flock and scatters it (see RASCAL).
   rascal: { ...WOLF_TYPES.normal, scale: 1.05, stalk: 0.8, rascal: true, points: 15 },
+  // The final boss (see BOSS): huge, needs the dog next to it for 3 s, leads the pack, shoves sheep.
+  greymuzzle: { ...WOLF_TYPES.normal, scale: 2.3, speed: 0.85, stalk: 0.6, fleeTime: 1.2, courage: 3, grabTime: 0.6, shove: true, leader: true, boss: true, points: 150 },
   // What's under the sheepskin (see DISGUISE).
   disguised: { ...WOLF_TYPES.normal, points: 40 },
 });
@@ -509,6 +514,16 @@ export const GOAL = {
   stars: [15, 30], // flock size at the win for ★★ and ★★★ (★ for any survivors)
 };
 
+// Old Greymuzzle, the final boss: arrives partway through the final wave (and every 5 endless
+// waves). A brute's courage and an alpha's pack; it has to be driven off several times.
+export const BOSS = {
+  arriveAt: 0.25, // fraction of the wave's duration
+  driveOffs: 3, // +1 each time it comes back in endless
+  reinforcements: 2, // fresh wolves that come back with it after each drive-off
+  tuft: 10, // wool in the tuft it drops when it's gone for good
+  endlessEvery: 5,
+};
+
 export const ENDLESS = {
   extraWolves: 1, // per endless wave, on top of the normal cap of 15...
   maxWolves: 25, // ...up to this many
@@ -528,6 +543,7 @@ export const FIRST_WAVE = {
   bellwether: 8, alpha: 8,
   disguised: 9,
   goat: 3, // only ever bought in the shop (livestock card), from this wave on
+  greymuzzle: 15, // the final boss (not part of the regular pack)
 };
 
 // Which wolves make up a wave's pack ('pups' is a group of three pups taking one slot).

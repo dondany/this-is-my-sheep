@@ -2333,3 +2333,27 @@ with star grading was chosen).
     Indian Summer (wave 20) and First Frost (wave 25). 35 in total.
 -   Part 2 adds the final boss.
 
+# 76. End of Summer: the Boss (implemented, part 2)
+
+-   **Old Greymuzzle** (`greymuzzle` in `WOLF_TYPES`, `BOSS` in
+    config): scale 2.3, near-black coat with a pale muzzle, the alpha's
+    mane and ring, the brute's scars, red eyes. Courage 3 s (fear meter,
+    affected by Brave Heart), leader (shorter stalking for the pack,
+    scaring it scatters wolves within 10 units), shoves sheep, grabs
+    fast. ★ 150.
+-   Arrives at 25% of the final wave's duration, on the far side of the
+    flock from the dog. A red HUD bar shows its drive-offs (●○○).
+-   Needs `BOSS.driveOffs` (3) drive-offs; after each of the first ones
+    it retreats twice as long and two normal wolves spawn; the last one
+    sends it away for good (`defeated`, LEAVE → gone) and drops a
+    10-wool tuft that lasts 1.5× longer.
+-   The boss wave can't end while it's still around: "Overtime" banner
+    until it's driven off.
+-   Endless: it returns every 5 endless waves (20, 25...) with one more
+    drive-off each time.
+-   Bestiary entry 20 (Naturalist counts the bestiary, so it still
+    works).
+-   Bots through wave 15: the strong bot wins with ★★ (26 sheep), the
+    average bot wins with ★ (14 sheep). Both go straight for a resisting
+    boss, so humans will likely find it harder.
+

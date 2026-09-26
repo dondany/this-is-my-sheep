@@ -444,6 +444,7 @@ const WOLF_LOOKS = {
   brute: { body: COLORS.brute, light: COLORS.bruteLight, eye: COLORS.bruteEye, girth: 1.15, ears: 0.8 },
   sneaky: { body: COLORS.sneaky, light: COLORS.sneakyLight, eye: COLORS.sneakyEye, girth: 0.95, ears: 0.8, legs: 0.65 },
   alpha: { body: COLORS.alpha, light: COLORS.alphaMane, eye: COLORS.alphaEye, girth: 1.05, ears: 1.1 },
+  greymuzzle: { body: COLORS.greymuzzle, light: COLORS.greymuzzleLight, eye: COLORS.bossEye, girth: 1.2, ears: 0.9 },
   rascal: { body: COLORS.rascal, light: COLORS.rascalLight, eye: COLORS.wolfEye, girth: 0.85, ears: 1.35, legs: 0.95, head: 1.15 },
   pup: { body: COLORS.pup, light: COLORS.pupLight, eye: COLORS.wolfEye, girth: 1.1, ears: 1.3, legs: 0.8, head: 1.35 },
   howler: { body: COLORS.howler, light: COLORS.howlerLight, eye: 0x9fd3ff, girth: 1, ears: 1.2 },
@@ -489,7 +490,7 @@ export class Wolf extends Animal {
     body.add(mesh(GEO.box, look.body, { position: [0, 0, -0.05], scale: [0.5 * g, 0.46 * g, 1.15], shadow: true }));
     body.add(mesh(GEO.box, look.body, { position: [0, 0.06, 0.35], scale: [0.58 * g, 0.58 * g, 0.5], rotation: [0.15, 0, 0], shadow: true }));
     body.add(mesh(GEO.box, look.light, { position: [0, -0.14, 0.45], scale: [0.4 * g, 0.3, 0.3] }));
-    if (kind === 'brute') {
+    if (kind === 'brute' || kind === 'greymuzzle') {
       // Scars: pale stripes across both flanks.
       for (const side of [-1, 1]) {
         for (const z of [-0.2, 0.05]) {
@@ -510,7 +511,7 @@ export class Wolf extends Animal {
       body.add(mesh(GEO.lowSphere, COLORS.sheep, { position: [0.12, 0.24, 0.25], scale: [0.2, 0.14, 0.2] }));
     }
 
-    if (kind === 'alpha') {
+    if (kind === 'alpha' || kind === 'greymuzzle') {
       // Pale mane around the neck and shoulders.
       body.add(mesh(GEO.box, COLORS.alphaMane, { position: [0, 0.1, 0.3], scale: [0.7, 0.6, 0.34], rotation: [0.25, 0, 0], shadow: true }));
       body.add(mesh(GEO.box, COLORS.alphaMane, { position: [0, -0.12, 0.55], scale: [0.5, 0.36, 0.3], rotation: [-0.3, Math.PI / 4, 0] }));

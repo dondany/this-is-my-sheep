@@ -161,6 +161,16 @@ function scare(w, ctx, ddx, ddz, dd, by = ctx.dog) {
   aimAway(w, ddx, ddz, dd);
   ctx.onWolfScared(w, threatening, by);
 
+  // The boss has to be driven off several times; the last time it leaves for good.
+  if (w.type.boss) {
+    w.drivesLeft = (w.drivesLeft ?? 1) - 1;
+    if (w.drivesLeft <= 0) {
+      w.defeated = true;
+      w.state = 'LEAVE';
+    } else w.stateTimer *= 2; // a longer retreat before it comes back
+    ctx.onBossDriven?.(w, w.drivesLeft);
+  }
+
   // Pups: scaring the whole group in one pass earns a bonus.
   const g = w.group;
   if (g) {
@@ -519,7 +529,7 @@ export function updateWolves(wolves, ctx, dt) {
         vx = (px / r) * WOLF.fleeSpeed * 0.8;
         vz = (pz / r) * WOLF.fleeSpeed * 0.8;
         if (r > WORLD.spawnRadius) {
-          if (ctx.huntingAllowed) toWander(w, ctx);
+          if (ctx.huntingAllowed && !w.defeated) toWander(w, ctx);
           else w.gone = true;
         }
         break;

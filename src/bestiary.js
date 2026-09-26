@@ -162,6 +162,14 @@ export const ENTRIES = [
     make: (scene) => [new Wolf(scene, 'alpha')],
   },
   {
+    id: 'greymuzzle',
+    side: 'wolves',
+    name: 'Old Greymuzzle',
+    text: 'The old leader of the pack, grey around the muzzle and bigger than any wolf you have seen. It comes for the flock at the end of summer.',
+    tip: 'Stay next to it until its fear meter fills, three times. Each time it retreats it comes back with fresh wolves. ★ 150.',
+    make: (scene) => [new Wolf(scene, 'greymuzzle')],
+  },
+  {
     id: 'disguised',
     side: 'wolves',
     name: "Wolf in Sheep's Clothing",

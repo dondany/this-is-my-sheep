@@ -181,6 +181,22 @@ export class Juice {
     this.particles.puff(tmp.copy(tuft.position).setY(0.6), 6);
   }
 
+  bossArrives(boss) {
+    this.floatText('OLD GREYMUZZLE!', { follow: boss, offsetY: 5, cls: 'big', duration: 2.4, size: 44 });
+    this.flash('rgba(201, 87, 69, 0.3)');
+    this.shake(0.1, 400);
+    this.sfx.howl(0.55, true);
+  }
+
+  bossDriven(boss, left) {
+    if (left > 0) this.floatText(`IT'LL BE BACK… (${left} more)`, { follow: boss, offsetY: 5, cls: 'warn', duration: 2 });
+    else {
+      this.floatText('DRIVEN OFF FOR GOOD!', { follow: boss, offsetY: 5, cls: 'big', duration: 2.4, size: 40 });
+      this.particles.confetti(tmp.copy(boss.position).setY(1.5), 60);
+    }
+    this.shake(0.1, 250);
+  }
+
   victory(center) {
     const p = tmp.copy(center).setY(1);
     this.particles.confetti(p, 120);

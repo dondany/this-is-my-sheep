@@ -8,8 +8,8 @@ What's next: [`FUTURE_IDEAS.md`](FUTURE_IDEAS.md)
 
 ## Goal: End of Summer
 
-Keep the flock safe until the end of summer: **survive wave 15** with at least one sheep and you
-win the run (the top bar shows "Wave 7 / 15"). The win screen rates the flock you brought home:
+Keep the flock safe until the end of summer: **survive wave 15**, and drive off the boss, Old
+Greymuzzle, with at least one sheep left, and you win the run (the top bar shows "Wave 7 / 15"). The win screen rates the flock you brought home:
 ★ for any survivors, ★★ for 15 or more, ★★★ for 30 or more. Wins and your best star rating are
 saved and shown on the menu.
 
@@ -65,6 +65,7 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🦊 | **Trickster** (orange, fox-like) | 7 | Feints: once the dog is running at it, it switches to the sheep furthest from the dog ("HEH!"). Fragile: scared from further away. ★ 30. |
 | 🐺 | **Alpha** (big, pale mane, ring on the ground) | 8, one per wave | While it's around, the other wolves stalk half as long; when it attacks it howls and every prowling wolf attacks with it. Scare it and every wolf inside its ring (10 units) flees too. ★ 50. |
 | 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early (★ 40). |
+| 👑 | **Old Greymuzzle** (boss: huge, grey muzzle, mane and scars) | 15, and every 5 endless waves | Arrives a quarter of the way into the final wave with a low howl. Needs the dog next to it for 3 s (fear meter) and leads the pack like an alpha. Must be driven off 3 times (+1 per return in endless): after each of the first ones it comes back with two fresh wolves; the last time it leaves for good and drops a 10-wool tuft. The wave can't end until it's gone (overtime). ★ 150. |
 
 Sheep walk on away from the dog when it comes close, which is what makes herding strays back work.
 Sheep keep a little personal space: two sheep closer than 1.8 units (scaled by size) are gently

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GOAL, ENDLESS, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { GOAL, ENDLESS, BOSS, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -182,6 +182,7 @@ export class Game {
         this.juice.pupCombo(w, PUPS.comboPoints);
       },
       onAlphaCall: (w) => this.juice.alphaCall(w),
+      onBossDriven: (w, left) => this.onBossDriven(w, left),
       onPackScattered: (w, count) => {
         this.achievements.add('packScatters');
         this.freeze(FEEL.bigHitstop);
@@ -570,6 +571,9 @@ export class Game {
 
     this.waveStartSheep = this.flockSize();
     this.waveStartScore = this.score;
+    this.boss = null;
+    this.bossSpawned = false;
+    this.bossOvertime = false;
     this.waveBounty = 0;
     for (const s of this.sheep) {
       s.stress = 0;
@@ -818,6 +822,41 @@ export class Game {
 
   // --- The goal ------------------------------------------------------------
 
+  // Old Greymuzzle comes on the final wave, and every few endless waves.
+  isBossWave() {
+    const w = this.wave;
+    return w === GOAL.finalWave || (w > GOAL.finalWave && (w - GOAL.finalWave) % BOSS.endlessEvery === 0);
+  }
+
+  spawnBoss() {
+    this.bossSpawned = true;
+    const a = Math.atan2(this.center.z - this.dog.position.z, this.center.x - this.dog.position.x) + (Math.random() - 0.5);
+    const w = new Wolf(this.world.scene, 'greymuzzle').setPosition(Math.cos(a) * WORLD.spawnRadius, 0, Math.sin(a) * WORLD.spawnRadius);
+    w.drivesLeft = BOSS.driveOffs + Math.floor(Math.max(0, this.wave - GOAL.finalWave) / BOSS.endlessEvery);
+    w.drivesTotal = w.drivesLeft;
+    this.wolves.push(w);
+    toWander(w, this.ctx);
+    w.stateTimer = 2;
+    this.boss = w;
+    this.juice.bossArrives(w);
+  }
+
+  onBossDriven(boss, left) {
+    this.juice.bossDriven(boss, left);
+    if (left > 0) {
+      // It comes back with fresh wolves.
+      for (let i = 0; i < BOSS.reinforcements; i++) this.spawnWolf('normal');
+    } else {
+      const t = new Tuft(this.world.scene, COLORS.greymuzzleLight, BOSS.tuft, BOUNTY.life * this.ctx.mods.tuftLife * 1.5).setPosition(boss.position.x, 0, boss.position.z);
+      this.tufts.push(t);
+      this.juice.tuftDropped(t);
+    }
+  }
+
+  bossActive() {
+    return this.boss && !this.boss.defeated && !this.boss.gone;
+  }
+
   // End of summer: the final wave is over and there are sheep left.
   victory() {
     const flock = this.sheepCount();
@@ -928,7 +967,7 @@ export class Game {
 
   // The first time a big wolf is scared off it leaves a tuft of fur behind.
   dropBounty(wolf) {
-    const value = BOUNTY.wool[wolf.kind];
+    const value = BOUNTY.wool[wolf.kind]; // the boss drops its own big tuft when it's gone for good
     if (!value || wolf.bountyDropped) return;
     wolf.bountyDropped = true;
     const color = { brute: COLORS.brute, alpha: COLORS.alphaMane, trickster: COLORS.fox }[wolf.kind];
@@ -1051,7 +1090,15 @@ export class Game {
           this.whistleTimer = this.ctx.mods.whistle;
           this.whistle();
         }
-        if (this.waveTime >= this.cfg.duration) this.completeWave();
+        if (this.isBossWave() && !this.bossSpawned && this.waveTime >= this.cfg.duration * BOSS.arriveAt) this.spawnBoss();
+        // The boss wave only ends once Old Greymuzzle has been driven off for good.
+        if (this.waveTime >= this.cfg.duration) {
+          if (!this.bossActive()) this.completeWave();
+          else if (!this.bossOvertime) {
+            this.bossOvertime = true;
+            this.ui.banner('Overtime', 'Drive off Old Greymuzzle to end the wave!');
+          }
+        }
         break;
       case STATE.WAVE_COMPLETE:
       case STATE.GAME_OVER:
@@ -1078,6 +1125,8 @@ export class Game {
     this.juice.updateFloats(dt);
     this.ui.updateIndicators(this.wolves, this.world.camera);
     this.ui.updateFearMeters(this.wolves, this.world.camera, this.ctx.mods.courage);
+    const boss = this.bossActive() ? this.boss : null;
+    this.ui.setBoss(boss && { name: 'Old Greymuzzle', done: boss.drivesTotal - boss.drivesLeft, left: boss.drivesLeft });
     this.bigBarkTimer = Math.max(0, this.bigBarkTimer - dt);
     this.ui.setBigBark(1 - this.bigBarkTimer / (BIG_BARK.cooldown * this.ctx.mods.bigBarkCooldown));
     const c = this.combo;
