@@ -330,10 +330,12 @@ export const SCARECROW = {
 
 export const HELPER = {
   // Speed (relative to the player's dog) and reach come from upgrades (mods.helperSpeed etc.).
-  threatRadius: 5, // × mods.helperThreat: 3 when bought, up to 4.5 with Pup's Bark
+  threatRadius: 5, // × mods.helperThreat: 2.75 when bought, up to 4 with Pup's Bark
   barkCooldown: 0.6,
   guardRadius: 7, // patrols this far from the shepherd (plus a bit for big flocks)
-  reactRadius: 16, // goes after threatening wolves this close to the flock
+  reactRadius: 13, // goes after threatening wolves this close to the flock
+  thinkInterval: 0.4, // seconds between decisions (the pup is a bit slow on the uptake)
+  rest: 1, // after scaring a wolf it trots back to its patrol for this long
 };
 
 export const LAMB = {

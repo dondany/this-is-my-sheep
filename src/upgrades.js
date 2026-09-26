@@ -12,7 +12,7 @@ export const UPGRADES = [
   { id: 'booming', group: 'dog', icon: '💥', name: 'Booming Bark', text: 'The Big Bark reaches 15% further.', max: 3, cost: 8 },
   { id: 'nose', group: 'dog', icon: '👃', name: 'Nose for Wolves', text: 'Sneaky wolves show up sooner, and a wolf in sheep\'s clothing is sniffed out twice as fast.', max: 2, cost: 6 },
   { id: 'fetch', group: 'dog', icon: '🎾', name: 'Fetch!', text: 'Bounty tufts last 50% longer and are easier to grab.', max: 2, cost: 6 },
-  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', text: 'A young dog joins you and guards the flock on its own. Slow at first: train it with pup upgrades.', max: 1, cost: 40, rare: true },
+  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', text: 'A young dog joins you and guards the flock on its own. Slow and easily winded at first: train it with pup upgrades.', max: 1, cost: 40, rare: true },
   { id: 'pupSpeed', group: 'dog', icon: '🐾', name: 'Pup Training', text: 'The second dog runs 10% faster (of your dog\'s speed).', max: 4, cost: 8, requires: 'helper' },
   { id: 'pupBark', group: 'dog', icon: '🔊', name: "Pup's Bark", text: 'The second dog scares wolves from further away.', max: 3, cost: 8, requires: 'helper' },
   // --- Shepherd
@@ -59,8 +59,8 @@ export function modifiers(levels) {
     whistle: l('whistle') ? 25 - 5 * l('whistle') : 0, // seconds between whistles (0 = none)
     scarecrows: l('scarecrow'),
     helper: l('helper') > 0,
-    helperSpeed: 0.6 + 0.1 * l('pupSpeed'), // fraction of the player's dog
-    helperThreat: 0.6 + 0.1 * l('pupBark'),
+    helperSpeed: 0.55 + 0.1 * l('pupSpeed'), // fraction of the player's dog
+    helperThreat: 0.55 + 0.08 * l('pupBark'), // × HELPER.threatRadius
     bigBarkRadius: 1 + 0.15 * l('booming'),
     reveal: 1 + 0.5 * l('nose'), // sneaky wolves' reveal distance
     sniff: 0.5 ** l('nose'), // time to expose a disguise

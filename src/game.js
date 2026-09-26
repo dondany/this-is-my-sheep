@@ -781,6 +781,7 @@ export class Game {
       this.shepherd.play('swat', 0.5, wolf.position);
       this.juice.crook(this.shepherd);
     } else if (by?.bark()) this.juice.bark(by);
+    if (by === this.helper) this.helper.rest = HELPER.rest; // catches its breath before the next chase
     const points = threatening && this.state === STATE.PLAYING ? wolf.type.points : 0;
     if (points) {
       this.achievements.add('scares');

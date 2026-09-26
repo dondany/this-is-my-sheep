@@ -129,9 +129,9 @@ come up about a third as often.
 | 🧶 Thick Fleece | Flock | 8 | Wolves need 20% longer to take a sheep | 5 |
 | 🐑 Bigger Flock | Flock | 6 | +1 sheep every wave | 3 |
 | 🍼 Lambing Season | Flock | 6 | +1 lamb every wave | 2 |
-| 🐕 Second Dog *(rare)* | Dog | 40 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock. Starts slow: 60% of your dog's speed, reach 3 | 1 |
-| 🐾 Pup Training *(needs Second Dog)* | Dog | 8 | Second dog +10% speed (up to 100% of yours) | 4 |
-| 🔊 Pup's Bark *(needs Second Dog)* | Dog | 8 | Second dog's reach +0.5 (3 → 4.5) | 3 |
+| 🐕 Second Dog *(rare)* | Dog | 40 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock. Starts slow: 55% of your dog's speed, reach 2.75, and it catches its breath for 1 s after each scare | 1 |
+| 🐾 Pup Training *(needs Second Dog)* | Dog | 8 | Second dog +10% speed (up to 95% of yours) | 4 |
+| 🔊 Pup's Bark *(needs Second Dog)* | Dog | 8 | Second dog's reach +0.4 (2.75 → 3.95) | 3 |
 | 📯 Shepherd's Whistle *(rare)* | Shepherd | 20 | Every 20 / 15 / 10 s the shepherd whistles and every sheep heads back to him | 3 |
 | 🌾 Scarecrow *(rare)* | Shepherd | 20 | Click the meadow to place it; ordinary wolves within 4.5 units get scared (brutes ignore it). Stays for the rest of the run | 2 |
 

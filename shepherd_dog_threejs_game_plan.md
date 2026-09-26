@@ -2261,3 +2261,15 @@ average     +10      +72      +55       526      505     28 / 63
 -   In a 40-sheep flock the closest pair sits at 1.75 with no overlaps
     (1.22 with Herding Instinct 3).
 
+## Second Dog nerf
+
+-   Untrained and on its own (player's dog parked away) it used to keep
+    65-70% of the flock through waves 3-6 and scare 15-44 wolves a wave:
+    too strong for one card.
+-   Now: 55% of the dog's speed (+10% per Pup Training, max 95%), reach
+    2.75 (+0.4 per Pup's Bark, max ~4), only reacts to wolves within 13
+    units of the flock, decides every 0.4 s, and rests 1 s after each
+    scare before chasing again (`HELPER` in `src/config.js`).
+-   Alone it now keeps ~55% in waves 3-4 and can't hold later waves by
+    itself: a helper, not a replacement.
+

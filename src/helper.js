@@ -6,8 +6,9 @@ import { isThreatening } from './wolves.js';
 export function updateHelper(helper, ctx, dt, time) {
   const { dog, wolves, center, shepherd, sheep } = ctx;
   helper.think = (helper.think ?? 0) - dt;
+  helper.rest = Math.max(0, (helper.rest ?? 0) - dt);
   if (helper.think <= 0) {
-    helper.think = 0.25;
+    helper.think = HELPER.thinkInterval;
     let best = null;
     let bestD = HELPER.reactRadius;
     for (const w of wolves) {
@@ -19,10 +20,10 @@ export function updateHelper(helper, ctx, dt, time) {
       bestD = toFlock;
       best = w;
     }
-    if (best) helper.setTarget(best.position);
+    if (best && !helper.rest) helper.setTarget(best.position);
     else {
       // Patrol: walk a slow circle around the shepherd.
-      helper.patrol = (helper.patrol ?? 0) + 0.25 * 0.35;
+      helper.patrol = (helper.patrol ?? 0) + HELPER.thinkInterval * 0.35;
       const r = HELPER.guardRadius + Math.sqrt(sheep.length) * SHEEP.flockRadiusPerSqrt * 0.6;
       helper.setTarget({ x: shepherd.position.x + Math.cos(helper.patrol) * r, z: shepherd.position.z + Math.sin(helper.patrol) * r });
     }
