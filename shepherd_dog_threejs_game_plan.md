@@ -2684,3 +2684,32 @@ longer on a timer but a meter that combos fill.
     ★★★); the average bot without the Big Bark ends at waves 6-8, with
     it (as a human would) at 8 and 10 and won twice (★★, and ★ after
     holding the line through waves 13-15); casual at 2-3.
+
+------------------------------------------------------------------------
+
+# 91. Real Hard, Not Fake Hard: Fewer Wolves, a Small Margin (implemented)
+
+Playtest: "It feels like it's hard to defend the flock because so much
+is happening, but I was able to win in the first run." Fake-hard: 10-15
+wolves at once meant you couldn't defend everything, but with half the
+flock to spare, losing 7-19 sheep a wave was normal, and the losses
+were refunded by 6-8 newcomers a wave. Chaos without stakes. Games that
+are really hard (Into the Breach, Slay the Spire) have few, readable
+threats and make every mistake cost.
+
+-   **The margin:** the shepherd can spare `GOAL.spareBase` (1) plus
+    `spareShare` (one in five) of the flock a wave starts with: 2 of
+    9, 5 of 20, 9 of 40. A fixed margin (3, +1 every 2-6 waves) was
+    tried first: it punished success, since a bigger flock loses more
+    (strong play loses 15-20% a wave, average 35%), and even the strong
+    bot died at waves 5-11.
+-   **Fewer wolves:** 2 + ceil(wave / 2): 3 in wave 1, 6 in wave 8, 10
+    in wave 15 (was 2 + wave, up to 15); endless adds one per wave from
+    there, up to 25.
+-   **Meaner packs** (`wolfPack()`, `PACK`): the special share is
+    35% + 3% per wave (up to 80%), always leaving one plain wolf to
+    lead. Specials are drawn at random from the kinds seen so far, each
+    up to a cap (1, or 2 for brutes, sneaky wolves, tricksters and pups
+    from wave 10 and runners from wave 8; a second alpha in endless).
+    The kinds new to a wave always come (the banner announces them), and
+    so does the alpha. The field guide's wave table shows one draw.

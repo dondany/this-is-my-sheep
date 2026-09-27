@@ -58,7 +58,7 @@ $('goal-body').innerHTML = `
     ['★★★', `${GOAL.stars[1]}+ sheep`],
   ])}
   <h3>The line</h3>
-  <p>From wave ${GOAL.lineFrom}, the shepherd can spare ${Math.round(GOAL.spare * 100)}% of the sheep a wave starts with (at least ${GOAL.spareMin}; the goat doesn't count). That sets the line, the number after the slash: 🐑 12 / ${12 - spareFor(GOAL.lineFrom, 12)}. The moment the flock drops below it, the run is over. Every wave draws a fresh line, so scraping through one wave doesn't doom the next, and a bigger flock gets a bigger margin. The bar under the counter shows how many sheep you can still lose.</p>
+  <p>From wave ${GOAL.lineFrom}, the shepherd can spare <strong>${GOAL.spareBase} sheep plus one in ${Math.round(1 / GOAL.spareShare)}</strong> of the flock a wave starts with (the goat doesn't count). That sets the line, the number after the slash: 🐑 12 / ${12 - spareFor(GOAL.lineFrom, 12)}. The moment the flock drops below it, the run is over. Every wave draws a fresh line, so scraping through one wave doesn't doom the next. The margin is small on purpose: every lost sheep matters. The bar under the counter shows how many you can still lose.</p>
   ${table(['Flock at the start', ...[6, 9, 12, 16, 20, 25, 30, 40].map(String)], [['Can spare', ...[6, 9, 12, 16, 20, 25, 30, 40].map((f) => String(spareFor(GOAL.lineFrom, f)))], ['The line', ...[6, 9, 12, 16, 20, 25, 30, 40].map((f) => String(f - spareFor(GOAL.lineFrom, f)))]])}
   <h3>Last Sheep Standing</h3>
   <p>On the line, one more loss ends the run, so the dog finds a second wind: ${pct(LAST_STAND.speed)} speed and ${pct(LAST_STAND.reach)} reach. The screen edge pulses red with a heartbeat, and every grab plays in slow motion (${LAST_STAND.slowmo} s). It ends with the wave; finishing a wave on the line earns <em>Held the Line</em>.</p>
@@ -230,7 +230,7 @@ for (const wave of [...Array(GOAL.finalWave).keys()].map((i) => i + 1).concat([1
     esc(newcomers.join(', ')),
   ]);
 }
-$('wave-table').outerHTML = table(['Wave', 'Length', 'Wolves', 'Pack', 'New sheep', 'First seen'], waveRows);
+$('wave-table').outerHTML = table(['Wave', 'Length', 'Wolves', 'Pack (one draw)', 'New sheep', 'First seen'], waveRows);
 
 // --- Upgrades & livestock ----------------------------------------------------
 

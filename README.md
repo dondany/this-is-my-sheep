@@ -13,12 +13,12 @@ Greymuzzle, with at least one sheep left, and you win the run (the top bar shows
 ★ for any survivors, ★★ for 15 or more, ★★★ for 30 or more. Wins and your best star rating are
 saved and shown on the menu.
 
-**The line.** From wave 2 the shepherd can spare half of the sheep a wave starts with (at least 2;
-the goat doesn't count). That draws the line, the number after the slash on the flock counter:
+**The line.** From wave 2 the shepherd can spare 1 sheep plus one in five of the flock a wave starts
+with (2 of 9, 5 of 20, 9 of 40; the goat doesn't count). That draws the line, the number after the slash on the flock counter:
 🐑 12 / 6. The bar under it shows how many you can still lose, and turns red on the line. The moment
 the flock drops below it, the run is over ("The shepherd called it off"): no waiting out a lost
 wave. Every wave draws a fresh line, so scraping through one wave doesn't doom the next (like a
-Balatro blind), and a bigger flock gets a bigger margin. Wave 1 is free, to learn the controls.
+Balatro blind). The margin is small on purpose: every lost sheep matters. Wave 1 is free, to learn the controls.
 
 **Last Sheep Standing.** On the line, one more loss ends the run, so the dog finds a second wind:
 +25% speed and +30% reach, the screen edge pulses red with a heartbeat ("HOLD THE LINE!"), and every
@@ -100,8 +100,10 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early. |
 | 👑 | **Old Greymuzzle** (boss: huge, grey muzzle, mane and scars) | 15, and every 5 endless waves | Arrives a quarter of the way into the final wave with a low howl. Needs the dog next to it for 3 s (fear meter) and leads the pack like an alpha. Must be driven off 3 times (+1 per return in endless): after each of the first ones it comes back with two fresh wolves; the last time it leaves for good and drops a 10-wool tuft. The wave can't end until it's gone (overtime). |
 
-Wolves arrive in pairs from opposite sides of the meadow, 3 in wave 1 and one more each wave (up to
-15), so the dog has to choose which threat to deal with first from the very start.
+Wolves arrive in pairs from opposite sides of the meadow: 3 in wave 1 and one more every other wave
+(6 in wave 8, 10 in the final wave). Fewer wolves, but meaner: a growing share of the pack (35% early,
+up to 80%) is special wolves, drawn at random from the kinds seen so far, each up to a cap. The kinds
+new to a wave always come, and so does the alpha once it's around.
 Sheep walk on away from the dog when it comes close, which is what makes herding strays back work.
 Sheep keep a little personal space: two sheep closer than 1.8 units (scaled by size) are gently
 pushed apart every frame, so the flock can't clog into one heap (Herding Instinct lets them stand
@@ -112,7 +114,7 @@ second black sheep joins from wave 10. The flock doesn't stay put: every 20–35
 girls!"), grazing sheep spread out, and sheep grow uneasy around a dog that parks among them (the
 longer it sits still, the further they keep away), so camping in the middle of the flock doesn't
 work.
-Later waves mix several of each (`wolfPack()` in `src/config.js`). The wave banner names the
+See `wolfPack()` and `PACK` in `src/config.js`. The wave banner names the
 newcomers each wave.
 
 ## Game feel

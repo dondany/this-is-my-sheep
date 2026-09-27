@@ -507,11 +507,12 @@ function shuffle(list) {
 export const GOAL = {
   finalWave: 15,
   stars: [15, 30], // flock size at the win for ★★ and ★★★ (★ for any survivors)
-  // The line: from `lineFrom`, each wave the shepherd can spare a share of the sheep it starts with
-  // (at least `spareMin`; the goat doesn't count). Lose more and the run is over on the spot.
+  // The line: from `lineFrom`, each wave the shepherd can spare `spareBase` sheep plus a small share
+  // of the flock the wave starts with (the goat doesn't count). Lose more and the run is over on
+  // the spot.
   lineFrom: 2,
-  spare: 0.5,
-  spareMin: 2,
+  spareBase: 1,
+  spareShare: 0.2,
 };
 
 // Last Sheep Standing: on the line (one more loss ends the run) the dog finds a second wind.
@@ -525,7 +526,7 @@ export const LAST_STAND = {
 // How many sheep the shepherd can spare this wave (Infinity before the line starts).
 export function spareFor(wave, flock) {
   if (wave < GOAL.lineFrom) return Infinity;
-  return Math.max(GOAL.spareMin, Math.floor(flock * GOAL.spare));
+  return GOAL.spareBase + Math.floor(flock * GOAL.spareShare);
 }
 
 // The flock may not drop below this during the wave (0: no line).
@@ -571,7 +572,7 @@ export function summerRules(summer) {
 }
 
 export const ENDLESS = {
-  extraWolves: 1, // per endless wave, on top of the normal cap of 15...
+  extraWolves: 1, // per endless wave, on top of the final wave's pack...
   maxWolves: 25, // ...up to this many
   flockCap: 90,
   marketWool: 1, // new sheep that don't fit in the flock are sold for this much wool each
@@ -591,29 +592,46 @@ export const FIRST_WAVE = {
   greymuzzle: 15, // the final boss (not part of the regular pack)
 };
 
-// Which wolves make up a wave's pack ('pups' is a group of three pups taking one slot).
-// Listed in priority order: when the pack is full, the later kinds are left out.
+// Which wolves make up a wave's pack ('pups' is a group of three pups taking one slot). Fewer wolves
+// but meaner: a growing share are special, drawn at random from the kinds seen so far (each up to a
+// cap). The kinds that are new this wave (announced on the banner) always come, and so does the
+// alpha once it's around.
 const EARLIER = new Set(['brute', 'sneaky', 'alpha']);
+
+export const PACK = {
+  specialShare: (wave) => Math.min(0.8, 0.35 + 0.03 * wave), // of the pack, always leaving one plain wolf
+  caps: (wave) => {
+    const late = wave >= 10;
+    return {
+      alpha: wave > GOAL.finalWave ? 2 : 1, // endless: a second alpha
+      brute: late ? 2 : 1,
+      sneaky: late ? 2 : 1,
+      trickster: late ? 2 : 1,
+      runner: wave >= 8 ? 2 : 1,
+      rascal: 1,
+      howler: 1,
+      pups: late ? 2 : 1,
+    };
+  },
+};
+
+export function specialSlots(wave, count) {
+  return Math.min(count - 1, Math.ceil(count * PACK.specialShare(wave)));
+}
 
 export function wolfPack(wave, count, rules = summerRules(1)) {
   const firstWave = (kind) => FIRST_WAVE[kind] - (EARLIER.has(kind) ? rules.earlier : 0);
-  const from = (kind, n) => (wave >= firstWave(kind) ? n : 0);
-  const wanted = [
-    ['alpha', from('alpha', 1)],
-    ['brute', from('brute', wave < 8 ? 1 : Math.min(3, Math.floor((wave - 4) / 2)))],
-    ['sneaky', from('sneaky', wave < 9 ? 1 : Math.min(3, Math.floor((wave - 5) / 2)))],
-    ['trickster', from('trickster', wave < 10 ? 1 : 2)],
-    ['runner', from('runner', wave < 8 ? 1 : Math.min(5, Math.floor((wave - 2) / 2)))],
-    ['rascal', from('rascal', wave < 8 ? 1 : 2)],
-    ['howler', from('howler', wave < 9 ? 1 : 2)],
-    ['pups', from('pups', wave < 6 ? 1 : 2)],
-  ];
-  if (wave > GOAL.finalWave) wanted.unshift(['alpha', 1]); // endless: a second alpha
+  const caps = PACK.caps(wave);
+  const kinds = Object.keys(caps).filter((k) => wave >= firstWave(k));
+  const slots = specialSlots(wave, count);
   const pack = [];
-  for (const [kind, n] of wanted) for (let i = 0; i < n && pack.length < count; i++) pack.push(kind);
-  // Endless: the extra slots go to special wolves rather than plain ones.
-  const extras = ['runner', 'rascal', 'brute', 'sneaky', 'trickster', 'pups', 'howler'];
-  while (wave > GOAL.finalWave && pack.length < count - 1) pack.push(extras[(Math.random() * extras.length) | 0]);
+  const add = (kind) => {
+    if (pack.length < slots && pack.filter((k) => k === kind).length < caps[kind]) pack.push(kind);
+  };
+  for (const kind of kinds) if (firstWave(kind) === wave) add(kind);
+  if (kinds.includes('alpha')) add('alpha');
+  const pool = shuffle(kinds.flatMap((k) => Array(caps[k]).fill(k)));
+  for (const kind of pool) add(kind);
   while (pack.length < count) pack.push('normal');
   shuffle(pack);
   // Lead with a normal wolf so the special ones arrive mid-wave.
@@ -622,9 +640,11 @@ export function wolfPack(wave, count, rules = summerRules(1)) {
   return pack;
 }
 
+// 3 wolves in wave 1, one more every other wave (10 in the final wave), then one more per endless wave.
 function wolfCount(wave, rules) {
   const endless = Math.max(0, wave - GOAL.finalWave);
-  const base = endless ? Math.min(15 + endless * ENDLESS.extraWolves, ENDLESS.maxWolves) : Math.min(2 + wave, 15);
+  const regular = (w) => 2 + Math.ceil(w / 2);
+  const base = endless ? Math.min(regular(GOAL.finalWave) + endless * ENDLESS.extraWolves, ENDLESS.maxWolves) : regular(wave);
   return base + rules.extraWolves;
 }
 
