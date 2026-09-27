@@ -86,7 +86,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Wolf',
     text: 'Prowls the tree line, then goes for the sheep at the edge of the flock.',
-    tip: 'Get close and it runs. ★ 15.',
+    tip: 'Get close and it runs.',
     make: (scene) => [new Wolf(scene)],
   },
   {
@@ -106,7 +106,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Runner',
     text: 'Small and very fast. It barely stalks and goes straight for the nearest sheep.',
-    tip: 'It gives up if the dog gets close to its target, but it comes back quickly. ★ 20.',
+    tip: 'It gives up if the dog gets close to its target, but it comes back quickly.',
     make: (scene) => [new Wolf(scene, 'runner')],
   },
   {
@@ -114,7 +114,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Rascal',
     text: "A young wolf that doesn't hunt, it plays. It sprints straight through the flock again and again, tossing sheep in every direction.",
-    tip: 'Cut across its path to scare it off before the flock is scattered all over the meadow. ★ 15.',
+    tip: 'Cut across its path to scare it off before the flock is scattered all over the meadow.',
     make: (scene) => [new Wolf(scene, 'rascal')],
   },
   {
@@ -122,7 +122,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Howler',
     text: 'Never attacks. It sits just inside the tree line and howls, and the flock panics and scatters.',
-    tip: 'Chase it off before the other wolves take advantage. ★ 20.',
+    tip: 'Chase it off before the other wolves take advantage.',
     make: (scene) => {
       const w = new Wolf(scene, 'howler');
       w.howling = 1;
@@ -134,7 +134,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Sneaky Wolf',
     text: 'Silent and low to the ground. No arrow warns you until it is close to the flock.',
-    tip: 'It circles round to the side of the flock away from the dog. Watch your blind spot. ★ 25.',
+    tip: 'It circles round to the side of the flock away from the dog. Watch your blind spot.',
     make: (scene) => [new Wolf(scene, 'sneaky')],
   },
   {
@@ -142,7 +142,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Brute',
     text: 'Big, slow and scarred. One bark is not enough to scare it.',
-    tip: "Stay next to it until its fear meter fills. It can't finish a grab while you do. ★ 40.",
+    tip: "Stay next to it until its fear meter fills. It can't finish a grab while you do.",
     make: (scene) => [new Wolf(scene, 'brute')],
   },
   {
@@ -150,7 +150,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Trickster',
     text: 'A fox-like wolf that feints: it charges one side of the flock, then switches to the far side once the dog commits.',
-    tip: "Don't over-commit. Wait until it is really going in. ★ 30.",
+    tip: "Don't over-commit. Wait until it is really going in.",
     make: (scene) => [new Wolf(scene, 'trickster')],
   },
   {
@@ -158,7 +158,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Alpha',
     text: 'Leads the pack. While it is around the others attack sooner, and its howl sends them in together.',
-    tip: 'Scare it and every wolf inside its ring runs too. ★ 50.',
+    tip: 'Scare it and every wolf inside its ring runs too.',
     make: (scene) => [new Wolf(scene, 'alpha')],
   },
   {
@@ -166,7 +166,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: 'Old Greymuzzle',
     text: 'The old leader of the pack, grey around the muzzle and bigger than any wolf you have seen. It comes for the flock at the end of summer.',
-    tip: 'Stay next to it until its fear meter fills, three times. Each time it retreats it comes back with fresh wolves. ★ 150.',
+    tip: 'Stay next to it until its fear meter fills, three times. Each time it retreats it comes back with fresh wolves.',
     make: (scene) => [new Wolf(scene, 'greymuzzle')],
   },
   {
@@ -174,7 +174,7 @@ export const ENTRIES = [
     side: 'wolves',
     name: "Wolf in Sheep's Clothing",
     text: 'Hides in the flock looking like a sheep, then throws off the fleece and grabs the nearest one.',
-    tip: 'Look for the grey tail, grey legs and flat walk. Run the dog next to it to expose it early. ★ 40.',
+    tip: 'Look for the grey tail, grey legs and flat walk. Run the dog next to it to expose it early.',
     make: (scene) => [new Sheep(scene, 'disguised')],
   },
 ];

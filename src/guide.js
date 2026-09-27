@@ -51,14 +51,14 @@ $('dog-stats').innerHTML = `
 // --- Goal ---------------------------------------------------------------------
 
 $('goal-body').innerHTML = `
-  <p>Survive <strong>wave ${GOAL.finalWave}</strong>, drive off the boss, <strong>Old Greymuzzle</strong>, and meet the final quota (${quotaFor(GOAL.finalWave)} sheep), and you win the run. Losing every sheep, or missing the shepherd's quota ${GOAL.strikes} times, ends it. The win screen rates the flock you brought home:</p>
+  <p>Survive <strong>wave ${GOAL.finalWave}</strong>, drive off the boss, <strong>Old Greymuzzle</strong>, and bring home the shepherd's final target (${quotaFor(GOAL.finalWave)} sheep), and you win the run. Bringing home fewer sheep than any wave's target ends it. The win screen rates the flock you brought home:</p>
   ${chips([
     ['★', 'any survivors'],
     ['★★', `${GOAL.stars[0]}+ sheep`],
     ['★★★', `${GOAL.stars[1]}+ sheep`],
   ])}
-  <h3>The shepherd's quota</h3>
-  <p>From wave ${GOAL.quotaFrom}, each wave must end with at least this many sheep (the goat doesn't count). Missing it costs a ❤️; after ${GOAL.strikes} misses the run is over. It keeps rising by ${GOAL.quotaEndlessStep} per wave in endless mode.</p>
+  <h3>The shepherd's target</h3>
+  <p>From wave ${GOAL.quotaFrom}, each wave must end with at least this many sheep (the goat doesn't count), or the run is over. The HUD shows it after the slash: 🐑 12 / 9. It keeps rising by ${GOAL.quotaEndlessStep} per wave in endless mode.</p>
   ${table(['Wave', ...Array.from({ length: GOAL.finalWave - GOAL.quotaFrom + 1 }, (_, i) => String(GOAL.quotaFrom + i))], [['Sheep needed', ...Array.from({ length: GOAL.finalWave - GOAL.quotaFrom + 1 }, (_, i) => String(quotaFor(GOAL.quotaFrom + i)))]])}
   <h3>The boss</h3>
   <p>Old Greymuzzle arrives ${Math.round(BOSS.arriveAt * 100)}% of the way into the final wave. Like a brute, the dog has to stay next to him until his fear meter fills; like an alpha, he leads the pack. He has to be driven off <strong>${BOSS.driveOffs} times</strong>, coming back with ${BOSS.reinforcements} fresh wolves after each of the first ones, and drops a ${BOSS.tuft}-wool tuft when he's gone for good. The wave can't end until he is (overtime).</p>
@@ -66,7 +66,6 @@ $('goal-body').innerHTML = `
   <p>After winning, <em>Keep grazing</em> plays on:</p>
   <ul>
     <li>+${ENDLESS.extraWolves} wolf every wave (up to ${ENDLESS.maxWolves}), the extra slots all special wolves, and a second alpha.</li>
-    <li>Score multiplier ×${n(1 + ENDLESS.scoreBonus)} on the first endless wave, ×${n(1 + 2 * ENDLESS.scoreBonus)} on the second, and so on.</li>
     <li>Flock cap ${ENDLESS.flockCap} (from ${SHEEP.cap}); newcomers that don't fit are sold at market for ${ENDLESS.marketWool} wool each.</li>
     <li>Old Greymuzzle returns every ${BOSS.endlessEvery} endless waves, with one more drive-off each time.</li>
   </ul>
@@ -102,8 +101,8 @@ $('economy-body').innerHTML = `
     <li>Freeze up to ${SHOP.maxFrozen} cards (❄️) to keep them for the next wave.</li>
     <li>Upgrade level <em>n</em> costs its base price × (<em>n</em> + 1).</li>
   </ul>
-  <h3>Score</h3>
-  <p>Scaring a wolf scores its ★ value (see the wolves), rescues and combos add more. Endless waves multiply everything.</p>`;
+  <h3>No score</h3>
+  <p>There's no separate score: the result of a run is how far you got (the wave, the summer and the stars). Scares, rescues and combos are still celebrated, just without numbers.</p>`;
 
 // --- Animals -----------------------------------------------------------------
 
@@ -114,9 +113,9 @@ const sheepNotes = {
   sleepy: () => `Dozes and ignores wolves. The dog within ${SLEEPY.wakeRadius} wakes it, startling sheep within ${SLEEPY.startleRadius}. Stays awake ${SLEEPY.awake[0]}-${SLEEPY.awake[1]} s.`,
   ram: (t) => `Sheep within ${t.attractRadius} are drawn to him and panic ${Math.round((1 - RAM_CALM) * 100)}% less.`,
   golden: () => `Joins at wave ${GOLDEN.firstWave}, then with a ${Math.round(GOLDEN.chance * 100)}% chance per wave if there isn't one.`,
-  black: () => `Stampedes every ${BLACK.interval[0]}-${BLACK.interval[1]} s at ${BLACK.speed} u/s, dragging up to ${BLACK.followers} sheep, for up to ${BLACK.duration} s. The dog within ${BLACK.cutOffRadius} heads it off (★ ${BLACK.points}).`,
+  black: () => `Stampedes every ${BLACK.interval[0]}-${BLACK.interval[1]} s at ${BLACK.speed} u/s, dragging up to ${BLACK.followers} sheep, for up to ${BLACK.duration} s. The dog within ${BLACK.cutOffRadius} heads it off.`,
   bellwether: () => `Rings every ${BELL.interval[0]}-${BELL.interval[1]} s; sheep within ${BELL.radius} regroup around it. Losing it cuts flock cohesion to ${Math.round(BELL.lostCohesion * 100)}% for the wave.`,
-  disguised: () => `Reveals itself ${DISGUISE.reveal[0]}-${DISGUISE.reveal[1]} s into the wave, or when the dog stays within ${DISGUISE.sniffRadius} for ${DISGUISE.sniffTime} s (★ ${DISGUISE.points}).`,
+  disguised: () => `Reveals itself ${DISGUISE.reveal[0]}-${DISGUISE.reveal[1]} s into the wave, or when the dog stays within ${DISGUISE.sniffRadius} for ${DISGUISE.sniffTime} s.`,
 };
 
 function sheepStats(id) {
@@ -144,7 +143,7 @@ function sheepStats(id) {
 
 const wolfNotes = {
   normal: () => 'Prowls the tree line, then goes for stragglers.',
-  pup: () => `Arrives in threes; they split up when the dog has been within ${PUPS.splitRadius} for ${PUPS.reaction} s. Scaring all three within ${PUPS.comboWindow} s scores ★ ${PUPS.comboPoints}.`,
+  pup: () => `Arrives in threes; they split up when the dog has been within ${PUPS.splitRadius} for ${PUPS.reaction} s. Scaring all three within ${PUPS.comboWindow} s makes a "PUP PACK!".`,
   runner: () => 'Goes for the nearest sheep and gives up a chase when the dog nears its target.',
   rascal: () => `Never takes sheep: dashes through the flock ${RASCAL.passes[0]}-${RASCAL.passes[1]} times at ${RASCAL.speed} u/s, tossing sheep aside.`,
   howler: () => `Never attacks. Howls every ${HOWLER.interval[0]}-${HOWLER.interval[1]} s, panicking sheep within ${HOWLER.radius}.`,
@@ -162,7 +161,6 @@ function wolfStats(id) {
   const flags = [t.skittish && 'skittish', t.shove && 'shoves sheep', t.leader && 'leads the pack', t.hidden && 'hidden', t.feint && 'feints', t.howler && 'never attacks', t.rascal && 'never takes sheep', t.boss && 'boss'].filter(Boolean);
   return chips([
     ['First wave', firstWave(id)],
-    ['Score', `★ ${t.points}`],
     ['Speed', `${n(t.speed, 2)}× (chase ${n(WOLF.chaseSpeed * t.speed)} u/s)`],
     ['Size', `${n(t.scale / WOLF_TYPES.normal.scale, 2)}×`],
     t.courage && ['Fear meter', `${t.courage} s next to the dog`],

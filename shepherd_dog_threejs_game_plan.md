@@ -2548,3 +2548,37 @@ strategy.
     a very slow casual bot ends around wave 5-7. Keeping a tiny flock
     now fails by about wave 5.
 
+
+------------------------------------------------------------------------
+
+# 86. Fewer Numbers: The Flock Is Everything (implemented)
+
+Playtest: too many numbers on screen (score, wool, flock, flock cap,
+target, hearts). Roguelikes that feel simple keep one currency and one
+fail condition: Balatro has chips vs. the blind and money; Into the
+Breach has grid power; Slay the Spire has HP and gold. Our flock already
+*is* the health bar, so everything else was folded into it.
+
+-   **Score removed** (★ points per wolf, rescue/combo/stampede points,
+    the endless score multiplier, the best-score record). The result of
+    a run is how far you got: "7 waves survived" on the game-over
+    screen, and the best is stored as waves survived. Stars still rate a
+    win. Praise pop-ups ("SAVED!", "COMBO ×3!", "HEADED OFF!", "PUP
+    PACK!") stay, just without numbers.
+-   **Hearts removed.** Missing the shepherd's target ends the run
+    immediately, like a Balatro blind. The target is gentler to make up
+    for it: from wave 4, round(1.25 × wave): 5, 6, 8, 9, 10, 11, 13,
+    14, 15, 16, 18, 19 for waves 4-15, then +2 per endless wave.
+-   **HUD: three things.** 🐑 flock / target (bar fills towards the
+    target, red when short), Wave 7 / 15 with the timer, 🧶 wool. The
+    wave banner says "the shepherd needs 9 sheep"; a miss floats "NOT
+    ENOUGH SHEEP" over the shepherd.
+-   Achievement Full Orders (win without missing a quota) removed, since
+    every win now fills every order (36 in total). The bestiary, field guide and tips lost their ★
+    values.
+-   Bots through wave 15, 3 runs each. At 1.4 × from wave 3 the strong
+    bot won 3/3 with ★★★ but the average bot died at wave 7 and the
+    casual one at 3. At 1.25 × from wave 4: strong won 3/3 (★★★, ★★,
+    ★★★, one close call at 17 / 15 on wave 12); average ends at waves
+    7-8 (its flock collapses in wave 7 regardless of the target);
+    casual at 4 (its flock is down to 0-2 by then anyway).

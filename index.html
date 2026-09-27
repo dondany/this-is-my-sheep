@@ -31,8 +31,7 @@
         <span class="hud-icon">🐑</span>
         <div>
           <div id="hud-sheep" class="hud-value">10 / 10</div>
-          <div class="meter"><div id="hud-sheep-bar" class="meter-fill"></div><div id="hud-quota-mark" class="quota-mark hidden"></div></div>
-          <div id="hud-quota" class="hud-quota hidden"></div>
+          <div class="meter"><div id="hud-sheep-bar" class="meter-fill"></div></div>
         </div>
       </div>
       <div class="hud-wave">
@@ -42,10 +41,6 @@
       <div class="hud-wool" title="Wool: sheared from the flock after each wave, spent on upgrades">
         <span class="hud-icon">🧶</span>
         <span id="hud-wool" class="hud-value">0</span>
-      </div>
-      <div class="hud-score" title="Score">
-        <span class="hud-icon hud-star">★</span>
-        <span id="hud-score" class="hud-value">0</span>
       </div>
     </div>
     <div id="hud-boss" class="hud-boss hidden"><span id="hud-boss-text">Old Greymuzzle ○○○</span></div>
@@ -101,7 +96,7 @@
   <section id="screen-wave" class="screen hidden">
     <div class="panel panel-shop">
       <h2 id="wave-title">Wave 1 complete!</h2>
-      <p class="wave-summary"><span id="wave-sheep" class="big-stat">🐑 10 / 10</span> <span id="wave-score" class="reward">★ +0</span></p>
+      <p class="wave-summary"><span id="wave-sheep" class="big-stat">🐑 10</span></p>
       <ul id="wave-breakdown" class="breakdown"></ul>
       <div class="shop">
         <div class="shop-head">
@@ -128,7 +123,7 @@
       <p id="victory-stats" class="small"></p>
       <p id="victory-unlock" class="victory-unlock hidden"></p>
       <div id="victory-summary" class="run-summary"></div>
-      <p class="small">Keep grazing to play on in endless mode: more wolves every wave, a growing score multiplier, and room for a bigger flock.</p>
+      <p class="small">Keep grazing to play on in endless mode: more wolves every wave, a bigger target, and room for a bigger flock. How far can you go?</p>
       <button class="btn" data-action="keep-grazing">Keep grazing</button>
       <button class="btn btn-quiet" data-action="menu">Menu</button>
     </div>
@@ -147,7 +142,7 @@
   <section id="screen-over" class="screen hidden">
     <div class="panel">
       <h2 id="over-title">The wolves got the flock</h2>
-      <p id="over-score" class="big-stat">★ 0</p>
+      <p id="over-result" class="big-stat">Wave 3</p>
       <p id="over-waves" class="reward">You survived 3 waves</p>
       <p id="over-stats" class="small"></p>
       <div id="over-summary" class="run-summary"></div>

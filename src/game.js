@@ -25,9 +25,8 @@ export const STATE = {
   GAME_OVER: 'GAME_OVER',
 };
 
-// Score is for bragging; wool (from shearing, see SHEARING) is what you spend.
-// Scaring a wolf scores WOLF_TYPES[kind].points.
-const SCORE = { save: 25, comboStep: 10, comboMaxSteps: 9 }; // combo bonus tops out at +90
+// Only three numbers during a run: the flock (against this wave's target), the wave, and wool
+// (from shearing, see SHEARING). How far you got is the result; there's no separate score.
 const ZOOM = { min: 0.7, max: 1.5 }; // multiplier on the default camera distance
 
 // Game feel. An ordinary scare only jolts the wolf and the dog (see Wolf/Dog.animate); the whole
@@ -46,7 +45,6 @@ const FEEL = {
 const EFFECTS_KEY = 'this-is-my-sheep.effects';
 const EFFECTS = ['full', 'reduced', 'off'];
 const BEST_KEY = 'this-is-my-sheep.best';
-const BEST_SCORE_KEY = 'this-is-my-sheep.bestScore';
 const WINS_KEY = 'this-is-my-sheep.wins';
 const SUMMER_KEY = 'this-is-my-sheep.summerUnlocked'; // highest difficulty level unlocked
 const SUMMER_WON_KEY = 'this-is-my-sheep.summerWon'; // highest difficulty level won
@@ -120,11 +118,9 @@ export class Game {
     this.time = 0;
     this.wave = 0;
     this.wool = 0;
-    this.score = 0;
     this.endless = false;
     this.achievements.newRun();
     this.best = readNumber(BEST_KEY);
-    this.bestScore = readNumber(BEST_SCORE_KEY);
     this.wins = readNumber(WINS_KEY);
     this.bestStars = readNumber(BEST_STARS_KEY);
     this.endless = false; // true once the player keeps going after winning
@@ -204,8 +200,7 @@ export class Game {
       onStampede: (s) => this.juice.stampede(s),
       onStampedeStopped: (s) => {
         this.achievements.add('stampedes');
-        this.addScore(BLACK.points);
-        this.juice.stampedeStopped(s, BLACK.points);
+        this.juice.stampedeStopped(s);
       },
       onSheepWoke: (s) => {
         this.achievements.add('wakeUps');
@@ -234,8 +229,7 @@ export class Game {
       onPupsSplit: (w) => this.juice.pupsSplit(w),
       onPupCombo: (w) => {
         this.achievements.add('pupCombos');
-        this.addScore(PUPS.comboPoints);
-        this.juice.pupCombo(w, PUPS.comboPoints);
+        this.juice.pupCombo(w);
       },
       onAlphaCall: (w) => this.juice.alphaCall(w),
       onBossDriven: (w, left) => this.onBossDriven(w, left),
@@ -267,7 +261,7 @@ export class Game {
 
     this.bindUI();
     this.spawnSheep(['ram', 'black', 'bellwether', 'wanderer', 'sleepy', 'lamb', ...Array(7).fill('normal')], false);
-    this.ui.setBest(this.best, this.bestScore, this.wins, this.bestStars);
+    this.ui.setBest(this.best, this.wins, this.bestStars);
     this.ui.setSummer(this.summer, this.summerUnlocked, this.summerWon);
     this.ui.setMuted(this.sfx.muted);
     this.applyEffects();
@@ -434,7 +428,7 @@ export class Game {
     const panelDue = this.panelTimer <= 0;
     this.ui.show({ [STATE.MENU]: 'menu', [STATE.PAUSED]: 'pause' }[this.state] ?? null);
     if (panelDue && this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ reason: this.gameOverReason, wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore, summary: this.runSummary() });
+    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ reason: this.gameOverReason, quota: this.quota, flock: this.sheepCount(), wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, newBest: this.newBest, summary: this.runSummary() });
   }
 
   // Unlock anything on the field that hasn't been seen before (sneaky wolves once they show up,
@@ -672,8 +666,6 @@ export class Game {
     this.shepherd.walkTarget = null;
     this.wave = 0;
     this.wool = 0;
-    this.score = 0;
-    this.strikes = 0; // quotas missed this run
     this.endless = false;
     this.victoryPanel = null;
     this.boss = null;
@@ -738,7 +730,6 @@ export class Game {
     const cfg = this.cfg;
     this.waveStartSheep = this.flockSize();
     this.quota = quotaFor(this.wave);
-    this.waveStartScore = this.score;
     this.boss = null;
     this.bossSpawned = false;
     this.bossOvertime = false;
@@ -766,12 +757,12 @@ export class Game {
         : final
           ? 'The last wave of summer. Hold on!'
           : this.endless
-            ? `${cfg.wolves} wolves · score ×${this.scoreMultiplier().toFixed(1)}`
+            ? `${cfg.wolves} wolves`
             : newcomers.length
               ? `New: ${newcomers.join(' & ')}. See the 📖 bestiary`
               : `${cfg.wolves} wolves are coming`;
     const title = this.endless ? `Endless ${this.wave - GOAL.finalWave}` : final ? 'Final wave' : `Wave ${this.wave}`;
-    this.ui.banner(title, this.quota ? `${sub} · bring home ${this.quota} sheep` : sub);
+    this.ui.banner(title, this.quota ? `${sub} · the shepherd needs ${this.quota} sheep` : sub);
     if (this.quota) this.tip('quota');
     if (this.wave === 1) setTimeout(() => this.tip('move'), 800);
     if (this.wave === 2) this.tip('bigBark');
@@ -793,14 +784,11 @@ export class Game {
       if (w.state !== 'FLEE') w.state = 'LEAVE';
     }
 
-    // The shepherd's quota: too few sheep costs a strike; the last strike ends the run.
-    const quotaMissed = this.quota > 0 && this.sheepCount() < this.quota;
-    if (quotaMissed) {
-      this.strikes++;
-      this.juice.quotaMissed(this.shepherd, GOAL.strikes - this.strikes);
-      if (this.strikes >= GOAL.strikes) return this.gameOver('quota');
+    // The shepherd's target: bring home too few sheep and the run is over (like a Balatro blind).
+    if (this.quota > 0 && this.sheepCount() < this.quota) {
+      this.juice.quotaMissed(this.shepherd);
+      return this.gameOver('quota');
     }
-    if (this.wave === GOAL.finalWave && !this.endless) this.achievements.run.noStrikes = this.strikes === 0;
 
     // Shearing Day: every surviving sheep pays its wool, calm ones a little extra.
     const flock = this.sheep.filter((s) => !s.type.fake);
@@ -838,26 +826,23 @@ export class Game {
         ['Perfect flock', perfect],
         [`Interest (1 per ${SHEARING.interestPer} saved)`, interest],
       ],
-      quota: this.quota ? { need: this.quota, have: this.sheepCount(), missed: quotaMissed, left: GOAL.strikes - this.strikes } : null,
+      quota: this.quota ? { need: this.quota, have: this.sheepCount() } : null,
       bounty: this.waveBounty,
       reward,
-      score: this.score - this.waveStartScore,
     };
     this.openShop();
     this.saveRun();
   }
 
-  // reason: 'wolves' (the flock is gone) or 'quota' (too many missed quotas)
+  // reason: 'wolves' (the flock is gone) or 'quota' (fewer sheep than the shepherd's target)
   gameOver(reason = 'wolves') {
     this.gameOverReason = reason;
     this.setState(STATE.GAME_OVER);
     clearSavedRun();
+    this.newBest = this.wave - 1 > this.best;
     this.best = Math.max(this.best, this.wave - 1);
-    this.newBestScore = this.score > this.bestScore;
-    this.bestScore = Math.max(this.bestScore, this.score);
     try {
       localStorage.setItem(BEST_KEY, String(this.best));
-      localStorage.setItem(BEST_SCORE_KEY, String(this.bestScore));
     } catch {}
     this.sfx.gameOver();
     this.checkAchievements();
@@ -880,9 +865,7 @@ export class Game {
       summer: this.rules.summer,
       endless: this.endless,
       wool: this.wool,
-      score: this.score,
-      strikes: this.strikes,
-      waveStartScore: this.waveStartScore,
+
       levels: this.levels,
       stats: this.stats,
       run: this.achievements.run,
@@ -920,9 +903,6 @@ export class Game {
 
     this.wave = data.wave;
     this.wool = data.wool;
-    this.score = data.score;
-    this.strikes = data.strikes ?? 0;
-    this.waveStartScore = data.waveStartScore ?? data.score;
     this.endless = data.endless;
     this.levels = data.levels;
     this.frozen = data.frozen ?? [];
@@ -992,7 +972,7 @@ export class Game {
     if (this.sheep.length < 8) this.spawnSheep(Array(12 - this.sheep.length).fill('normal'), false);
     for (const s of this.sheep) s.grabbedBy = null;
     this.ui.setHudVisible(false);
-    this.ui.setBest(this.best, this.bestScore, this.wins, this.bestStars);
+    this.ui.setBest(this.best, this.wins, this.bestStars);
     this.ui.setSummer(this.summer, this.summerUnlocked, this.summerWon);
     this.refreshContinue();
     this.ui.show('menu');
@@ -1116,15 +1096,6 @@ export class Game {
     this.wool += amount;
   }
 
-  // Endless waves multiply the score: ×1.1 for the first, ×1.2 for the second, and so on.
-  addScore(amount) {
-    this.score += Math.round(amount * this.scoreMultiplier());
-  }
-
-  scoreMultiplier() {
-    return this.endless ? 1 + ENDLESS.scoreBonus * Math.max(0, this.wave - GOAL.finalWave) : 1;
-  }
-
   flockCap() {
     return this.endless ? ENDLESS.flockCap : SHEEP.cap;
   }
@@ -1189,13 +1160,10 @@ export class Game {
     run.goldenAtWin = this.sheep.some((s) => s.kind === 'golden');
     this.wins++;
     this.bestStars = Math.max(this.bestStars, stars);
-    this.newBestScore = this.score > this.bestScore;
-    this.bestScore = Math.max(this.bestScore, this.score);
     this.best = Math.max(this.best, this.wave);
     try {
       localStorage.setItem(WINS_KEY, String(this.wins));
       localStorage.setItem(BEST_STARS_KEY, String(this.bestStars));
-      localStorage.setItem(BEST_SCORE_KEY, String(this.bestScore));
       localStorage.setItem(BEST_KEY, String(this.best));
     } catch {}
     // Winning a summer unlocks the next one.
@@ -1213,10 +1181,8 @@ export class Game {
       flock,
       summer,
       unlocked: unlocked && { summer: unlocked, text: SUMMERS[unlocked - 1].text },
-      score: this.score,
       wool: this.wool,
       upgrades: Object.values(this.levels).reduce((a, b) => a + b, 0),
-      newBest: this.newBestScore,
       summary: this.runSummary(),
     };
     this.juice.victory(this.center);
@@ -1248,28 +1214,25 @@ export class Game {
       this.juice.crook(this.shepherd);
     } else if (by?.bark()) this.juice.bark(by);
     if (by === this.helper) this.helper.rest = HELPER.rest; // catches its breath before the next chase
-    const points = threatening && this.state === STATE.PLAYING ? wolf.type.points : 0;
-    if (points) {
+    // A scare that stopped a real threat: counts for combos, tufts and achievements.
+    const counted = threatening && this.state === STATE.PLAYING;
+    if (counted) {
       this.achievements.add('scares');
       this.stats.scared++;
       if (wolf.kind === 'brute') this.achievements.add('brutes');
       if (wolf.kind === 'howler') this.achievements.add('howlers');
-    }
-    this.addScore(points);
-    if (by === this.dog) this.dog.recoil = 1;
-    if (points) {
       this.addCombo(wolf);
       this.dropBounty(wolf);
     }
+    if (by === this.dog) this.dog.recoil = 1;
     const praise = by instanceof Scarecrow ? 'SCARED OFF!' : by === this.helper ? 'GOOD PUP!' : by === this.shepherd ? 'NICE SWING!' : 'GOOD DOG!';
-    this.juice.wolfScared(wolf, points, praise);
+    this.juice.wolfScared(wolf, counted && praise);
   }
 
   onSheepSaved(sheep, wolf) {
     this.achievements.add('saves');
     this.stats.saved++;
-    this.addScore(SCORE.save);
-    this.juice.sheepSaved(sheep, SCORE.save);
+    this.juice.sheepSaved(sheep);
     // Saved in the nick of time: slow motion and a little camera push.
     if (wolf?.stateTimer < FEEL.closeCall && this.state === STATE.PLAYING) {
       const now = performance.now();
@@ -1378,9 +1341,7 @@ export class Game {
     this.achievements.best('bestCombo', c.count);
     this.stats.bestCombo = Math.max(this.stats.bestCombo, c.count);
     if (c.count < 2) return;
-    const bonus = SCORE.comboStep * Math.min(c.count - 1, SCORE.comboMaxSteps);
-    this.addScore(bonus);
-    this.juice.combo(this.dog, c.count, bonus);
+    this.juice.combo(this.dog, c.count);
   }
 
   removeSheep(sheep) {
@@ -1473,7 +1434,7 @@ export class Game {
           this.panelTimer -= dt;
           if (this.panelTimer <= 0 && !this.overlay) {
             if (this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-            else this.ui.showGameOver({ reason: this.gameOverReason, wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, score: this.score, bestScore: this.bestScore, newBest: this.newBestScore, summary: this.runSummary() });
+            else this.ui.showGameOver({ reason: this.gameOverReason, quota: this.quota, flock: this.sheepCount(), wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, newBest: this.newBest, summary: this.runSummary() });
           }
         }
         break;
@@ -1504,14 +1465,11 @@ export class Game {
     this.ui.setCombo(c.count, c.timer / FEEL.comboWindow);
     if (this.state !== STATE.MENU) {
       this.ui.setHud({
-        sheep: this.flockSize(),
-        sheepMax: this.waveStartSheep,
-        wave: this.waveLabel(),
+        sheep: this.sheepCount(), // the goat doesn't count towards the target
         quota: this.quota,
-        strikes: this.strikes,
+        wave: this.waveLabel(),
         timeLeft: this.cfg ? Math.max(0, 1 - this.waveTime / this.cfg.duration) : 1,
         wool: this.wool,
-        score: this.score,
       });
     }
   }

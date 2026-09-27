@@ -24,7 +24,6 @@ export class UI {
       wave: $('hud-wave'),
       timerBar: $('hud-timer-bar'),
       wool: $('hud-wool'),
-      score: $('hud-score'),
       mute: $('btn-mute'),
       banner: $('banner'),
       indicatorLayer: $('indicator-layer'),
@@ -55,23 +54,14 @@ export class UI {
     apply(value);
   }
 
-  setHud({ sheep, sheepMax, wave, timeLeft, wool, score, quota = 0, strikes = 0, maxStrikes = 3 }) {
-    // The shepherd's quota: "need 9" plus hearts, and a mark on the flock bar.
-    this.set('quota', `${quota}|${strikes}|${sheep}|${sheepMax}`, () => {
-      const el = $('hud-quota');
-      const mark = $('hud-quota-mark');
-      el.classList.toggle('hidden', !quota && !strikes);
-      mark.classList.toggle('hidden', !quota || !sheepMax);
-      const hearts = '❤️'.repeat(maxStrikes - strikes) + '🤍'.repeat(strikes);
-      el.textContent = quota ? `need ${quota} · ${hearts}` : hearts;
-      el.classList.toggle('short', quota > 0 && sheep < quota);
-      if (quota && sheepMax) mark.style.left = `${Math.min(100, (quota / sheepMax) * 100)}%`;
-    });
-    this.set('score', score, (v) => (this.el.score.textContent = v));
-    this.set('sheep', `${sheep} / ${sheepMax}`, (v) => (this.el.sheep.textContent = v));
-    this.set('sheepBar', sheepMax ? sheep / sheepMax : 1, (v) => {
-      this.el.sheepBar.style.transform = `scaleX(${v})`;
-      this.el.sheepBar.classList.toggle('low', v < 0.5);
+  // The flock against the shepherd's target: "12 / 9" (just "12" before targets start). The bar
+  // fills up to the target and turns red when you're short.
+  setHud({ sheep, quota = 0, wave, timeLeft, wool }) {
+    this.set('sheep', quota ? `${sheep} / ${quota}` : String(sheep), (v) => (this.el.sheep.textContent = v));
+    this.set('sheepBar', quota ? Math.min(1, sheep / quota) : 1, (v) => (this.el.sheepBar.style.transform = `scaleX(${v})`));
+    this.set('short', quota > 0 && sheep < quota, (short) => {
+      this.el.sheepBar.classList.toggle('low', short);
+      this.el.sheep.classList.toggle('short', short);
     });
     this.set('wave', wave, (v) => (this.el.wave.textContent = v));
     this.set('timer', Math.round(timeLeft * 200) / 200, (v) => (this.el.timerBar.style.transform = `scaleX(${v})`));
@@ -152,10 +142,9 @@ export class UI {
     el.classList.add('show');
   }
 
-  showWaveComplete({ wave, survived, total, lines, bounty, reward, score, quota }) {
+  showWaveComplete({ wave, survived, lines, bounty, reward, quota }) {
     $('wave-title').textContent = `Wave ${wave} complete!`;
-    $('wave-sheep').textContent = `🐑 ${survived} / ${total}`;
-    $('wave-score').textContent = `★ +${score}`;
+    $('wave-sheep').textContent = `🐑 ${survived}`;
     const rows = lines
       .filter(([, amount]) => amount > 0)
       .map(([label, amount]) => {
@@ -177,10 +166,9 @@ export class UI {
     }
     if (quota) {
       const li = document.createElement('li');
-      li.className = quota.missed ? 'quota missed' : 'quota';
-      li.innerHTML = '<span></span><span></span>';
-      li.firstChild.textContent = quota.missed ? `Quota missed: ${quota.have} of ${quota.need} sheep` : `Quota: ${quota.have} of ${quota.need} sheep`;
-      li.lastChild.textContent = quota.missed ? `${'❤️'.repeat(quota.left)} left` : '✓';
+      li.className = 'quota';
+      li.innerHTML = '<span></span><span>✓</span>';
+      li.firstChild.textContent = `The shepherd needed ${quota.need} sheep`;
       extra.unshift(li);
     }
     $('wave-breakdown').replaceChildren(...rows, sum, ...extra);
@@ -305,27 +293,33 @@ export class UI {
     document.querySelector('[data-action=summer-up]').disabled = summer >= unlocked;
   }
 
-  showVictory({ stars, flock, summer, unlocked, score, wool, upgrades, newBest, summary }) {
+  showVictory({ stars, flock, summer, unlocked, wool, upgrades, summary }) {
     this.renderSummary('victory-summary', summary);
     document.querySelector('#screen-victory h2').textContent = summer > 1 ? `Summer ${summer} won!` : "Summer's End!";
     $('victory-unlock').classList.toggle('hidden', !unlocked);
     if (unlocked) $('victory-unlock').textContent = `🔓 Summer ${unlocked.summer} unlocked: ${unlocked.text}`;
     $('victory-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
     $('victory-flock').textContent = flock === 1 ? '🐑 1 sheep made it home' : `🐑 ${flock} sheep made it home`;
-    $('victory-stats').textContent = `★ ${score}${newBest ? ' (new best!)' : ''} · 🧶 ${wool} wool left · ${upgrades} upgrades`;
+    $('victory-stats').textContent = `🧶 ${wool} wool left · ${upgrades} upgrades`;
     this.show('victory');
   }
 
-  showGameOver({ reason, wave, endless, best, score, bestScore, newBest, summary }) {
+  // The result of a run is simply how far you got.
+  showGameOver({ reason, quota, flock, wave, endless, best, newBest, summary }) {
     $('over-title').textContent = reason === 'quota' ? "The shepherd couldn't fill his orders" : 'The wolves got the flock';
     this.renderSummary('over-summary', summary);
-    $('over-score').textContent = `★ ${score}${newBest ? ' · new best!' : ''}`;
-    $('over-waves').textContent = endless
-      ? `Summer won, then ${endless - 1} endless ${endless - 1 === 1 ? 'wave' : 'waves'}`
-      : wave - 1 === 1
-        ? 'You survived 1 wave'
-        : `You survived ${wave - 1} waves`;
-    $('over-stats').textContent = `Best: ★ ${bestScore} · wave ${best}`;
+    const survived = (n) => `${n} wave${n === 1 ? '' : 's'} survived`;
+    const result = endless ? `Summer won + ${survived(endless - 1).replace('wave', 'endless wave')}` : survived(wave - 1);
+    $('over-result').textContent = `${result}${newBest ? ' · new best!' : ''}`;
+    $('over-waves').textContent =
+      reason === 'quota'
+        ? `He needed ${quota} sheep and you brought home ${flock}.`
+        : endless
+          ? `Summer won, then ${endless - 1} endless ${endless - 1 === 1 ? 'wave' : 'waves'}`
+          : wave - 1 === 1
+            ? 'You survived 1 wave'
+            : `You survived ${wave - 1} waves`;
+    $('over-stats').textContent = `Best: ${best} wave${best === 1 ? '' : 's'} survived`;
     this.show('over');
   }
 
@@ -498,9 +492,9 @@ export class UI {
     if (text) el.textContent = text;
   }
 
-  setBest(best, bestScore, wins = 0, bestStars = 0) {
+  setBest(best, wins = 0, bestStars = 0) {
     const won = wins ? ` · summers won: ${wins} (best ${'★'.repeat(bestStars)})` : '';
-    $('menu-best').textContent = best || bestScore ? `Best: ★ ${bestScore} · wave ${best}${won}` : '';
+    $('menu-best').textContent = best ? `Best: ${best} wave${best === 1 ? '' : 's'} survived${won}` : '';
   }
 
   // Arrows at the screen edge pointing at off-screen wolves.

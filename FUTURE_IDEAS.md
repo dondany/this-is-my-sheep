@@ -9,7 +9,7 @@ Ideas not built yet: fence posts along one side of the meadow. More cosmetics (t
 in): shepherd outfits, sheep with bows or bells, more meadow themes (snow for endless mode).
 
 ## Balance
-- Needs checking with real players. Bots (design doc sections 68, 70, 76) suggest a strong player
+- Needs checking with real players. Bots (design doc sections 68, 70, 76, 86) suggest a strong player
   wins Summer 1 with ★★ and an average one scrapes a ★, but bots go straight for whatever is most
   urgent, so real runs will likely be harder.
 - Wanderers, black sheep and golden fleeces are usually lost within a wave or two when nobody herds
@@ -17,7 +17,7 @@ in): shepherd outfits, sheep with bows or bells, more meadow themes (snow for en
 
 ## Replay value
 - Daily run: the same waves and shop for everyone each day (a shared random seed), to compare
-  scores with friends.
+  how far everyone got.
 
 ## Presentation
 - Outlines on the animals (design doc section 17), e.g. an inverted-hull outline for wolves.

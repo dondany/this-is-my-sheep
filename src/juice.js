@@ -85,9 +85,10 @@ export class Juice {
     this.sfx.bark();
   }
 
-  wolfScared(wolf, points, praise = 'GOOD DOG!') {
+  // praise: text for a scare that stopped a real threat (false for a wolf that was just prowling)
+  wolfScared(wolf, praise) {
     this.floatText('!', { follow: wolf, offsetY: 2.6, cls: 'exclaim', duration: 0.7 });
-    if (points) this.floatText(`${praise} +${points}`, { position: wolf.position, offsetY: 1.5, cls: 'good', duration: 1.2 });
+    if (praise) this.floatText(praise, { position: wolf.position, offsetY: 1.5, cls: 'good', duration: 1.2 });
     this.particles.dust(wolf.position, 10, 1.2);
     this.shake(0.05, 100);
     this.sfx.yelp();
@@ -131,8 +132,8 @@ export class Juice {
     this.sfx.bleat(true, 0.8);
   }
 
-  stampedeStopped(sheep, points) {
-    this.floatText(`HEADED OFF! +${points}`, { position: sheep.position, offsetY: 2.2, cls: 'good', duration: 1.3 });
+  stampedeStopped(sheep) {
+    this.floatText('HEADED OFF!', { position: sheep.position, offsetY: 2.2, cls: 'good', duration: 1.3 });
     this.particles.sparkle(tmp.copy(sheep.position).setY(1), 8);
   }
 
@@ -206,8 +207,8 @@ export class Juice {
     this.sfx.waveComplete();
   }
 
-  quotaMissed(shepherd, left) {
-    this.floatText(left > 0 ? `QUOTA MISSED · ${'❤️'.repeat(left)} left` : 'QUOTA MISSED', { follow: shepherd, offsetY: 4.4, cls: 'danger', duration: 2.4, size: 30 });
+  quotaMissed(shepherd) {
+    this.floatText('NOT ENOUGH SHEEP', { follow: shepherd, offsetY: 4.4, cls: 'danger', duration: 2.4, size: 30 });
     this.flash('rgba(201, 87, 69, 0.3)');
     this.shake(0.06, 200);
     this.sfx.lost();
@@ -217,8 +218,8 @@ export class Juice {
     this.floatText(`${count} sold at market: +${wool} 🧶`, { follow: shepherd, offsetY: 4.2, cls: 'good', duration: 2 });
   }
 
-  combo(dog, count, bonus) {
-    this.floatText(`COMBO ×${count}! +${bonus}`, { follow: dog, offsetY: 3.9, cls: 'combo', duration: 1.2, size: Math.min(22 + count * 4, 44) });
+  combo(dog, count) {
+    this.floatText(`COMBO ×${count}!`, { follow: dog, offsetY: 3.9, cls: 'combo', duration: 1.2, size: Math.min(22 + count * 4, 44) });
     this.particles.sparkle(tmp.copy(dog.position).setY(1.5), 4 + count * 2, [0xfff3b0, COLORS.accent, 0xffffff]);
     this.sfx.combo(count);
   }
@@ -307,8 +308,8 @@ export class Juice {
     this.floatText('YIP!', { follow: wolf, offsetY: 1.8, cls: 'warn', duration: 0.8 });
   }
 
-  pupCombo(wolf, points) {
-    this.floatText(`PUP PACK! +${points}`, { position: wolf.position, offsetY: 3, cls: 'big', duration: 1.5 });
+  pupCombo(wolf) {
+    this.floatText('PUP PACK!', { position: wolf.position, offsetY: 3, cls: 'big', duration: 1.5 });
     this.particles.sparkle(tmp.copy(wolf.position).setY(1), 12);
   }
 
@@ -353,8 +354,8 @@ export class Juice {
     this.sfx.growl();
   }
 
-  sheepSaved(sheep, points) {
-    this.floatText(`SAVED! +${points}`, { position: sheep.position, offsetY: 2.2, cls: 'good', duration: 1.3 });
+  sheepSaved(sheep) {
+    this.floatText('SAVED!', { position: sheep.position, offsetY: 2.2, cls: 'good', duration: 1.3 });
     this.particles.sparkle(tmp.copy(sheep.position).setY(1), 12);
     this.sfx.saved();
   }

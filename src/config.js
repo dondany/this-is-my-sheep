@@ -92,7 +92,7 @@ export const DOG = {
 };
 
 // Shearing Day: wool comes from the flock. At the end of each wave every surviving sheep is sheared
-// for its type's `wool`, plus a calm bonus; scaring wolves only earns score.
+// for its type's `wool`, plus a calm bonus.
 export const SHEARING = {
   calmBonus: 1 / 3, // extra wool per calm sheep (never grabbed, never panicked for long), rounded down
   calmStress: 2, // seconds of panic a sheep can take and still count as calm
@@ -272,7 +272,6 @@ export const BLACK = {
   followers: 3,
   recruitRadius: 6,
   cutOffRadius: 3.5, // the dog this close to the black sheep ends the stampede
-  points: 10,
 };
 
 // The rest of the flock-side types start from a normal sheep and override a few values.
@@ -321,7 +320,6 @@ export const DISGUISE = {
   reveal: [15, 25], // seconds into the wave before it throws off the sheepskin
   sniffRadius: 2.5, // the dog this close for `sniffTime` exposes it early
   sniffTime: 0.5,
-  points: 40,
 };
 
 // Rare upgrades (see src/upgrades.js)
@@ -378,7 +376,6 @@ export const WOLF_TYPES = {
     stragglerBias: 1, // 0 = always go for the nearest sheep
     skittish: false, // gives up a chase when the dog is near its target
     shove: false, // pushes sheep out of its way
-    points: 15,
   },
   // Small and fast: raids the edge of the flock, bolts at the first sign of the dog, comes back quickly.
   runner: {
@@ -392,7 +389,6 @@ export const WOLF_TYPES = {
     stragglerBias: 0,
     skittish: true,
     shove: false,
-    points: 20,
   },
   // Big and slow: one bark isn't enough, the dog has to hold its ground next to it.
   brute: {
@@ -406,7 +402,6 @@ export const WOLF_TYPES = {
     stragglerBias: 1,
     skittish: false,
     shove: true,
-    points: 40,
   },
   // Dark and low: no off-screen arrow until it's close, and it circles round to the side away from the dog.
   sneaky: {
@@ -422,7 +417,6 @@ export const WOLF_TYPES = {
     shove: false,
     hidden: true,
     flank: true,
-    points: 25,
   },
   // Leads the pack: shorter stalking for everyone, attacks together on its howl.
   // Scare it and the wolves around it run too (see ALPHA).
@@ -438,23 +432,22 @@ export const WOLF_TYPES = {
     skittish: false,
     shove: false,
     leader: true,
-    points: 50,
   },
 };
 
 Object.assign(WOLF_TYPES, {
   // Tiny, arrives in threes. Weak on its own, but the group splits up when the dog comes close.
-  pup: { ...WOLF_TYPES.normal, scale: 0.65, speed: 1.1, threatScale: 1.2, fleeTime: 1.5, grabTime: 1.6, points: 5 },
+  pup: { ...WOLF_TYPES.normal, scale: 0.65, speed: 1.1, threatScale: 1.2, fleeTime: 1.5, grabTime: 1.6 },
   // Never attacks. Howls from the tree line and makes the flock panic.
-  howler: { ...WOLF_TYPES.normal, scale: 1.15, speed: 0.9, howler: true, points: 20 },
+  howler: { ...WOLF_TYPES.normal, scale: 1.15, speed: 0.9, howler: true },
   // Fox-like feinter: fakes an attack on one side, then switches to the far side once the dog commits.
-  trickster: { ...WOLF_TYPES.normal, scale: 0.95, speed: 1.3, stalk: 0.8, threatScale: 1.4, fleeTime: 1.2, feint: true, points: 30 },
+  trickster: { ...WOLF_TYPES.normal, scale: 0.95, speed: 1.3, stalk: 0.8, threatScale: 1.4, fleeTime: 1.2, feint: true },
   // Doesn't take sheep: dashes through the flock and scatters it (see RASCAL).
-  rascal: { ...WOLF_TYPES.normal, scale: 1.05, stalk: 0.8, rascal: true, points: 15 },
+  rascal: { ...WOLF_TYPES.normal, scale: 1.05, stalk: 0.8, rascal: true },
   // The final boss (see BOSS): huge, needs the dog next to it for 3 s, leads the pack, shoves sheep.
-  greymuzzle: { ...WOLF_TYPES.normal, scale: 2.3, speed: 0.85, stalk: 0.6, fleeTime: 1.2, courage: 3, grabTime: 0.6, shove: true, leader: true, boss: true, points: 150 },
+  greymuzzle: { ...WOLF_TYPES.normal, scale: 2.3, speed: 0.85, stalk: 0.6, fleeTime: 1.2, courage: 3, grabTime: 0.6, shove: true, leader: true, boss: true },
   // What's under the sheepskin (see DISGUISE).
-  disguised: { ...WOLF_TYPES.normal, points: 40 },
+  disguised: { ...WOLF_TYPES.normal },
 });
 
 // Rascal: a young wolf that doesn't hunt. It sprints straight through the flock a few times,
@@ -472,8 +465,7 @@ export const PUPS = {
   count: 3,
   splitRadius: 8, // the dog this close for `reaction` seconds makes the group split up
   reaction: 0.35,
-  comboWindow: 0.6, // scare all three within this many seconds for the bonus
-  comboPoints: 30,
+  comboWindow: 0.6, // scare all three within this many seconds for "PUP PACK!"
 };
 
 export const HOWLER = {
@@ -512,12 +504,11 @@ function shuffle(list) {
 export const GOAL = {
   finalWave: 15,
   stars: [15, 30], // flock size at the win for ★★ and ★★★ (★ for any survivors)
-  // The shepherd's quota: from `quotaFrom`, each wave must end with at least round(perWave × wave)
-  // sheep (the goat doesn't count). Missing it costs a strike; `strikes` misses end the run.
-  quotaFrom: 3,
-  quotaPerWave: 1.6,
+  // The shepherd's target: from `quotaFrom`, each wave must end with at least round(perWave × wave)
+  // sheep (the goat doesn't count), or the run is over.
+  quotaFrom: 4,
+  quotaPerWave: 1.25,
   quotaEndlessStep: 2, // extra sheep needed per endless wave
-  strikes: 3,
 };
 
 export function quotaFor(wave) {
@@ -567,7 +558,6 @@ export const ENDLESS = {
   extraWolves: 1, // per endless wave, on top of the normal cap of 15...
   maxWolves: 25, // ...up to this many
   flockCap: 90,
-  scoreBonus: 0.1, // score multiplier grows by this much per endless wave
   marketWool: 1, // new sheep that don't fit in the flock are sold for this much wool each
 };
 

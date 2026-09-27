@@ -13,17 +13,21 @@ Greymuzzle, with at least one sheep left, and you win the run (the top bar shows
 ★ for any survivors, ★★ for 15 or more, ★★★ for 30 or more. Wins and your best star rating are
 saved and shown on the menu.
 
-**The shepherd's quota.** From wave 3 the shepherd has orders to fill: each wave must end with at
-least 1.6 × the wave number of sheep (5 in wave 3, 8 in wave 5, 13 in wave 8, 19 in wave 12, 24 in
-the final wave; the goat doesn't count). The top bar shows "need 9 · ❤️❤️❤️" and a mark on the flock
-bar. Missing a quota costs a ❤️; the third miss ends the run ("The shepherd couldn't fill his
-orders"). So a tiny flock guarded by the dog isn't a safe strategy: the flock has to grow.
+**The shepherd's target.** From wave 4 the shepherd needs a number of sheep at the end of each wave:
+about 1.25 × the wave number (5 in wave 4, 8 in wave 6, 10 in wave 8, 15 in wave 12, 19 in the final
+wave; the goat doesn't count). It's the number after the slash on the flock counter: 🐑 12 / 9 (red
+when you're short). Bring home fewer and the run is over, like a Balatro blind ("The shepherd
+couldn't fill his orders"). So a tiny flock guarded by the dog isn't a safe strategy: the flock has
+to grow.
+
+**Only three numbers.** The top bar shows just the flock (against the target), the wave and your
+wool. There's no score: the result of a run is how far you got ("7 waves survived", the summer and
+the stars), and that's what the menu remembers as your best.
 
 Then choose **Menu** or **Keep grazing** for endless mode (like Balatro after the last ante):
 
 - one more wolf every wave (up to 25), the extra slots all special wolves, and a second alpha;
-- the quota keeps rising by 2 sheep per wave;
-- score multiplier ×1.1 for the first endless wave, ×1.2 for the second, and so on;
+- the target keeps rising by 2 sheep per wave;
 - the flock cap rises from 60 to 90, and newcomers that don't fit are sold at market for 1 wool each.
 
 ### Summers (difficulty levels)
@@ -72,7 +76,7 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🐑 | **Sleepy Sheep** (lies down, eyes shut) | 4, one per wave | Dozes on the spot: never wanders, but never flees from wolves either, and wolves like an easy target. The dog running past wakes it with a start, scattering the sheep around it. It nods off again after 20–30 s. |
 | 🐏 | **Old Ram** (horns) | 5, one per flock | Big, slow, ignores the dog and barely panics. Nearby sheep gather round him and panic less. Wolves need twice as long to take him, and he's shorn for 3 wool. If he's lost, a new ram joins next wave. |
 | 🐑 | **Golden Fleece** (gold, sparkles) | 6, then sometimes | Rare. Every wolf prefers it. Shorn for 10 wool at the end of each wave it survives. |
-| 🐑 | **Black Sheep** (dark fleece) | 7, one per flock | Every 12–18 s it stamps and snorts ("!"), then stampedes away from the flock, dragging up to 3 sheep along. Get the dog close to head it off (★ +10); otherwise it runs for 6 s or to the edge of the meadow. |
+| 🐑 | **Black Sheep** (dark fleece) | 7, one per flock | Every 12–18 s it stamps and snorts ("!"), then stampedes away from the flock, dragging up to 3 sheep along. Get the dog close to head it off; otherwise it runs for 6 s or to the edge of the meadow. |
 | 🐑 | **Bellwether** (collar and bell) | 8, one per flock | Rings its bell every 5–7 s and sheep within 10 units regroup around it. If a wolf takes it, the whole flock loses cohesion for the rest of the wave. |
 | 🐐 | **Goat** | 3, shop only | Only ever bought from the livestock card (one per run). Counts in the flock counter and takes a flock slot, but gives no wool. Charges wolves within 10 units of it and head-butts them ("BONK!"): knocked back 2.5 units, dazed for 2 s, and any sheep they were holding is freed. Stays near the flock. Wolves ignore it, and it can't keep the game going on its own. |
 
@@ -80,17 +84,17 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 
 | | Type | From wave | Behaviour |
 | --- | --- | --- | --- |
-| 🐺 | **Wolf** | 1 | Prowls the tree line, goes for stragglers, flees from one bark. ★ 15. |
-| 🐺 | **Pup Pack** (three tiny wolves) | 2 | Arrive and hunt as a group. Each pup is weak (★ 5, slow to take a sheep), and they split up once the dog has been within 8 units for a moment, so dash through them. Scare all three within 0.6 s for a ★ +30 bonus. They regroup later. |
-| 🐺 | **Runner** (tan, big ears) | 3 | 1.6× faster, barely stalks, goes for the nearest sheep. Scared from further away, gives up a chase if the dog gets near its target, and comes back quickly. ★ 20. |
-| 🐺 | **Rascal** (young, red bandana) | 3 | Doesn't take sheep. Yells "WHEEE!" and sprints straight through the middle of the flock 2–3 times, tossing sheep it hits high and wide; sheep only notice it at the last moment. Cut across its path to scare it off. ★ 15. |
-| 🐺 | **Howler** (blue-grey) | 4 | Never attacks. Prowls just inside the tree line and every 6–9 s sits back and howls: the whole flock panics and scatters away from it. Chase it off (★ 20). |
-| 🐺 | **Sneaky Wolf** (dark, low to the ground) | 5 | Silent (no howl) and has no off-screen arrow until it's about 15 units from the flock. Circles the tree line to the side of the flock away from the dog before it moves in. ★ 25. |
-| 🐺 | **Brute** (big, black, scarred) | 6 | Slow, and one bark isn't enough: keep the dog next to it for 1.5 s (fear meter over its head) and it flees. While resisting it backs off snarling and can't finish a grab. Shoves sheep aside and takes them faster. ★ 40. |
-| 🦊 | **Trickster** (orange, fox-like) | 7 | Feints: once the dog is running at it, it switches to the sheep furthest from the dog ("HEH!"). Fragile: scared from further away. ★ 30. |
-| 🐺 | **Alpha** (big, pale mane, ring on the ground) | 8, one per wave | While it's around, the other wolves stalk half as long; when it attacks it howls and every prowling wolf attacks with it. Scare it and every wolf inside its ring (10 units) flees too. ★ 50. |
-| 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early (★ 40). |
-| 👑 | **Old Greymuzzle** (boss: huge, grey muzzle, mane and scars) | 15, and every 5 endless waves | Arrives a quarter of the way into the final wave with a low howl. Needs the dog next to it for 3 s (fear meter) and leads the pack like an alpha. Must be driven off 3 times (+1 per return in endless): after each of the first ones it comes back with two fresh wolves; the last time it leaves for good and drops a 10-wool tuft. The wave can't end until it's gone (overtime). ★ 150. |
+| 🐺 | **Wolf** | 1 | Prowls the tree line, goes for stragglers, flees from one bark. |
+| 🐺 | **Pup Pack** (three tiny wolves) | 2 | Arrive and hunt as a group. Each pup is weak (slow to take a sheep), and they split up once the dog has been within 8 units for a moment, so dash through them. Scare all three within 0.6 s for a "PUP PACK!". They regroup later. |
+| 🐺 | **Runner** (tan, big ears) | 3 | 1.6× faster, barely stalks, goes for the nearest sheep. Scared from further away, gives up a chase if the dog gets near its target, and comes back quickly. |
+| 🐺 | **Rascal** (young, red bandana) | 3 | Doesn't take sheep. Yells "WHEEE!" and sprints straight through the middle of the flock 2–3 times, tossing sheep it hits high and wide; sheep only notice it at the last moment. Cut across its path to scare it off. |
+| 🐺 | **Howler** (blue-grey) | 4 | Never attacks. Prowls just inside the tree line and every 6–9 s sits back and howls: the whole flock panics and scatters away from it. Chase it off. |
+| 🐺 | **Sneaky Wolf** (dark, low to the ground) | 5 | Silent (no howl) and has no off-screen arrow until it's about 15 units from the flock. Circles the tree line to the side of the flock away from the dog before it moves in. |
+| 🐺 | **Brute** (big, black, scarred) | 6 | Slow, and one bark isn't enough: keep the dog next to it for 1.5 s (fear meter over its head) and it flees. While resisting it backs off snarling and can't finish a grab. Shoves sheep aside and takes them faster. |
+| 🦊 | **Trickster** (orange, fox-like) | 7 | Feints: once the dog is running at it, it switches to the sheep furthest from the dog ("HEH!"). Fragile: scared from further away. |
+| 🐺 | **Alpha** (big, pale mane, ring on the ground) | 8, one per wave | While it's around, the other wolves stalk half as long; when it attacks it howls and every prowling wolf attacks with it. Scare it and every wolf inside its ring (10 units) flees too. |
+| 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early. |
+| 👑 | **Old Greymuzzle** (boss: huge, grey muzzle, mane and scars) | 15, and every 5 endless waves | Arrives a quarter of the way into the final wave with a low howl. Needs the dog next to it for 3 s (fear meter) and leads the pack like an alpha. Must be driven off 3 times (+1 per return in endless): after each of the first ones it comes back with two fresh wolves; the last time it leaves for good and drops a 10-wool tuft. The wave can't end until it's gone (overtime). |
 
 From wave 2 wolves arrive in pairs from opposite sides of the meadow, and from wave 3 there's one
 extra wolf per wave, so the dog has to choose which threat to deal with first.
@@ -113,9 +117,9 @@ newcomers each wave.
   alpha pack, at most once every 0.5 s.
 - **Close calls:** rescuing a sheep with less than 0.4 s of grab time left triggers 0.4 s of
   slow motion (40% speed), a camera push-in and "CLOSE ONE!", at most once every 5 s.
-- **Combos:** scares within 2.5 s of each other chain up: "COMBO ×N" grows with the chain, scores
-  +10 per step (×2 = +10, ×3 = +20, …, capped at +90), plays a rising chime, and a badge under
-  the top bar shows the chain and how long you have to extend it.
+- **Combos:** scares within 2.5 s of each other chain up: "COMBO ×N" grows with the chain, plays a
+  rising chime, and a badge under the top bar shows the chain and how long you have to extend it.
+  Combos are pure celebration (and some achievements); they don't score anything.
 
 - **Bowling through the flock:** sheep the dog runs through at speed get knocked into a little
   bounce, tilt away from it and get nudged out of its path, with a puff of wool and a "boing"
@@ -128,12 +132,8 @@ All the numbers are in `FEEL` at the top of `src/game.js`.
 
 ## Economy: Shearing Day
 
-Two separate numbers:
-
-- **★ Score** is for bragging: scaring wolves (★ 5–50 by type), rescues (★ 25), combos, heading off
-  stampedes and so on. Your best score is saved and shown on the menu and game-over screens.
-- **🧶 Wool** is what you spend, and it only comes from the flock. At the end of each wave the
-  shepherd shears every surviving sheep:
+**🧶 Wool** is the only currency, and it only comes from the flock. At the end of each wave the
+shepherd shears every surviving sheep:
 
 | Source | Wool |
 | --- | --- |
@@ -250,7 +250,7 @@ the list is in `src/cosmetics.js`.
 
 ### Achievements
 
-37 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
+36 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
 to "Scare off 250 wolves in total" and "Keep a golden fleece alive for 3 waves". Open them with
 🏆 on the menu, pause, end-of-wave and game-over screens (opening mid-wave pauses). A card pops up
 in the corner when one unlocks. Unlocks and lifetime counters are saved in `localStorage`; the
@@ -305,7 +305,7 @@ http://localhost:8000/guide.html.
 | `src/guide.js` | Builds the internal field guide (`guide.html`) from the game's data |
 | `src/cosmetics.js` | Wardrobe items, how accessories are built, and the saved choices |
 | `src/tips.js` | First-time tips and which ones the player has seen |
-| `src/achievements.js` | The 37 achievements, lifetime counters and unlock checks |
+| `src/achievements.js` | The 36 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |
 | `src/helper.js` | AI for the Second Dog upgrade |
 

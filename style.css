@@ -1112,18 +1112,7 @@ h2 {
   }
 }
 
-/* --- Score and shearing breakdown ------------------------------------------ */
-
-.hud-score {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.hud-star {
-  color: #e5a33b;
-  text-shadow: 0 2px 0 var(--ink);
-}
+/* --- Shearing breakdown -------------------------------------------------- */
 
 .breakdown {
   margin: 0 auto 12px;
@@ -1775,25 +1764,8 @@ h2 {
   position: relative;
 }
 
-.quota-mark {
-  position: absolute;
-  top: -3px;
-  bottom: -3px;
-  width: 3px;
-  margin-left: -1px;
-  background: var(--ink);
-  border-radius: 2px;
-}
 
-.hud-quota {
-  margin-top: 2px;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--ink-soft);
-}
-
-.hud-quota.short {
+.hud-value.short {
   color: var(--danger);
 }
 
@@ -1802,7 +1774,4 @@ h2 {
   color: #4d7a2a;
 }
 
-.breakdown .quota.missed {
-  color: var(--danger);
-}
 
