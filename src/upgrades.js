@@ -8,7 +8,7 @@ export const UPGRADES = [
   { id: 'loud', group: 'dog', icon: '🎯', name: "Dog's Reach", text: "The dog's reach +1: wolves get scared and sheep herded from further away (2.5 at the start, up to 8.5).", max: 6, cost: 6, weight: 2 },
   { id: 'scary', group: 'dog', icon: '😱', name: 'Scary Bark', text: 'Scared wolves run 20% longer before coming back.', max: 3, cost: 6 },
   { id: 'brave', group: 'dog', icon: '🦴', name: 'Brave Heart', text: 'Brutes give up 25% sooner.', max: 3, cost: 8 },
-  { id: 'lungs', group: 'dog', icon: '🌬️', name: 'Deep Lungs', text: 'The Big Bark recharges 20% faster.', max: 3, cost: 8 },
+  { id: 'lungs', group: 'dog', icon: '🌬️', name: 'Deep Lungs', text: 'The Big Bark refills 20% faster on its own.', max: 3, cost: 8 },
   { id: 'booming', group: 'dog', icon: '💥', name: 'Booming Bark', text: 'The Big Bark reaches 15% further.', max: 3, cost: 8 },
   { id: 'nose', group: 'dog', icon: '👃', name: 'Nose for Wolves', text: 'Sneaky wolves show up sooner, and a wolf in sheep\'s clothing is sniffed out twice as fast.', max: 2, cost: 6 },
   { id: 'fetch', group: 'dog', icon: '🎾', name: 'Fetch!', text: 'Bounty tufts last 50% longer and are easier to grab.', max: 2, cost: 6 },

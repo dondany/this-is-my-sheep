@@ -42,7 +42,7 @@ $('dog-stats').innerHTML = `
   ${chips([
     ['Top speed', `${DOG.maxSpeed} u/s`],
     ['Reach (the ring)', `${startReach} at the start, +1 per Dog's Reach level, up to ${startReach + loud.max}`],
-    ['Big Bark', `every wolf within ${BIG_BARK.radius}, brutes included · ${BIG_BARK.cooldown} s recharge · startles sheep within ${BIG_BARK.startleRadius}`],
+    ['Big Bark', `every wolf within ${BIG_BARK.radius}, brutes included · refills in ${BIG_BARK.recharge} s on its own, and each scare adds ${Math.round(BIG_BARK.perScare * 100)}% × the combo · startles sheep within ${BIG_BARK.startleRadius}`],
     ['Running through the flock', `sheep it passes at over ${BUMP.minSpeed} u/s bounce aside`],
     ['Parking among the sheep', `they grow uneasy and keep up to ${SHEEP.pressureMax}× further away after ${SHEEP.pressureTime} s`],
   ])}
@@ -59,9 +59,9 @@ $('goal-body').innerHTML = `
   ])}
   <h3>The line</h3>
   <p>From wave ${GOAL.lineFrom}, the shepherd can spare ${Math.round(GOAL.spare * 100)}% of the sheep a wave starts with (at least ${GOAL.spareMin}; the goat doesn't count). That sets the line, the number after the slash: 🐑 12 / ${12 - spareFor(GOAL.lineFrom, 12)}. The moment the flock drops below it, the run is over. Every wave draws a fresh line, so scraping through one wave doesn't doom the next, and a bigger flock gets a bigger margin. The bar under the counter shows how many sheep you can still lose.</p>
+  ${table(['Flock at the start', ...[6, 9, 12, 16, 20, 25, 30, 40].map(String)], [['Can spare', ...[6, 9, 12, 16, 20, 25, 30, 40].map((f) => String(spareFor(GOAL.lineFrom, f)))], ['The line', ...[6, 9, 12, 16, 20, 25, 30, 40].map((f) => String(f - spareFor(GOAL.lineFrom, f)))]])}
   <h3>Last Sheep Standing</h3>
   <p>On the line, one more loss ends the run, so the dog finds a second wind: ${pct(LAST_STAND.speed)} speed and ${pct(LAST_STAND.reach)} reach. The screen edge pulses red with a heartbeat, and every grab plays in slow motion (${LAST_STAND.slowmo} s). It ends with the wave; finishing a wave on the line earns <em>Held the Line</em>.</p>
-  ${table(['Flock at the start', ...[6, 9, 12, 16, 20, 25, 30, 40].map(String)], [['Can spare', ...[6, 9, 12, 16, 20, 25, 30, 40].map((f) => String(spareFor(GOAL.lineFrom, f)))], ['The line', ...[6, 9, 12, 16, 20, 25, 30, 40].map((f) => String(f - spareFor(GOAL.lineFrom, f)))]])}
   <h3>The boss</h3>
   <p>Old Greymuzzle arrives ${Math.round(BOSS.arriveAt * 100)}% of the way into the final wave. Like a brute, the dog has to stay next to him until his fear meter fills; like an alpha, he leads the pack. He has to be driven off <strong>${BOSS.driveOffs} times</strong>, coming back with ${BOSS.reinforcements} fresh wolves after each of the first ones, and drops a ${BOSS.tuft}-wool tuft when he's gone for good. The wave can't end until he is (overtime).</p>
   <h3>Endless mode</h3>

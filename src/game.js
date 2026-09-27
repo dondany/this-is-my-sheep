@@ -153,7 +153,7 @@ export class Game {
     }
     this.punch = 0;
     this.combo = { count: 0, timer: 0 };
-    this.bigBarkTimer = 0; // cooldown left
+    this.barkCharge = 1; // the Big Bark meter, 0-1
 
     // Shared context handed to the flock and wolf systems.
     this.ctx = {
@@ -687,7 +687,7 @@ export class Game {
     this.levels = {};
     this.frozen = [];
     this.pendingAnimals.length = 0;
-    this.bigBarkTimer = 0;
+    this.barkCharge = 1;
     for (const t of this.tufts) t.destroy();
     this.tufts.length = 0;
     this.helper?.destroy();
@@ -1232,6 +1232,11 @@ export class Game {
       if (wolf.kind === 'howler') this.achievements.add('howlers');
       this.addCombo(wolf);
       this.dropBounty(wolf);
+      // Scares charge the Big Bark, more the longer the combo.
+      if (!this.barking && this.barkCharge < 1) {
+        this.barkCharge = Math.min(1, this.barkCharge + BIG_BARK.perScare * this.combo.count);
+        this.ui.chargeBigBark();
+      }
     }
     if (by === this.dog) this.dog.recoil = 1;
     const praise = by instanceof Scarecrow ? 'SCARED OFF!' : by === this.helper ? 'GOOD PUP!' : by === this.shepherd ? 'NICE SWING!' : 'GOOD DOG!';
@@ -1259,20 +1264,22 @@ export class Game {
   // Scares every wolf around the dog, brutes included, but startles nearby sheep too.
   bigBark() {
     if (!this.input.enabled) return;
-    if (this.bigBarkTimer > 0) return this.ui.denyBigBark();
+    if (this.barkCharge < 1) return this.ui.denyBigBark();
     if (this.wave < this.rules.bigBarkFrom) {
       this.juice.floatText(`Big Bark unlocks at wave ${this.rules.bigBarkFrom}`, { follow: this.dog, offsetY: 3, cls: 'warn', duration: 1.4 });
       return this.ui.denyBigBark();
     }
-    this.bigBarkTimer = BIG_BARK.cooldown * this.ctx.mods.bigBarkCooldown;
+    this.barkCharge = 0;
     const dog = this.dog;
     dog.barkAnim = 1;
     dog.barkTimer = dog.stats.barkCooldown; // the normal bark waits its turn
     const radius = BIG_BARK.radius * this.ctx.mods.bigBarkRadius;
     let scared = 0;
+    this.barking = true; // its own scares don't charge the meter
     for (const w of this.wolves) {
       if (w.position.distanceTo(dog.position) < radius && forceScare(w, this.ctx, dog)) scared++;
     }
+    this.barking = false;
     for (const s of this.sheep) {
       const d = s.position.distanceTo(dog.position);
       if (d < BIG_BARK.startleRadius && d > 1e-3 && !s.grabbedBy) {
@@ -1498,9 +1505,9 @@ export class Game {
     this.ui.updateFearMeters(this.wolves, this.world.camera, this.ctx.mods.courage);
     const boss = this.bossActive() ? this.boss : null;
     this.ui.setBoss(boss && { name: 'Old Greymuzzle', done: boss.drivesTotal - boss.drivesLeft, left: boss.drivesLeft });
-    this.bigBarkTimer = Math.max(0, this.bigBarkTimer - dt);
+    this.barkCharge = Math.min(1, this.barkCharge + dt / (BIG_BARK.recharge * this.ctx.mods.bigBarkCooldown));
     const barkLocked = this.wave < this.rules.bigBarkFrom;
-    this.ui.setBigBark(barkLocked ? 0 : 1 - this.bigBarkTimer / (BIG_BARK.cooldown * this.ctx.mods.bigBarkCooldown));
+    this.ui.setBigBark(barkLocked ? 0 : this.barkCharge);
     const c = this.combo;
     c.timer = Math.max(0, c.timer - dt);
     if (!c.timer) c.count = 0;

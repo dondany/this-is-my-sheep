@@ -59,7 +59,7 @@ Tuning: `GOAL`, `ENDLESS` and `SUMMERS` in `src/config.js`.
 | Input | Action |
 | --- | --- |
 | Click / tap the meadow | Send the dog there (hold and drag to steer) |
-| Right-click, Space, or the 🐕 button | **Big Bark**: every wolf within 12 units flees, brutes included, but sheep within 6 units get startled too. 15 s cooldown, shown on the button |
+| Right-click, Space, or the 🐕 button | **Big Bark**: every wolf within 12 units flees, brutes included, but sheep within 6 units get startled too. The button is a meter: it refills in 25 s on its own, and every wolf you scare charges it, more the longer the combo |
 | Scroll, pinch, `+` / `-` | Zoom |
 | Esc / P | Pause |
 | B | Bestiary |
@@ -124,7 +124,7 @@ newcomers each wave.
   slow motion (40% speed), a camera push-in and "CLOSE ONE!", at most once every 5 s.
 - **Combos:** scares within 2.5 s of each other chain up: "COMBO ×N" grows with the chain, plays a
   rising chime, and a badge under the top bar shows the chain and how long you have to extend it.
-  Combos are pure celebration (and some achievements); they don't score anything.
+  Combos charge the Big Bark: each scare adds 8% × the combo, so a ×4 chain fills most of it.
 
 - **Bowling through the flock:** sheep the dog runs through at speed get knocked into a little
   bounce, tilt away from it and get nudged out of its path, with a puff of wool and a "boing"
@@ -170,7 +170,7 @@ come up about a third as often.
 | 🎯 Dog's Reach | Dog | 6 | The dog's reach +1 (the ring around it): wolves inside it get scared, and sheep react to the dog from proportionally further away. 2.5 at the start, up to 8.5. Offered twice as often as other cards | 6 |
 | 😱 Scary Bark | Dog | 6 | Scared wolves run 20% longer | 3 |
 | 🦴 Brave Heart | Dog | 8 | Brutes give up 25% sooner | 3 |
-| 🌬️ Deep Lungs | Dog | 8 | Big Bark recharges 20% faster | 3 |
+| 🌬️ Deep Lungs | Dog | 8 | Big Bark refills 20% faster on its own | 3 |
 | 💥 Booming Bark | Dog | 8 | Big Bark reaches 15% further | 3 |
 | 👃 Nose for Wolves | Dog | 6 | Sneaky wolves are revealed from 50% further away; a disguise is sniffed out twice as fast | 2 |
 | 🎾 Fetch! | Dog | 6 | Bounty tufts last 50% longer and can be grabbed from 30% further | 2 |

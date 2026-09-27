@@ -131,7 +131,10 @@ export const BUMP = {
 // The dog's special move: right-click, Space, or the HUD button.
 export const BIG_BARK = {
   radius: 12, // every wolf this close flees, brutes included
-  cooldown: 15,
+  // A meter, like a fighting game's super: it refills slowly on its own, and every scare adds a
+  // chunk that grows with the combo (a ×3 scare adds 3 × perScare).
+  recharge: 25, // seconds to refill on its own
+  perScare: 0.08,
   startleRadius: 6, // sheep this close to the dog get startled too
 };
 

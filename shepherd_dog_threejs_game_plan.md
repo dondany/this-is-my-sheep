@@ -2664,3 +2664,23 @@ becomes the best moment of a run instead of dead time.
 -   Bots, 4 runs each, line at half the flock: strong won 4/4 (★★★, ★★,
     ★★, ★★★; was 2/4 without it); average ended at waves 6-7, often
     after finishing a wave or two on the line; casual at 2-4.
+
+------------------------------------------------------------------------
+
+# 90. The Bark Meter: Combos Charge the Big Bark (implemented)
+
+With score gone (section 86) combos gave nothing. Borrowed from the
+Hades Call gauge and fighting-game super meters: the Big Bark is no
+longer on a timer but a meter that combos fill.
+
+-   `BIG_BARK.recharge` (25 s) to refill on its own (Deep Lungs makes it
+    20% faster per level); each counted scare adds `perScare` (8%) ×
+    the combo count: a ×2 adds 16%, ×3 24%, so a ×4 chain (80%) nearly
+    fills it. The Big Bark's own scares don't charge it.
+-   The button's sweep shows the meter; it pops when a scare charges it.
+-   It closes the loop with sections 88-89: aggressive chains earn
+    barks, and barks are what save grabs on the line.
+-   Bots, 4 runs each, line at half the flock: strong won 3/4 (★★, ★★★,
+    ★★★); the average bot without the Big Bark ends at waves 6-8, with
+    it (as a human would) at 8 and 10 and won twice (★★, and ★ after
+    holding the line through waves 13-15); casual at 2-3.

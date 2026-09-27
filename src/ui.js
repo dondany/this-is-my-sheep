@@ -95,6 +95,16 @@ export class UI {
     });
   }
 
+  // A scare topped up the meter: a quick pop on the button.
+  chargeBigBark() {
+    const btn = $('btn-bigbark');
+    btn.classList.remove('charge');
+    void btn.offsetWidth;
+    btn.classList.add('charge');
+    clearTimeout(this.chargeTimer);
+    this.chargeTimer = setTimeout(() => btn.classList.remove('charge'), 300); // hand the animation back to .ready
+  }
+
   denyBigBark() {
     const btn = $('btn-bigbark');
     btn.classList.remove('deny');

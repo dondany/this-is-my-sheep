@@ -1103,6 +1103,16 @@ body[data-effects='off'] #last-stand.on {
   transform: translateY(3px);
 }
 
+.bigbark-btn.charge {
+  animation: bigbark-charge 0.3s ease-out;
+}
+
+@keyframes bigbark-charge {
+  40% {
+    transform: scale(1.12);
+  }
+}
+
 .bigbark-btn.deny {
   animation: bigbark-deny 0.3s;
 }
