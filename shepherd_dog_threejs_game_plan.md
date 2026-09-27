@@ -2713,3 +2713,22 @@ threats and make every mistake cost.
     from wave 10 and runners from wave 8; a second alpha in endless).
     The kinds new to a wave always come (the banner announces them), and
     so does the alpha. The field guide's wave table shows one draw.
+
+------------------------------------------------------------------------
+
+# 92. Every Sheep Counts: Fewer Free Sheep, a Smaller Second Wind (implemented)
+
+Second half of section 91.
+
+-   One plain newcomer a wave after wave 1 (was two up to wave 7), so a
+    big flock is earned (lambs, shop livestock, keeping sheep alive)
+    rather than handed out, and stars mean more.
+-   Last Sheep Standing boost cut to +15% speed and +20% reach (was
+    +25% / +30%): a clutch moment, not a safety net.
+-   Bots with sections 91-92, 5 runs each: the strong bot won 1 of 5
+    (★★★; the others died at waves 7-10, mostly one sheep over the
+    line); the average bot (using the Big Bark) ends at waves 5-10,
+    median 7; the casual one at 2-3. Losses per wave: 0-3 early and
+    5-10 late, against margins of 2-10. With 2 + one in five the strong
+    bot won 4 of 5, all close; the final choice leans hard because the
+    first playtest win came easily.

@@ -517,8 +517,8 @@ export const GOAL = {
 
 // Last Sheep Standing: on the line (one more loss ends the run) the dog finds a second wind.
 export const LAST_STAND = {
-  speed: 1.25, // dog speed and acceleration
-  reach: 1.3, // the dog's reach (threat radius)
+  speed: 1.15, // dog speed and acceleration
+  reach: 1.2, // the dog's reach (threat radius)
   heartbeat: 0.85, // seconds between heartbeats
   slowmo: 0.6, // real seconds of slow motion when a wolf grabs a sheep on the line
 };
@@ -656,7 +656,7 @@ export function waveConfig(wave, rules = summerRules(1)) {
     // New arrivals each wave. The flock starts small, and later waves bring fewer plain sheep and
     // more troublemakers (wanderers, sleepy sheep, black sheep), so it gets harder to manage
     // rather than just bigger.
-    newSheep: wave === 1 ? 6 + rules.startSheep : wave < 8 ? 2 : 1, // plain sheep
+    newSheep: wave === 1 ? 6 + rules.startSheep : 1, // plain sheep
     wanderers: wave < FIRST_WAVE.wanderer ? 0 : wave < 6 ? 1 : 2,
     lambs: wave < FIRST_WAVE.lamb ? 0 : 1, // each is paired with a mother
     sleepy: wave < FIRST_WAVE.sleepy ? 0 : wave < 7 ? 1 : 2,

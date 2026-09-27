@@ -21,7 +21,7 @@ wave. Every wave draws a fresh line, so scraping through one wave doesn't doom t
 Balatro blind). The margin is small on purpose: every lost sheep matters. Wave 1 is free, to learn the controls.
 
 **Last Sheep Standing.** On the line, one more loss ends the run, so the dog finds a second wind:
-+25% speed and +30% reach, the screen edge pulses red with a heartbeat ("HOLD THE LINE!"), and every
++15% speed and +20% reach, the screen edge pulses red with a heartbeat ("HOLD THE LINE!"), and every
 grab plays in slow motion so you can see it coming (`LAST_STAND` in `src/config.js`). Finishing a
 wave on the line earns *Held the Line*.
 
@@ -107,8 +107,8 @@ new to a wave always come, and so does the alpha once it's around.
 Sheep walk on away from the dog when it comes close, which is what makes herding strays back work.
 Sheep keep a little personal space: two sheep closer than 1.8 units (scaled by size) are gently
 pushed apart every frame, so the flock can't clog into one heap (Herding Instinct lets them stand
-closer). The flock starts with 6 sheep and grows by a handful each wave (two plain sheep a wave up to wave 7,
-then one; capped at 60). Later waves bring
+closer). The flock starts with 6 sheep and grows by a handful each wave (one plain sheep a wave plus the
+troublemakers; capped at 60), so a big flock is something you earn. Later waves bring
 fewer plain sheep and more troublemakers: wanderers and sleepy sheep go up to two a wave, and a
 second black sheep joins from wave 10. The flock doesn't stay put: every 20–35 s the shepherd leads it to a new grazing spot ("This way,
 girls!"), grazing sheep spread out, and sheep grow uneasy around a dog that parks among them (the
