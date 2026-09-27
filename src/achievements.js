@@ -1,6 +1,6 @@
 import { ENTRIES } from './bestiary.js';
 
-// Achievements: 36 goals across runs. Lifetime counters (`life`) and this run's records (`run`) are
+// Achievements: 37 goals across runs. Lifetime counters (`life`) and this run's records (`run`) are
 // updated by the game; `check()` unlocks anything newly met. Unlocks and lifetime counters are saved
 // in localStorage.
 
@@ -20,6 +20,7 @@ export const ACHIEVEMENTS = [
   { id: 'endless20', group: 'Waves', icon: '🌙', name: 'Indian Summer', text: 'Finish wave 20 (endless).', done: (l, r) => r.wave >= 20 },
   { id: 'endless25', group: 'Waves', icon: '❄️', name: 'First Frost', text: 'Finish wave 25 (endless).', done: (l, r) => r.wave >= 25 },
   { id: 'perfect', group: 'Waves', icon: '✨', name: 'Not One Lost', text: 'Finish a wave (from wave 2 on) without losing a sheep.', done: (l, r) => r.perfectWave },
+  { id: 'heldLine', group: 'Waves', icon: '❤️‍🔥', name: 'Held the Line', text: 'Finish a wave right on the line, without a single sheep to spare.', done: (l) => l.heldLine >= 1 },
   { id: 'flawless5', group: 'Waves', icon: '💎', name: 'Flawless Five', text: 'Finish waves 1 to 5 without losing a single sheep.', done: (l, r) => r.wave >= 5 && r.lostBy5 === 0 },
   // --- Wolves
   { id: 'scare10', group: 'Wolves', icon: '🐺', name: 'Shoo!', text: 'Scare off 10 wolves.', done: (l) => l.scares >= 10 },

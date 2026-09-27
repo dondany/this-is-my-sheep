@@ -68,6 +68,11 @@ export class UI {
     this.set('wool', wool, (v) => (this.el.wool.textContent = v));
   }
 
+  // The red, pulsing edge of the screen while the flock is on the line.
+  setLastStand(on) {
+    $('last-stand').classList.toggle('on', on);
+  }
+
   setCombo(count, left) {
     this.set('combo', count >= 2 ? count : 0, (n) => {
       $('hud-combo').classList.toggle('hidden', !n);
@@ -126,6 +131,7 @@ export class UI {
   setEffects(level) {
     const label = { full: 'Full', reduced: 'Reduced', off: 'Off' }[level];
     document.querySelectorAll('.effects-btn').forEach((b) => (b.textContent = `✨ Screen effects: ${label}`));
+    document.body.dataset.effects = level;
   }
 
   setMuted(muted) {

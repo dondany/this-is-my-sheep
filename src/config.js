@@ -511,6 +511,14 @@ export const GOAL = {
   spareMin: 2,
 };
 
+// Last Sheep Standing: on the line (one more loss ends the run) the dog finds a second wind.
+export const LAST_STAND = {
+  speed: 1.25, // dog speed and acceleration
+  reach: 1.3, // the dog's reach (threat radius)
+  heartbeat: 0.85, // seconds between heartbeats
+  slowmo: 0.6, // real seconds of slow motion when a wolf grabs a sheep on the line
+};
+
 // How many sheep the shepherd can spare this wave (Infinity before the line starts).
 export function spareFor(wave, flock) {
   if (wave < GOAL.lineFrom) return Infinity;

@@ -200,6 +200,12 @@ export class Sfx {
     this.tone({ type: 'sine', freq: 1320, dur: 0.7, gain: 0.05, attack: 0.005, at: 0.18 });
   }
 
+  heartbeat() {
+    if (!this.ready) return;
+    this.tone({ type: 'sine', freq: 62, freqEnd: 44, dur: 0.14, gain: 0.4, attack: 0.005, filter: 'lowpass', filterFreq: 200 });
+    this.tone({ type: 'sine', freq: 56, freqEnd: 40, dur: 0.16, gain: 0.3, attack: 0.005, at: 0.2, filter: 'lowpass', filterFreq: 200 });
+  }
+
   bonk() {
     if (!this.ready) return;
     this.tone({ type: 'triangle', freq: 220, freqEnd: 90, dur: 0.18, gain: 0.25 });

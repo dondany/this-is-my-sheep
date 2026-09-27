@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GOAL, lineFor, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { GOAL, lineFor, LAST_STAND, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -243,6 +243,11 @@ export class Game {
       onSheepGrabbed: (s, w) => {
         this.juice.sheepGrabbed(s);
         this.tip('grabbed');
+        // On the line every grab could end the run: play it in slow motion.
+        if (this.lastStand && this.effects === 'full') {
+          this.slowmo = LAST_STAND.slowmo;
+          this.punch = 1;
+        }
       },
       onSheepSaved: (s, w) => this.onSheepSaved(s, w),
       onSheepLost: (s, w) => this.onSheepLost(s, w),
@@ -473,6 +478,9 @@ export class Game {
         fleeTime: s.fleeTime,
       });
     }
+    const d = this.dog.stats;
+    this.dogBase = { maxSpeed: d.maxSpeed, acceleration: d.acceleration, threatRadius: d.threatRadius };
+    this.applyLastStand();
     // Shepherd's Crook: the shepherd becomes a (short-range) guard too.
     this.shepherd.stats.threatRadius = mods.crook;
     const guards = this.ctx.guards;
@@ -653,6 +661,7 @@ export class Game {
   // Clear the field and all per-run state (used by New Game and Continue).
   resetRun() {
     this.line = 0;
+    this.heartbeat = 0;
     this.lineStart = 0;
     for (const w of this.wolves) w.destroy();
     this.wolves.length = 0;
@@ -787,6 +796,8 @@ export class Game {
       w.howling = 0;
       if (w.state !== 'FLEE') w.state = 'LEAVE';
     }
+
+    if (this.line && this.sheepCount() === this.line) this.achievements.add('heldLine');
 
     // Shearing Day: every surviving sheep pays its wool, calm ones a little extra.
     const flock = this.sheep.filter((s) => !s.type.fake);
@@ -1371,6 +1382,33 @@ export class Game {
     if (this.sheepCount() === 0 && this.state === STATE.PLAYING) this.gameOver();
   }
 
+  // Last Sheep Standing: on the line, one more loss ends the run, so the dog finds a second wind
+  // (faster, bigger reach), the screen closes in with a heartbeat and every grab plays in slow motion.
+  updateLastStand(dt) {
+    const on = this.state === STATE.PLAYING && this.line > 0 && this.sheepCount() <= this.line;
+    if (on !== !!this.lastStand) {
+      this.lastStand = on;
+      this.applyLastStand();
+      this.ui.setLastStand(on);
+      if (on) {
+        this.juice.lastStand(this.dog);
+        this.tip('lastStand');
+        this.heartbeat = 0;
+      }
+    }
+    if (on && (this.heartbeat -= dt) <= 0) {
+      this.heartbeat = LAST_STAND.heartbeat;
+      this.sfx.heartbeat();
+    }
+  }
+
+  applyLastStand() {
+    const b = this.dogBase;
+    if (!b) return;
+    const k = this.lastStand ? LAST_STAND : { speed: 1, reach: 1 };
+    Object.assign(this.dog.stats, { maxSpeed: b.maxSpeed * k.speed, acceleration: b.acceleration * k.speed, threatRadius: b.threatRadius * k.reach });
+  }
+
   zoomBy(factor) {
     this.zoom = THREE.MathUtils.clamp(this.zoom * factor, ZOOM.min, ZOOM.max);
   }
@@ -1443,6 +1481,7 @@ export class Game {
         break;
     }
 
+    this.updateLastStand(dt);
     this.simulate(dt);
     if (this.state !== STATE.MENU) {
       if (this.state === STATE.PLAYING && !this.tips.seen.has('wolfComing') && this.wolves.some((w) => w.state === 'APPROACH')) this.tip('wolfComing');

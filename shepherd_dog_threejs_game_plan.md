@@ -2641,3 +2641,26 @@ the Spire's rest sites).
     catastrophic late wave, 16-20 sheep, ends the others at 10 and 15).
     Section 89 (the last stand) and 90 (the bark meter) are the comeback
     tools; the share is re-tuned after them.
+
+------------------------------------------------------------------------
+
+# 89. Last Sheep Standing (implemented)
+
+On the line (flock = line, so one more loss ends the run) the dog finds
+a second wind, like Hollow Knight's Fury of the Fallen or Smash's rage:
+you're most dangerous when you're closest to losing. The edge of losing
+becomes the best moment of a run instead of dead time.
+
+-   `LAST_STAND` in `src/config.js`: dog speed and acceleration ×1.25,
+    reach ×1.3 (applied on top of upgrades: `applyUpgrades()` keeps
+    `dogBase`, `applyLastStand()` scales it; the helper isn't boosted).
+-   `#last-stand`: a red inset glow round the screen that pulses with a
+    synthesized heartbeat every 0.85 s (static with Screen effects
+    off); "HOLD THE LINE!" over the dog; a first-time tip.
+-   Every grab on the line gets 0.6 s of slow motion and a camera push
+    (Screen effects: Full only).
+-   Ends when the wave does. Achievement *Held the Line*: finish a wave
+    exactly on the line (37 in total).
+-   Bots, 4 runs each, line at half the flock: strong won 4/4 (★★★, ★★,
+    ★★, ★★★; was 2/4 without it); average ended at waves 6-7, often
+    after finishing a wave or two on the line; casual at 2-4.

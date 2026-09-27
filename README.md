@@ -20,6 +20,11 @@ the flock drops below it, the run is over ("The shepherd called it off"): no wai
 wave. Every wave draws a fresh line, so scraping through one wave doesn't doom the next (like a
 Balatro blind), and a bigger flock gets a bigger margin. Wave 1 is free, to learn the controls.
 
+**Last Sheep Standing.** On the line, one more loss ends the run, so the dog finds a second wind:
++25% speed and +30% reach, the screen edge pulses red with a heartbeat ("HOLD THE LINE!"), and every
+grab plays in slow motion so you can see it coming (`LAST_STAND` in `src/config.js`). Finishing a
+wave on the line earns *Held the Line*.
+
 **Only three numbers.** The top bar shows just the flock (against the line), the wave and your
 wool. There's no score: the result of a run is how far you got ("7 waves survived", the summer and
 the stars), and that's what the menu remembers as your best.
@@ -250,7 +255,7 @@ the list is in `src/cosmetics.js`.
 
 ### Achievements
 
-36 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
+37 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
 to "Scare off 250 wolves in total" and "Keep a golden fleece alive for 3 waves". Open them with
 🏆 on the menu, pause, end-of-wave and game-over screens (opening mid-wave pauses). A card pops up
 in the corner when one unlocks. Unlocks and lifetime counters are saved in `localStorage`; the
@@ -305,7 +310,7 @@ http://localhost:8000/guide.html.
 | `src/guide.js` | Builds the internal field guide (`guide.html`) from the game's data |
 | `src/cosmetics.js` | Wardrobe items, how accessories are built, and the saved choices |
 | `src/tips.js` | First-time tips and which ones the player has seen |
-| `src/achievements.js` | The 36 achievements, lifetime counters and unlock checks |
+| `src/achievements.js` | The 37 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |
 | `src/helper.js` | AI for the Second Dog upgrade |
 

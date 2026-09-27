@@ -207,6 +207,11 @@ export class Juice {
     this.sfx.waveComplete();
   }
 
+  lastStand(dog) {
+    this.floatText('HOLD THE LINE!', { follow: dog, offsetY: 3.2, cls: 'danger', duration: 1.8, size: 34 });
+    this.flash('rgba(201, 87, 69, 0.25)');
+  }
+
   lineCrossed(shepherd) {
     this.floatText('TOO MANY LOST', { follow: shepherd, offsetY: 4.4, cls: 'danger', duration: 2.4, size: 30 });
     this.flash('rgba(201, 87, 69, 0.3)');
