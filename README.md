@@ -13,9 +13,9 @@ Greymuzzle, with at least one sheep left, and you win the run (the top bar shows
 ★ for any survivors, ★★ for 15 or more, ★★★ for 30 or more. Wins and your best star rating are
 saved and shown on the menu.
 
-**The shepherd's target.** From wave 4 the shepherd needs a number of sheep at the end of each wave:
-about 1.25 × the wave number (5 in wave 4, 8 in wave 6, 10 in wave 8, 15 in wave 12, 19 in the final
-wave; the goat doesn't count). It's the number after the slash on the flock counter: 🐑 12 / 9 (red
+**The shepherd's target.** From wave 2 the shepherd needs a number of sheep at the end of each wave:
+the wave number + 3 (5 in wave 2, 8 in wave 5, 13 in wave 10, 18 in the final wave; the goat doesn't
+count). Wave 1 is free, to learn the controls. It's the number after the slash on the flock counter: 🐑 12 / 9 (red
 when you're short). Bring home fewer and the run is over, like a Balatro blind ("The shepherd
 couldn't fill his orders"). So a tiny flock guarded by the dog isn't a safe strategy: the flock has
 to grow.
@@ -96,12 +96,13 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early. |
 | 👑 | **Old Greymuzzle** (boss: huge, grey muzzle, mane and scars) | 15, and every 5 endless waves | Arrives a quarter of the way into the final wave with a low howl. Needs the dog next to it for 3 s (fear meter) and leads the pack like an alpha. Must be driven off 3 times (+1 per return in endless): after each of the first ones it comes back with two fresh wolves; the last time it leaves for good and drops a 10-wool tuft. The wave can't end until it's gone (overtime). |
 
-From wave 2 wolves arrive in pairs from opposite sides of the meadow, and from wave 3 there's one
-extra wolf per wave, so the dog has to choose which threat to deal with first.
+Wolves arrive in pairs from opposite sides of the meadow, 3 in wave 1 and one more each wave (up to
+15), so the dog has to choose which threat to deal with first from the very start.
 Sheep walk on away from the dog when it comes close, which is what makes herding strays back work.
 Sheep keep a little personal space: two sheep closer than 1.8 units (scaled by size) are gently
 pushed apart every frame, so the flock can't clog into one heap (Herding Instinct lets them stand
-closer). The flock starts with 6 sheep and grows by a handful each wave (capped at 60). Later waves bring
+closer). The flock starts with 6 sheep and grows by a handful each wave (two plain sheep a wave up to wave 7,
+then one; capped at 60). Later waves bring
 fewer plain sheep and more troublemakers: wanderers and sleepy sheep go up to two a wave, and a
 second black sheep joins from wave 10. The flock doesn't stay put: every 20–35 s the shepherd leads it to a new grazing spot ("This way,
 girls!"), grazing sheep spread out, and sheep grow uneasy around a dog that parks among them (the

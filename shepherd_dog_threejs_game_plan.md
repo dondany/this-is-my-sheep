@@ -2582,3 +2582,27 @@ Breach has grid power; Slay the Spire has HP and gold. Our flock already
     ★★★, one close call at 17 / 15 on wave 12); average ends at waves
     7-8 (its flock collapses in wave 7 regardless of the target);
     casual at 4 (its flock is down to 0-2 by then anyway).
+
+------------------------------------------------------------------------
+
+# 87. Challenging From the Start (implemented)
+
+Playtest: after section 86 the first waves still felt free; the target
+only started at wave 4 and the bots lost almost nothing in waves 1-3,
+then hit a cliff around waves 6-8.
+
+-   Target from wave 2: **wave + 3** (5, 6, 7 … 18 at wave 15;
+    `GOAL.quotaFrom`, `GOAL.quotaExtra`), still +2 per endless wave.
+    Easy to explain ("one more sheep every wave") and it bites early:
+    the flock has to keep growing from the first shop on.
+-   No wolf ease-in: 3 wolves in wave 1, 4 in wave 2 (was 2 and 3),
+    then 2 + wave as before; they come in pairs from wave 1.
+-   To soften the midgame cliff, two plain newcomers a wave up to wave 7
+    (was up to wave 4).
+-   Tried and dropped: shorter stalking in the first waves (difficulty
+    starting at 1.15). The average bot died at waves 4-7.
+-   Bots through wave 15, 4 runs each: strong won 3/4 (★★★, ★★★, ★★;
+    one lost at wave 12 after a bad wave 10); average loses 1-4 sheep
+    per wave from wave 2, with close calls throughout, and ends at waves
+    8-11 (median 9, was 7-8); the very slow casual bot ends at waves
+    2-3.

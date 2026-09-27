@@ -504,17 +504,17 @@ function shuffle(list) {
 export const GOAL = {
   finalWave: 15,
   stars: [15, 30], // flock size at the win for ★★ and ★★★ (★ for any survivors)
-  // The shepherd's target: from `quotaFrom`, each wave must end with at least round(perWave × wave)
+  // The shepherd's target: from `quotaFrom`, each wave must end with at least wave + `quotaExtra`
   // sheep (the goat doesn't count), or the run is over.
-  quotaFrom: 4,
-  quotaPerWave: 1.25,
+  quotaFrom: 2,
+  quotaExtra: 3,
   quotaEndlessStep: 2, // extra sheep needed per endless wave
 };
 
 export function quotaFor(wave) {
   if (wave < GOAL.quotaFrom) return 0;
-  if (wave <= GOAL.finalWave) return Math.round(GOAL.quotaPerWave * wave);
-  return Math.round(GOAL.quotaPerWave * GOAL.finalWave) + (wave - GOAL.finalWave) * GOAL.quotaEndlessStep;
+  if (wave <= GOAL.finalWave) return wave + GOAL.quotaExtra;
+  return GOAL.finalWave + GOAL.quotaExtra + (wave - GOAL.finalWave) * GOAL.quotaEndlessStep;
 }
 
 // Old Greymuzzle, the final boss: arrives partway through the final wave (and every 5 endless
@@ -608,8 +608,7 @@ export function wolfPack(wave, count, rules = summerRules(1)) {
 
 function wolfCount(wave, rules) {
   const endless = Math.max(0, wave - GOAL.finalWave);
-  // Waves 1-2 ease you in; from wave 3 there's one extra wolf.
-  const base = endless ? Math.min(15 + endless * ENDLESS.extraWolves, ENDLESS.maxWolves) : wave < 3 ? 1 + wave : Math.min(2 + wave, 15);
+  const base = endless ? Math.min(15 + endless * ENDLESS.extraWolves, ENDLESS.maxWolves) : Math.min(2 + wave, 15);
   return base + rules.extraWolves;
 }
 
@@ -621,7 +620,7 @@ export function waveConfig(wave, rules = summerRules(1)) {
     // New arrivals each wave. The flock starts small, and later waves bring fewer plain sheep and
     // more troublemakers (wanderers, sleepy sheep, black sheep), so it gets harder to manage
     // rather than just bigger.
-    newSheep: wave === 1 ? 6 + rules.startSheep : wave < 5 ? 2 : 1, // plain sheep
+    newSheep: wave === 1 ? 6 + rules.startSheep : wave < 8 ? 2 : 1, // plain sheep
     wanderers: wave < FIRST_WAVE.wanderer ? 0 : wave < 6 ? 1 : 2,
     lambs: wave < FIRST_WAVE.lamb ? 0 : 1, // each is paired with a mother
     sleepy: wave < FIRST_WAVE.sleepy ? 0 : wave < 7 ? 1 : 2,
@@ -634,7 +633,7 @@ export function waveConfig(wave, rules = summerRules(1)) {
     wolves: wolfCount(wave, rules),
     duration: Math.min(40 + wave * 5, 90),
     spawnInterval: Math.max(2, 7 - wave * 0.5),
-    pairs: wave >= 2, // wolves arrive two at a time, from opposite sides
+    pairs: true, // wolves arrive two at a time, from opposite sides
     // Pressure comes mostly from more wolves and shorter stalking, not raw speed.
     wolfSpeed: Math.min(1 + (wave - 1) * 0.05, 1.5),
     stalkMin: (2 / difficulty) * rules.stalk,

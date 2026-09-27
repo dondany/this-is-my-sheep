@@ -9,9 +9,9 @@ Ideas not built yet: fence posts along one side of the meadow. More cosmetics (t
 in): shepherd outfits, sheep with bows or bells, more meadow themes (snow for endless mode).
 
 ## Balance
-- Needs checking with real players. Bots (design doc sections 68, 70, 76, 86) suggest a strong player
-  wins Summer 1 with ★★ and an average one scrapes a ★, but bots go straight for whatever is most
-  urgent, so real runs will likely be harder.
+- Needs checking with real players. Bots (design doc sections 68, 70, 76, 86, 87) suggest a strong player
+  wins Summer 1 most of the time (★★-★★★) and an average one ends around wave 9, but bots go
+  straight for whatever is most urgent, so real runs may feel different.
 - Wanderers, black sheep and golden fleeces are usually lost within a wave or two when nobody herds
   them. That may be fine; worth watching in real play.
 
