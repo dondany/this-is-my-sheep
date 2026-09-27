@@ -2,7 +2,7 @@
 // it stays in sync with the code. Not linked from the game.
 
 import {
-  quotaFor, DOG, BIG_BARK, BUMP, ROAM, SHEEP, SHEEP_TYPES, WOLF, WOLF_TYPES, FIRST_WAVE, GOAL, ENDLESS, BOSS, SUMMERS,
+  spareFor, DOG, BIG_BARK, BUMP, ROAM, SHEEP, SHEEP_TYPES, WOLF, WOLF_TYPES, FIRST_WAVE, GOAL, ENDLESS, BOSS, SUMMERS,
   SHEARING, BOUNTY, GOAT, LAMB, BLACK, BELL, SLEEPY, GOLDEN, DISGUISE, RAM_CALM, RASCAL, PUPS, HOWLER,
   TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, waveConfig,
 } from './config.js';
@@ -51,15 +51,15 @@ $('dog-stats').innerHTML = `
 // --- Goal ---------------------------------------------------------------------
 
 $('goal-body').innerHTML = `
-  <p>Survive <strong>wave ${GOAL.finalWave}</strong>, drive off the boss, <strong>Old Greymuzzle</strong>, and bring home the shepherd's final target (${quotaFor(GOAL.finalWave)} sheep), and you win the run. Bringing home fewer sheep than any wave's target ends it. The win screen rates the flock you brought home:</p>
+  <p>Survive <strong>wave ${GOAL.finalWave}</strong>, drive off the boss, <strong>Old Greymuzzle</strong>, and you win the run. Losing more sheep in a wave than the shepherd can spare ends it on the spot. The win screen rates the flock you brought home:</p>
   ${chips([
     ['★', 'any survivors'],
     ['★★', `${GOAL.stars[0]}+ sheep`],
     ['★★★', `${GOAL.stars[1]}+ sheep`],
   ])}
-  <h3>The shepherd's target</h3>
-  <p>From wave ${GOAL.quotaFrom}, each wave must end with at least this many sheep (the goat doesn't count), or the run is over. The HUD shows it after the slash: 🐑 12 / 9. It keeps rising by ${GOAL.quotaEndlessStep} per wave in endless mode.</p>
-  ${table(['Wave', ...Array.from({ length: GOAL.finalWave - GOAL.quotaFrom + 1 }, (_, i) => String(GOAL.quotaFrom + i))], [['Sheep needed', ...Array.from({ length: GOAL.finalWave - GOAL.quotaFrom + 1 }, (_, i) => String(quotaFor(GOAL.quotaFrom + i)))]])}
+  <h3>The line</h3>
+  <p>From wave ${GOAL.lineFrom}, the shepherd can spare ${Math.round(GOAL.spare * 100)}% of the sheep a wave starts with (at least ${GOAL.spareMin}; the goat doesn't count). That sets the line, the number after the slash: 🐑 12 / ${12 - spareFor(GOAL.lineFrom, 12)}. The moment the flock drops below it, the run is over. Every wave draws a fresh line, so scraping through one wave doesn't doom the next, and a bigger flock gets a bigger margin. The bar under the counter shows how many sheep you can still lose.</p>
+  ${table(['Flock at the start', ...[6, 9, 12, 16, 20, 25, 30, 40].map(String)], [['Can spare', ...[6, 9, 12, 16, 20, 25, 30, 40].map((f) => String(spareFor(GOAL.lineFrom, f)))], ['The line', ...[6, 9, 12, 16, 20, 25, 30, 40].map((f) => String(f - spareFor(GOAL.lineFrom, f)))]])}
   <h3>The boss</h3>
   <p>Old Greymuzzle arrives ${Math.round(BOSS.arriveAt * 100)}% of the way into the final wave. Like a brute, the dog has to stay next to him until his fear meter fills; like an alpha, he leads the pack. He has to be driven off <strong>${BOSS.driveOffs} times</strong>, coming back with ${BOSS.reinforcements} fresh wolves after each of the first ones, and drops a ${BOSS.tuft}-wool tuft when he's gone for good. The wave can't end until he is (overtime).</p>
   <h3>Endless mode</h3>

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GOAL, quotaFor, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { GOAL, lineFor, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -428,7 +428,7 @@ export class Game {
     const panelDue = this.panelTimer <= 0;
     this.ui.show({ [STATE.MENU]: 'menu', [STATE.PAUSED]: 'pause' }[this.state] ?? null);
     if (panelDue && this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ reason: this.gameOverReason, quota: this.quota, flock: this.sheepCount(), wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, newBest: this.newBest, summary: this.runSummary() });
+    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ reason: this.gameOverReason, spare: this.lineStart - this.line, lost: this.lineStart - this.sheepCount(), wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, newBest: this.newBest, summary: this.runSummary() });
   }
 
   // Unlock anything on the field that hasn't been seen before (sneaky wolves once they show up,
@@ -652,6 +652,8 @@ export class Game {
 
   // Clear the field and all per-run state (used by New Game and Continue).
   resetRun() {
+    this.line = 0;
+    this.lineStart = 0;
     for (const w of this.wolves) w.destroy();
     this.wolves.length = 0;
     for (const s of this.sheep) s.destroy();
@@ -729,7 +731,9 @@ export class Game {
   beginWave() {
     const cfg = this.cfg;
     this.waveStartSheep = this.flockSize();
-    this.quota = quotaFor(this.wave);
+    // The line: the flock may lose a share of its sheep this wave, but no more.
+    this.lineStart = this.sheepCount();
+    this.line = lineFor(this.wave, this.lineStart);
     this.boss = null;
     this.bossSpawned = false;
     this.bossOvertime = false;
@@ -762,8 +766,8 @@ export class Game {
               ? `New: ${newcomers.join(' & ')}. See the 📖 bestiary`
               : `${cfg.wolves} wolves are coming`;
     const title = this.endless ? `Endless ${this.wave - GOAL.finalWave}` : final ? 'Final wave' : `Wave ${this.wave}`;
-    this.ui.banner(title, this.quota ? `${sub} · the shepherd needs ${this.quota} sheep` : sub);
-    if (this.quota) this.tip('quota');
+    this.ui.banner(title, this.line ? `${sub} · the shepherd can spare ${this.lineStart - this.line}` : sub);
+    if (this.line) this.tip('line');
     if (this.wave === 1) setTimeout(() => this.tip('move'), 800);
     if (this.wave === 2) this.tip('bigBark');
     if (this.sheep.some((s) => s.kind === 'sleepy')) this.tip('sleepy');
@@ -782,12 +786,6 @@ export class Game {
       w.target = null;
       w.howling = 0;
       if (w.state !== 'FLEE') w.state = 'LEAVE';
-    }
-
-    // The shepherd's target: bring home too few sheep and the run is over (like a Balatro blind).
-    if (this.quota > 0 && this.sheepCount() < this.quota) {
-      this.juice.quotaMissed(this.shepherd);
-      return this.gameOver('quota');
     }
 
     // Shearing Day: every surviving sheep pays its wool, calm ones a little extra.
@@ -826,7 +824,7 @@ export class Game {
         ['Perfect flock', perfect],
         [`Interest (1 per ${SHEARING.interestPer} saved)`, interest],
       ],
-      quota: this.quota ? { need: this.quota, have: this.sheepCount() } : null,
+      line: this.line ? { spare: this.lineStart - this.line, lost: this.lineStart - this.sheepCount() } : null,
       bounty: this.waveBounty,
       reward,
     };
@@ -834,7 +832,7 @@ export class Game {
     this.saveRun();
   }
 
-  // reason: 'wolves' (the flock is gone) or 'quota' (fewer sheep than the shepherd's target)
+  // reason: 'wolves' (the flock is gone) or 'line' (more sheep lost than the shepherd could spare)
   gameOver(reason = 'wolves') {
     this.gameOverReason = reason;
     this.setState(STATE.GAME_OVER);
@@ -1364,6 +1362,11 @@ export class Game {
       this.ctx.cohesionScale = BELL.lostCohesion;
       this.juice.bellwetherLost(sheep.position);
     }
+    // Crossing the line ends the run on the spot: no waiting out a lost wave.
+    if (this.line && !sheep.type.fake && this.sheepCount() < this.line && this.state === STATE.PLAYING) {
+      this.juice.lineCrossed(this.shepherd);
+      return this.gameOver('line');
+    }
     // The goat can't keep the flock going on its own.
     if (this.sheepCount() === 0 && this.state === STATE.PLAYING) this.gameOver();
   }
@@ -1434,7 +1437,7 @@ export class Game {
           this.panelTimer -= dt;
           if (this.panelTimer <= 0 && !this.overlay) {
             if (this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-            else this.ui.showGameOver({ reason: this.gameOverReason, quota: this.quota, flock: this.sheepCount(), wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, newBest: this.newBest, summary: this.runSummary() });
+            else this.ui.showGameOver({ reason: this.gameOverReason, spare: this.lineStart - this.line, lost: this.lineStart - this.sheepCount(), wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, newBest: this.newBest, summary: this.runSummary() });
           }
         }
         break;
@@ -1465,8 +1468,9 @@ export class Game {
     this.ui.setCombo(c.count, c.timer / FEEL.comboWindow);
     if (this.state !== STATE.MENU) {
       this.ui.setHud({
-        sheep: this.sheepCount(), // the goat doesn't count towards the target
-        quota: this.quota,
+        sheep: this.sheepCount(), // the goat doesn't count towards the line
+        line: this.line,
+        spare: this.lineStart - this.line,
         wave: this.waveLabel(),
         timeLeft: this.cfg ? Math.max(0, 1 - this.waveTime / this.cfg.duration) : 1,
         wool: this.wool,

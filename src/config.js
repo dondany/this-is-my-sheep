@@ -504,17 +504,22 @@ function shuffle(list) {
 export const GOAL = {
   finalWave: 15,
   stars: [15, 30], // flock size at the win for ★★ and ★★★ (★ for any survivors)
-  // The shepherd's target: from `quotaFrom`, each wave must end with at least wave + `quotaExtra`
-  // sheep (the goat doesn't count), or the run is over.
-  quotaFrom: 2,
-  quotaExtra: 3,
-  quotaEndlessStep: 2, // extra sheep needed per endless wave
+  // The line: from `lineFrom`, each wave the shepherd can spare a share of the sheep it starts with
+  // (at least `spareMin`; the goat doesn't count). Lose more and the run is over on the spot.
+  lineFrom: 2,
+  spare: 0.5,
+  spareMin: 2,
 };
 
-export function quotaFor(wave) {
-  if (wave < GOAL.quotaFrom) return 0;
-  if (wave <= GOAL.finalWave) return wave + GOAL.quotaExtra;
-  return GOAL.finalWave + GOAL.quotaExtra + (wave - GOAL.finalWave) * GOAL.quotaEndlessStep;
+// How many sheep the shepherd can spare this wave (Infinity before the line starts).
+export function spareFor(wave, flock) {
+  if (wave < GOAL.lineFrom) return Infinity;
+  return Math.max(GOAL.spareMin, Math.floor(flock * GOAL.spare));
+}
+
+// The flock may not drop below this during the wave (0: no line).
+export function lineFor(wave, flock) {
+  return Math.max(0, flock - spareFor(wave, flock));
 }
 
 // Old Greymuzzle, the final boss: arrives partway through the final wave (and every 5 endless

@@ -54,12 +54,12 @@ export class UI {
     apply(value);
   }
 
-  // The flock against the shepherd's target: "12 / 9" (just "12" before targets start). The bar
-  // fills up to the target and turns red when you're short.
-  setHud({ sheep, quota = 0, wave, timeLeft, wool }) {
-    this.set('sheep', quota ? `${sheep} / ${quota}` : String(sheep), (v) => (this.el.sheep.textContent = v));
-    this.set('sheepBar', quota ? Math.min(1, sheep / quota) : 1, (v) => (this.el.sheepBar.style.transform = `scaleX(${v})`));
-    this.set('short', quota > 0 && sheep < quota, (short) => {
+  // The flock against the line: "12 / 8" (just "12" before the line starts). The bar shows how many
+  // of the sheep the shepherd can spare are left, and turns red on the line.
+  setHud({ sheep, line = 0, spare = 1, wave, timeLeft, wool }) {
+    this.set('sheep', line ? `${sheep} / ${line}` : String(sheep), (v) => (this.el.sheep.textContent = v));
+    this.set('sheepBar', line ? Math.max(0, Math.min(1, (sheep - line) / spare)) : 1, (v) => (this.el.sheepBar.style.transform = `scaleX(${v})`));
+    this.set('short', line > 0 && sheep <= line, (short) => {
       this.el.sheepBar.classList.toggle('low', short);
       this.el.sheep.classList.toggle('short', short);
     });
@@ -142,7 +142,7 @@ export class UI {
     el.classList.add('show');
   }
 
-  showWaveComplete({ wave, survived, lines, bounty, reward, quota }) {
+  showWaveComplete({ wave, survived, lines, bounty, reward, line }) {
     $('wave-title').textContent = `Wave ${wave} complete!`;
     $('wave-sheep').textContent = `🐑 ${survived}`;
     const rows = lines
@@ -164,11 +164,11 @@ export class UI {
       li.innerHTML = `<span>Bounty tufts collected during the wave</span><span>🧶 +${bounty}</span>`;
       extra.push(li);
     }
-    if (quota) {
+    if (line) {
       const li = document.createElement('li');
       li.className = 'quota';
       li.innerHTML = '<span></span><span>✓</span>';
-      li.firstChild.textContent = `The shepherd needed ${quota.need} sheep`;
+      li.firstChild.textContent = `Lost ${line.lost} of the ${line.spare} the shepherd could spare`;
       extra.unshift(li);
     }
     $('wave-breakdown').replaceChildren(...rows, sum, ...extra);
@@ -305,15 +305,15 @@ export class UI {
   }
 
   // The result of a run is simply how far you got.
-  showGameOver({ reason, quota, flock, wave, endless, best, newBest, summary }) {
-    $('over-title').textContent = reason === 'quota' ? "The shepherd couldn't fill his orders" : 'The wolves got the flock';
+  showGameOver({ reason, spare, lost, wave, endless, best, newBest, summary }) {
+    $('over-title').textContent = reason === 'line' ? 'The shepherd called it off' : 'The wolves got the flock';
     this.renderSummary('over-summary', summary);
     const survived = (n) => `${n} wave${n === 1 ? '' : 's'} survived`;
     const result = endless ? `Summer won + ${survived(endless - 1).replace('wave', 'endless wave')}` : survived(wave - 1);
     $('over-result').textContent = `${result}${newBest ? ' · new best!' : ''}`;
     $('over-waves').textContent =
-      reason === 'quota'
-        ? `He needed ${quota} sheep and you brought home ${flock}.`
+      reason === 'line'
+        ? `He could spare ${spare} sheep this wave, and the wolves took ${lost}.`
         : endless
           ? `Summer won, then ${endless - 1} endless ${endless - 1 === 1 ? 'wave' : 'waves'}`
           : wave - 1 === 1

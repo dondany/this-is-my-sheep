@@ -207,8 +207,8 @@ export class Juice {
     this.sfx.waveComplete();
   }
 
-  quotaMissed(shepherd) {
-    this.floatText('NOT ENOUGH SHEEP', { follow: shepherd, offsetY: 4.4, cls: 'danger', duration: 2.4, size: 30 });
+  lineCrossed(shepherd) {
+    this.floatText('TOO MANY LOST', { follow: shepherd, offsetY: 4.4, cls: 'danger', duration: 2.4, size: 30 });
     this.flash('rgba(201, 87, 69, 0.3)');
     this.shake(0.06, 200);
     this.sfx.lost();

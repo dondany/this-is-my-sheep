@@ -13,21 +13,20 @@ Greymuzzle, with at least one sheep left, and you win the run (the top bar shows
 ★ for any survivors, ★★ for 15 or more, ★★★ for 30 or more. Wins and your best star rating are
 saved and shown on the menu.
 
-**The shepherd's target.** From wave 2 the shepherd needs a number of sheep at the end of each wave:
-the wave number + 3 (5 in wave 2, 8 in wave 5, 13 in wave 10, 18 in the final wave; the goat doesn't
-count). Wave 1 is free, to learn the controls. It's the number after the slash on the flock counter: 🐑 12 / 9 (red
-when you're short). Bring home fewer and the run is over, like a Balatro blind ("The shepherd
-couldn't fill his orders"). So a tiny flock guarded by the dog isn't a safe strategy: the flock has
-to grow.
+**The line.** From wave 2 the shepherd can spare half of the sheep a wave starts with (at least 2;
+the goat doesn't count). That draws the line, the number after the slash on the flock counter:
+🐑 12 / 6. The bar under it shows how many you can still lose, and turns red on the line. The moment
+the flock drops below it, the run is over ("The shepherd called it off"): no waiting out a lost
+wave. Every wave draws a fresh line, so scraping through one wave doesn't doom the next (like a
+Balatro blind), and a bigger flock gets a bigger margin. Wave 1 is free, to learn the controls.
 
-**Only three numbers.** The top bar shows just the flock (against the target), the wave and your
+**Only three numbers.** The top bar shows just the flock (against the line), the wave and your
 wool. There's no score: the result of a run is how far you got ("7 waves survived", the summer and
 the stars), and that's what the menu remembers as your best.
 
 Then choose **Menu** or **Keep grazing** for endless mode (like Balatro after the last ante):
 
 - one more wolf every wave (up to 25), the extra slots all special wolves, and a second alpha;
-- the target keeps rising by 2 sheep per wave;
 - the flock cap rises from 60 to 90, and newcomers that don't fit are sold at market for 1 wool each.
 
 ### Summers (difficulty levels)

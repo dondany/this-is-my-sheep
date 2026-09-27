@@ -2606,3 +2606,38 @@ then hit a cliff around waves 6-8.
     per wave from wave 2, with close calls throughout, and ends at waves
     8-11 (median 9, was 7-8); the very slow casual bot ends at waves
     2-3.
+
+------------------------------------------------------------------------
+
+# 88. The Line (implemented)
+
+Playtest of sections 86-87: (1) once the flock dropped below the target
+mid-wave the run was already lost (nothing adds sheep during a wave),
+so the rest of the wave was dead time; (2) scraping past one wave's
+target left too small a cushion for the next one (newcomers add 3-8,
+losses grow to 10-17 a wave), a death spiral.
+
+Roguelikes avoid dead time either by ending at once (Slay the Spire,
+Hades, Into the Breach) or by keeping hope alive until the end
+(Balatro, Luck be a Landlord), and avoid spirals by resetting what
+you're judged on each round (Balatro's blinds) or paying it back (Slay
+the Spire's rest sites).
+
+-   The absolute target (wave + 3) is replaced by **the line**, drawn
+    at the start of each wave: the shepherd can spare
+    `GOAL.spare` (half) of the sheep the wave starts with, at least
+    `GOAL.spareMin` (2); from `GOAL.lineFrom` (wave 2). `spareFor()`,
+    `lineFor()` in `src/config.js`.
+-   Crossing it ends the run on the spot (`onSheepLost()`), with "TOO
+    MANY LOST" over the shepherd and "The shepherd called it off / He
+    could spare 3 sheep this wave, and the wolves took 4."
+-   HUD unchanged in shape: "🐑 12 / 6". The bar now shows the margin
+    left ((flock - line) / spare), red on the line. The end-of-wave
+    breakdown says "Lost 2 of the 6 the shepherd could spare ✓".
+-   Endless: no more +2 per wave; the wolves do the scaling.
+-   Bots, 4 runs each: at a third of the flock even the strong bot
+    died at waves 7-11 and the average at 3-5. At half: average ends at
+    wave 8 (3 of 4; one at 4), casual at 2-3, strong wins 2 of 4 (one
+    catastrophic late wave, 16-20 sheep, ends the others at 10 and 15).
+    Section 89 (the last stand) and 90 (the bark meter) are the comeback
+    tools; the share is re-tuned after them.
