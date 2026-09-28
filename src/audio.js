@@ -211,6 +211,13 @@ export class Sfx {
     this.tone({ type: 'sine', freq: 56, freqEnd: 40, dur: 0.16, gain: 0.3, attack: 0.005, at: 0.2, filter: 'lowpass', filterFreq: 200 });
   }
 
+  // Old Greymuzzle's footfall: a low thud.
+  stomp() {
+    if (!this.ready || !this.throttle('stomp', 150)) return;
+    this.tone({ type: 'sine', freq: 72, freqEnd: 38, dur: 0.2, gain: 0.35, attack: 0.004, filter: 'lowpass', filterFreq: 240 });
+    this.noiseBurst({ dur: 0.09, gain: 0.18, filter: 'lowpass', freq: 320 });
+  }
+
   bonk() {
     if (!this.ready) return;
     this.tone({ type: 'triangle', freq: 220, freqEnd: 90, dur: 0.18, gain: 0.25 });

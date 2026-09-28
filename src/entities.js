@@ -208,7 +208,10 @@ export class Sheep extends Animal {
     if (this.idleTimer <= 0) {
       this.idleTimer = (2 + Math.random() * 5) / this.type.fidget;
       const r = Math.random();
-      if (r < (this.kind === 'lamb' ? 0.45 : 0.15)) this.hop = 1;
+      if (r < (this.kind === 'lamb' ? 0.45 : 0.15)) {
+        this.hop = 1;
+        this.hopPower = 1;
+      }
       else if (r < 0.6) this.lookYaw = (Math.random() - 0.5) * 1.6;
       else this.lookYaw = 0;
     }
@@ -220,7 +223,7 @@ export class Sheep extends Animal {
     let y = 0.78 + Math.abs(Math.sin(this.phase)) * bounce * moving - lie * 0.4 + Math.sin(time * 2 + this.phase) * 0.02 * lie;
     if (this.hop > 0) {
       this.hop = Math.max(0, this.hop - dt * 2.5);
-      y += Math.sin(this.hop * Math.PI) * 0.45;
+      y += Math.sin(this.hop * Math.PI) * 0.45 * (this.hopPower ?? 1);
     }
     // Knocked by the running dog: a quick boing with a tilt away from it.
     let bumpTilt = 0;
@@ -561,8 +564,16 @@ export class Wolf extends Animal {
   animate(dt, time) {
     const speed = this.speed;
     const run = Math.min(speed / 7, 1);
-    this.phase += dt * (5 + speed * 1.4);
+    // Old Greymuzzle walks slow and heavy: a longer stride, and every footfall (each half stride)
+    // is a stomp the game reacts to.
+    const heavy = !!this.type.boss;
+    this.phase += dt * (heavy ? 3 + speed * 0.8 : 5 + speed * 1.4);
     this.swingLegs(this.legs, this.phase, 0.8 * Math.min(1, speed / 2));
+    if (heavy) {
+      const step = Math.floor(this.phase / Math.PI);
+      if (step !== this.lastStep && speed > 0.6) this.stomped = true;
+      this.lastStep = step;
+    }
 
     const st = this.stun > 0 ? 'STUN' : this.howling > 0 ? 'HOWL' : this.resisting ? 'RESIST' : this.state;
     // The scare jolt: a startled jump and a quick puff-up while it freezes for a beat.
@@ -573,7 +584,9 @@ export class Wolf extends Animal {
       hop = jolt * 0.45;
     }
     this.body.scale.set(1 + jolt * 0.12, 1 + jolt * 0.2, 1 - jolt * 0.08);
-    this.body.position.y = this.bodyY + Math.abs(Math.sin(this.phase)) * 0.08 * run + hop;
+    // The heavy walk drops the body onto each footfall; the others bob up between steps.
+    const gait = heavy ? -Math.abs(Math.cos(this.phase)) * 0.2 * Math.min(1, speed / 2) : Math.abs(Math.sin(this.phase)) * 0.08 * run;
+    this.body.position.y = this.bodyY + gait + hop;
     this.body.rotation.y = st === 'ATTACK' ? Math.sin(time * 30) * 0.15 : 0;
     // Snarling in place: small fast shudder. Dazed: slow wobble.
     this.body.rotation.z = st === 'RESIST' ? Math.sin(time * 38) * 0.05 : st === 'STUN' ? Math.sin(time * 10) * 0.25 : 0;

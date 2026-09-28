@@ -578,6 +578,7 @@ export const BOSS = {
   reinforcements: 2, // fresh wolves that come back with it after each drive-off
   tuft: 10, // wool in the tuft it drops when it's gone for good
   endlessEvery: 5,
+  stompRadius: 12, // sheep this close jump at each of its footfalls (higher the closer)
 };
 
 // Difficulty levels unlocked by winning, like Balatro's stakes. Each summer adds its rule on top of

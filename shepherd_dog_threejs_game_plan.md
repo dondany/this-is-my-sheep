@@ -2919,3 +2919,18 @@ toasts and tips over it.
     instead of a separate row in the corner.
 -   Phones: the sidebar becomes a strip, smaller cards, the collar title
     and wool rows hidden, toasts at the top while shopping.
+
+------------------------------------------------------------------------
+
+# 99. Old Greymuzzle's Heavy Steps (implemented)
+
+-   The boss walks with a slower stride (`Wolf.animate`: phase speed
+    3 + 0.8 × speed instead of 5 + 1.4 × speed) and its body drops onto
+    each footfall instead of bobbing up.
+-   Every half stride while moving (over 0.6 u/s) is a stomp
+    (`wolf.stomped`, handled by `Game.bossStep()`): sheep within
+    `BOSS.stompRadius` (12) hop, from 0.45× to 1.35× the usual hop
+    height the closer they are (`hopPower`); a grabbed sheep doesn't.
+    Dust at its feet, a tiny shake (0.02, 120 ms) and a low synthesized
+    thud (`sfx.stomp()`).
+-   Pure feel: the hops don't scare or move the sheep.

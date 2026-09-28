@@ -1238,6 +1238,18 @@ export class Game {
     this.tip('boss');
   }
 
+  // Old Greymuzzle's footfalls: the ground thuds and every sheep nearby jumps, higher the closer.
+  bossStep(boss) {
+    if (this.state !== STATE.PLAYING && this.state !== STATE.INTRO) return;
+    for (const s of this.sheep) {
+      const d = s.position.distanceTo(boss.position);
+      if (d > BOSS.stompRadius || s.hop > 0.3 || s.grabbedBy) continue;
+      s.hop = 1;
+      s.hopPower = 0.45 + 0.9 * (1 - d / BOSS.stompRadius);
+    }
+    this.juice.bossStep(boss);
+  }
+
   onBossDriven(boss, left) {
     this.juice.bossDriven(boss, left);
     this.addXp(XP.bossDrive);
@@ -1781,7 +1793,13 @@ export class Game {
       if (w.gone) {
         w.destroy();
         wolves.splice(i, 1);
-      } else w.animate(dt, time);
+      } else {
+        w.animate(dt, time);
+        if (w.stomped) {
+          w.stomped = false;
+          this.bossStep(w);
+        }
+      }
     }
 
     this.shepherd.update(dt, time);

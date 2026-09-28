@@ -62,7 +62,7 @@ $('goal-body').innerHTML = `
   <h3>Last Sheep Standing</h3>
   <p>On the line, one more loss ends the run, so the dog finds a second wind: ${pct(LAST_STAND.speed)} speed and ${pct(LAST_STAND.reach)} reach. The screen edge pulses red with a heartbeat, and every grab plays in slow motion (${LAST_STAND.slowmo} s). It ends with the wave; finishing a wave on the line earns <em>Held the Line</em>.</p>
   <h3>The boss</h3>
-  <p>Old Greymuzzle arrives ${Math.round(BOSS.arriveAt * 100)}% of the way into the final wave. Like a brute, the dog has to stay next to him until his fear meter fills; like an alpha, he leads the pack. He has to be driven off <strong>${BOSS.driveOffs} times</strong>, coming back with ${BOSS.reinforcements} fresh wolves after each of the first ones, and drops a ${BOSS.tuft}-wool tuft when he's gone for good. The wave can't end until he is (overtime).</p>
+  <p>Old Greymuzzle arrives ${Math.round(BOSS.arriveAt * 100)}% of the way into the final wave. Like a brute, the dog has to stay next to him until his fear meter fills; like an alpha, he leads the pack. He has to be driven off <strong>${BOSS.driveOffs} times</strong>, coming back with ${BOSS.reinforcements} fresh wolves after each of the first ones, and drops a ${BOSS.tuft}-wool tuft when he's gone for good. The wave can't end until he is (overtime). He walks slow and heavy: every footfall thuds and makes sheep within ${BOSS.stompRadius} jump, higher the closer.</p>
   <h3>Endless mode</h3>
   <p>After winning, <em>Keep grazing</em> plays on:</p>
   <ul>

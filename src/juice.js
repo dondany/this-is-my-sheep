@@ -182,6 +182,12 @@ export class Juice {
     this.particles.puff(tmp.copy(tuft.position).setY(0.6), 6);
   }
 
+  bossStep(boss) {
+    this.particles.dust(tmp.copy(boss.position).setY(0.15), 5, 1.4);
+    this.shake(0.02, 120);
+    this.sfx.stomp();
+  }
+
   bossArrives(boss) {
     this.floatText('OLD GREYMUZZLE!', { follow: boss, offsetY: 5, cls: 'big', duration: 2.4, size: 44 });
     this.flash('rgba(201, 87, 69, 0.3)');
