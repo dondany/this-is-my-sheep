@@ -1033,6 +1033,10 @@ body[data-effects='off'] #last-stand.on {
   color: #7d62b8;
 }
 
+.group-xp .upgrade-group {
+  color: #a0527a;
+}
+
 .upgrade-icon {
   font-size: 32px;
   line-height: 1.1;

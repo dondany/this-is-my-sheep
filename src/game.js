@@ -559,7 +559,9 @@ export class Game {
   // Whether a card (e.g. a frozen one) can still be offered: a charm not on the collar yet, an animal
   // still available.
   canOfferCard(key) {
-    return key.startsWith('animal:') ? this.canBuyAnimal(key.slice(7)) : !!CHARM[key] && !this.charms.includes(key);
+    if (key.startsWith('animal:')) return this.canBuyAnimal(key.slice(7));
+    const c = CHARM[key];
+    return !!c && !this.charms.includes(key) && (!c.requires || this.charms.includes(c.requires));
   }
 
   // Freeze a card to keep it in the shop for the next wave (up to SHOP.maxFrozen), or unfreeze it.
@@ -800,7 +802,9 @@ export class Game {
     // The line: the flock may lose a share of its sheep this wave, but no more.
     this.lineStart = this.sheepCount();
     this.line = lineFor(this.wave, this.lineStart);
-    if (this.line && this.ctx.mods.brink) this.line = Math.min(this.lineStart - 1, this.line + 1); // On the Brink charm
+    // On the Brink and Glass Cannon charms: the shepherd spares one fewer each (always at least one).
+    const fewer = (this.ctx.mods.brink ? 1 : 0) + (this.ctx.mods.glass ? 1 : 0);
+    if (this.line && fewer) this.line = Math.min(this.lineStart - 1, this.line + fewer);
     this.boss = null;
     this.bossSpawned = false;
     this.bossOvertime = false;
@@ -865,6 +869,9 @@ export class Game {
       } else if (lost >= VETERAN.resetAt) this.veteran = 0;
       this.applyDogStats();
     }
+
+    // Sheepskin Diploma charm: unspent wool turns into XP.
+    if (this.ctx.mods.diploma) this.addXp(Math.floor(this.wool * this.ctx.mods.diploma), false);
 
     // Shearing Day: every surviving sheep pays its wool, calm ones a little extra.
     const flock = this.sheep.filter((s) => !s.type.fake);
@@ -1319,7 +1326,11 @@ export class Game {
       this.addCombo(wolf);
       this.dropBounty(wolf);
       // The dog's scares earn XP, and so do the dominoes they set off (Chain Reaction).
-      if (by === this.dog || by instanceof Wolf) this.addXp((XP.wolf[wolf.kind] ?? 1) * Math.min(XP.comboMax, 1 + XP.comboStep * (this.combo.count - 1)));
+      const mine = by === this.dog || by instanceof Wolf || (by === this.helper && this.ctx.mods.helperXp); // Study Buddy: the pup's scares too
+      if (mine) {
+        const combo = Math.min(XP.comboMax, 1 + XP.comboStep * (this.combo.count - 1));
+        this.addXp((XP.wolf[wolf.kind] ?? 1) * combo * (this.combo.count >= 3 ? this.ctx.mods.comboXp : 1));
+      }
       // Bounty Hunter charm: every scare pays, more in a combo.
       const mods = this.ctx.mods;
       if (mods.woolPerScare) {
@@ -1342,7 +1353,7 @@ export class Game {
   onSheepSaved(sheep, wolf) {
     this.achievements.add('saves');
     this.stats.saved++;
-    if (this.state === STATE.PLAYING) this.addXp(XP.rescue);
+    if (this.state === STATE.PLAYING) this.addXp(XP.rescue * this.ctx.mods.rescueXp);
     this.juice.sheepSaved(sheep);
     // Saved in the nick of time: slow motion and a little camera push.
     if (wolf?.stateTimer < FEEL.closeCall && this.state === STATE.PLAYING) {
@@ -1460,8 +1471,9 @@ export class Game {
 
   // XP from the dog's scares, rescues and the boss; doubled on the line. Each level is picked at the
   // end of the wave.
-  addXp(amount) {
-    this.xp += amount * (this.lastStand ? XP.onTheLine : 1);
+  addXp(amount, onTheLine = this.lastStand) {
+    const m = this.ctx.mods;
+    this.xp += amount * m.xp * (onTheLine ? m.lineXp || XP.onTheLine : 1);
     while (this.xp >= xpToNext(this.level)) {
       this.xp -= xpToNext(this.level);
       this.level++;

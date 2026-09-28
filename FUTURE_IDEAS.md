@@ -4,9 +4,35 @@ Things proposed but not built yet. For what's already in the game see [`README.m
 and the [design doc](shepherd_dog_threejs_game_plan.md) (sections 60 onwards cover everything built
 since the original plan).
 
-## More upgrades
-Ideas not built yet: fence posts along one side of the meadow. More cosmetics (the Wardrobe is
-in): shepherd outfits, sheep with bows or bells, more meadow themes (snow for endless mode).
+## More charms and specialties
+Tricks brainstormed but not built yet (charms that change the rules, each with a catch):
+- 🗣️ Echo: every Big Bark echoes from the shepherd a second later. Catch: the meter refills 40% slower.
+- 🐾 Pack Leader: when you scare a wolf, the second dog dashes to the nearest threat and its scares
+  count for your combo. Catch: needs the Second Dog; your reach −15%.
+- 🐑 Safety in Numbers: a sheep with 5+ others close by can't be grabbed. Catch: stragglers are
+  grabbed twice as fast.
+- 🍼 Nursery: 2 extra lambs every wave. Catch: lambs are grabbed 50% faster (overlaps Lambing Season).
+- 🖤 Stampede!: black sheep stampedes bowl over wolves, twice as often. Catch: they drag up to 5.
+- 🐏 Battering Rams: rams and the goat head-butt wolves that come near; a ram joins every 3 waves.
+  Catch: rams give no wool.
+- 👴 Grumpy Old Man: the shepherd chases wolves near the flock with his crook. Catch: the flock
+  follows him.
+- 🪤 Snares: scarecrows hold the first wolf that walks in for 5 s. Catch: it howls for the pack.
+- Charms that add or remove collar slots (e.g. a rare "Bigger Collar": +1 slot; a strong charm that
+  takes two slots). The slot count (5) is due a rebalance anyway.
+- Fence posts along one side of the meadow. More cosmetics: shepherd outfits, sheep with bows or
+  bells, more meadow themes (snow for endless mode).
+
+## Roguelike roadmap (from the roguelike review, design doc sections 93-97)
+- Starting dogs: Collie (balanced), Corgi (small reach, sheep react more), Great Pyrenees (slow,
+  huge reach), Kelpie (fast, small reach). Unlocked by achievements; could bias the specialties
+  offered.
+- Choose your wave (Slay the Spire's map, Hades' doors): before a wave, "🌾 quiet wave" or "🌕 Wolf
+  Moon: +2 wolves, a rare charm in the shop". Later: wave modifiers (fog: no arrows; rain: sheep
+  bunch up; wind).
+- Events between waves instead of the shop now and then: "a neighbour offers 3 sheep for your golden
+  fleece", "a stray dog asks to join", "travelling merchant: a charm at half price".
+- A second boss (random at wave 15), meadow layouts (river, fences), the seeded daily run.
 
 ## Balance
 - Needs checking with real players. Bots (design doc sections 68, 70, 76, 86, 87) suggest a strong player

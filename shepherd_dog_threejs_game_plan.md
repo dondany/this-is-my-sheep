@@ -2857,3 +2857,28 @@ two moments that define the dog.
 -   Specialty cards are purple ("Specialty · Once per run"); the HUD
     shows them after the level ("Lv 6 🌙"). Saved with the run; listed
     in the run summary.
+
+------------------------------------------------------------------------
+
+# 97. XP Charms and the Two-Track Balance (implemented)
+
+-   Six XP charms (group `xp`): Wolf Scholar (×1.5 XP in ×3+ combos),
+    Study Buddy (the second dog's scares give XP; `requires: 'helper'`,
+    only offered with it on the collar), Old Mentor (rescues ×3), Sheepskin
+    Diploma (1 XP per 2 unspent wool at the end of a wave, never doubled
+    by the line), Glass Cannon (rare: ×2 XP, the shepherd spares one
+    fewer; stacks with On the Brink), Moonlighter (×3 on the line).
+-   Balance with both tracks in (bots: strong buys defensive charms
+    first, the others the cheapest cards; perks by preference / first):
+    -   With the old margin (1 + one in five) and perks as in section 93,
+        the strong bot lost 4/4 (waves 5-12) and the average bot ended at
+        3-8: taking dog upgrades out of the shop left the dog weaker in
+        the midgame than before.
+    -   Stronger perks (Swift 8%/point, Reach +0.6, Scary 15%, Deep
+        Lungs 15%, Booming 10%; lower max points so the ceilings stay
+        similar) and a faster curve (10 × n^1.5) weren't enough on their
+        own (strong 0/4, one lost at wave 15 by one sheep).
+    -   Final: margin back to 2 + one in five (`GOAL.spareBase` 2). Strong
+        won 1 of 5 (★★★, dog level 16) and the others ended at waves 8-14,
+        mostly close; average (with the Big Bark) ends at waves 5-9,
+        median 7, level 5-10; casual at 2-5.

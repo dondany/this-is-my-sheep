@@ -13,8 +13,8 @@ Greymuzzle, with at least one sheep left, and you win the run (the top bar shows
 ★ for any survivors, ★★ for 15 or more, ★★★ for 30 or more. Wins and your best star rating are
 saved and shown on the menu.
 
-**The line.** From wave 2 the shepherd can spare 1 sheep plus one in five of the flock a wave starts
-with (2 of 9, 5 of 20, 9 of 40; the goat doesn't count). That draws the line, the number after the slash on the flock counter:
+**The line.** From wave 2 the shepherd can spare 2 sheep plus one in five of the flock a wave starts
+with (3 of 9, 6 of 20, 10 of 40; the goat doesn't count). That draws the line, the number after the slash on the flock counter:
 🐑 12 / 6. The bar under it shows how many you can still lose, and turns red on the line. The moment
 the flock drops below it, the run is over ("The shepherd called it off"): no waiting out a lost
 wave. Every wave draws a fresh line, so scraping through one wave doesn't doom the next (like a
@@ -25,8 +25,8 @@ Balatro blind). The margin is small on purpose: every lost sheep matters. Wave 1
 grab plays in slow motion so you can see it coming (`LAST_STAND` in `src/config.js`). Finishing a
 wave on the line earns *Held the Line*.
 
-**Only three numbers.** The top bar shows just the flock (against the line), the wave and your
-wool. There's no score: the result of a run is how far you got ("7 waves survived", the summer and
+**Few numbers.** The top bar shows just the flock (against the line), the wave, the dog's level
+and your wool. There's no score: the result of a run is how far you got ("7 waves survived", the summer and
 the stars), and that's what the menu remembers as your best.
 
 Then choose **Menu** or **Keep grazing** for endless mode (like Balatro after the last ante):
@@ -169,7 +169,7 @@ makes the wool, so every wave is a little hunter-versus-guardian decision.
 Each of the dog's own scares (Big Barks included) earns XP: 1 for a wolf or a pup, 2 for runners,
 rascals, howlers, sneaky wolves and tricksters, 3 for brutes and disguises, 5 for the alpha, 6 per
 Old Greymuzzle drive-off, 2 for a rescue. Combos multiply it (×1.5 at ×2, up to ×3) and it's doubled
-on the line. Level *n* needs 10 × n^1.6 XP (10, 30, 58, 92, 131…), about one level a wave. The HUD
+on the line. Level *n* needs 10 × n^1.5 XP (10, 28, 52, 80, 112…), about one level a wave. The HUD
 shows "Lv 4" and a bar; "LEVEL 4!" pops over the dog when it happens.
 
 Every level is a perk, picked at the end of the wave from three cards before the shop opens (several
@@ -178,12 +178,12 @@ or legendary (3 points, 6%).
 
 | Perk | Per point | Max points |
 | --- | --- | --- |
-| ⚡ Swift Paws | Dog runs and turns 6% faster | 10 |
-| 🎯 Dog's Reach | Reach +0.5 (the ring: wolves inside it get scared, sheep react from proportionally further away). 2.5 at the start. Offered twice as often | 12 |
-| 😱 Scary Bark | Scared wolves run 12% longer | 8 |
+| ⚡ Swift Paws | Dog runs and turns 8% faster | 8 |
+| 🎯 Dog's Reach | Reach +0.6 (the ring: wolves inside it get scared, sheep react from proportionally further away). 2.5 at the start. Offered twice as often | 10 |
+| 😱 Scary Bark | Scared wolves run 15% longer | 6 |
 | 🦴 Brave Heart | Brutes and the boss give up 12% sooner | 6 |
-| 🌬️ Deep Lungs | Big Bark refills 12% faster on its own | 8 |
-| 💥 Booming Bark | Big Bark reaches 8% further | 8 |
+| 🌬️ Deep Lungs | Big Bark refills 15% faster on its own | 6 |
+| 💥 Booming Bark | Big Bark reaches 10% further | 6 |
 | 👃 Nose for Wolves | Sneaky wolves show up 25% sooner; disguises sniffed out faster | 6 |
 | 🎾 Fetch! | Bounty tufts last 25% longer and are easier to grab | 6 |
 | 🐾 Pup Training *(needs Second Dog)* | Second dog +5% of your dog's speed | 8 |
@@ -235,6 +235,17 @@ rare ones (gold) 35%.
 | ❤️‍🔥 On the Brink | uncommon | 12 | Last Sheep Standing starts one sheep above the line and is twice as strong | The shepherd spares one sheep fewer |
 | 📈 Veteran | uncommon | 14 | Every wave finished without a loss gives +5% reach for good | Losing 3+ sheep in a wave resets it (so does selling it) |
 | 🏕️ Staying Put | common | 8 | The shepherd never moves the flock to new grass | Wolves stalk 30% less |
+
+**XP charms** level the dog faster:
+
+| Charm | Rarity | Price | Effect |
+| --- | --- | --- | --- |
+| 📚 Wolf Scholar | uncommon | 12 | Combos of ×3 and more give 50% more XP |
+| 🐾 Study Buddy | common | 8 | The second dog's scares give your dog XP too (only offered with the Second Dog) |
+| 🧑‍🏫 Old Mentor | common | 8 | Rescues give triple XP |
+| 🎓 Sheepskin Diploma | uncommon | 12 | At the end of each wave, every 2 unspent wool gives 1 XP |
+| ⚖️ Glass Cannon | rare | 18 | Double XP. Catch: the shepherd spares one sheep fewer |
+| 🌕 Moonlighter | uncommon | 10 | Triple XP on the line (instead of double) |
 
 ### Freezing cards
 

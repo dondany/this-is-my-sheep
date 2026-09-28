@@ -280,7 +280,7 @@ export class UI {
     reroll.textContent = `🎲 Reroll (${rerollCost})`;
     reroll.disabled = wool < rerollCost;
     $('shop-frozen').textContent = `❄️ ${frozen} / ${maxFrozen} frozen`;
-    const group = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick' };
+    const group = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick', xp: 'XP' };
     $('shop-cards').replaceChildren(
       ...cards.map((c) => {
         const card = document.createElement('div');

@@ -8,7 +8,7 @@ export const TIPS = {
   wolfComing: '🐺 A wolf is heading for the flock. Run your dog at it!',
   grabbed: '😱 A wolf grabbed a sheep! Get your dog there fast and it lets go.',
   bigBark: '🐕 Right-click, press Space or tap the 🐕 button for a Big Bark: it scares every wolf nearby. It recharges slowly on its own, and every wolf you scare charges it up, more with combos.',
-  line: "📋 From now on the shepherd can spare only a few sheep each wave: one, plus one in five. The number after the slash is the line (🐑 12 / 9): drop below it and the summer's over.",
+  line: "📋 From now on the shepherd can spare only a few sheep each wave: two, plus one in five. The number after the slash is the line (🐑 12 / 9): drop below it and the summer's over.",
   levelUp: "🐕 Your dog levelled up! Scaring wolves earns experience: more for tough wolves, more with combos, double on the line. Pick a perk for every level.",
   lastStand: "❤️‍🔥 You're on the line: one more lost sheep ends the summer. Your dog has found a second wind: faster, with a bigger reach. Hold on!",
   shop: "🧶 Wool comes from shearing the sheep that survive. Spend it on charms for the dog's collar (up to 5, sell one to make room) and on livestock. Can't afford a card yet? Tap ❄️ to keep it for the next wave (unspent wool earns interest).",

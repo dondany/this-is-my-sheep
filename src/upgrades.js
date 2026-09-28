@@ -11,12 +11,12 @@ import { SPECIAL } from './config.js';
 
 const pct = (v) => `${Math.round(v * 100)}%`;
 export const PERKS = [
-  { id: 'swift', icon: '⚡', name: 'Swift Paws', per: 0.06, max: 10, text: (v) => `The dog runs and turns ${pct(v)} faster.` },
-  { id: 'loud', icon: '🎯', name: "Dog's Reach", per: 0.5, max: 12, weight: 2, text: (v) => `Reach +${v}: wolves get scared and sheep herded from further away.` },
-  { id: 'scary', icon: '😱', name: 'Scary Bark', per: 0.12, max: 8, text: (v) => `Scared wolves run ${pct(v)} longer before coming back.` },
+  { id: 'swift', icon: '⚡', name: 'Swift Paws', per: 0.08, max: 8, text: (v) => `The dog runs and turns ${pct(v)} faster.` },
+  { id: 'loud', icon: '🎯', name: "Dog's Reach", per: 0.6, max: 10, weight: 2, text: (v) => `Reach +${v}: wolves get scared and sheep herded from further away.` },
+  { id: 'scary', icon: '😱', name: 'Scary Bark', per: 0.15, max: 6, text: (v) => `Scared wolves run ${pct(v)} longer before coming back.` },
   { id: 'brave', icon: '🦴', name: 'Brave Heart', per: 0.12, max: 6, text: (v) => `Brutes and the boss give up ${pct(v)} sooner.` },
-  { id: 'lungs', icon: '🌬️', name: 'Deep Lungs', per: 0.12, max: 8, text: (v) => `The Big Bark refills ${pct(v)} faster on its own.` },
-  { id: 'booming', icon: '💥', name: 'Booming Bark', per: 0.08, max: 8, text: (v) => `The Big Bark reaches ${pct(v)} further.` },
+  { id: 'lungs', icon: '🌬️', name: 'Deep Lungs', per: 0.15, max: 6, text: (v) => `The Big Bark refills ${pct(v)} faster on its own.` },
+  { id: 'booming', icon: '💥', name: 'Booming Bark', per: 0.1, max: 6, text: (v) => `The Big Bark reaches ${pct(v)} further.` },
   { id: 'nose', icon: '👃', name: 'Nose for Wolves', per: 0.25, max: 6, text: (v) => `Sneaky wolves show up ${pct(v)} sooner and disguises are sniffed out faster.` },
   { id: 'fetch', icon: '🎾', name: 'Fetch!', per: 0.25, max: 6, text: (v) => `Bounty tufts last ${pct(v)} longer and are easier to grab.` },
   { id: 'pupSpeed', icon: '🐾', name: 'Pup Training', per: 0.05, max: 8, requires: 'helper', text: (v) => `The second dog runs ${pct(v)} faster (of your dog's speed).` },
@@ -109,6 +109,13 @@ export const CHARMS = [
   { id: 'chain', group: 'trick', icon: '💥', name: 'Chain Reaction', rarity: 'rare', price: 20, text: 'A fleeing wolf scares every wolf it runs past (not the boss). Each one extends the combo.', catch: 'Scared wolves come back 30% sooner.' },
   { id: 'brink', group: 'trick', icon: '❤️‍🔥', name: 'On the Brink', rarity: 'uncommon', price: 12, text: 'Last Sheep Standing starts one sheep above the line and is twice as strong.', catch: 'The shepherd spares one sheep fewer.' },
   { id: 'veteran', group: 'trick', icon: '📈', name: 'Veteran', rarity: 'uncommon', price: 14, text: 'Every wave you finish without losing a sheep gives the dog +5% reach, for good.', catch: 'Losing 3 or more sheep in a wave resets it.' },
+  // --- XP: charms that level the dog faster
+  { id: 'scholar', group: 'xp', icon: '📚', name: 'Wolf Scholar', rarity: 'uncommon', price: 12, text: 'Combos of ×3 and more give 50% more XP.' },
+  { id: 'buddy', group: 'xp', icon: '🐾', name: 'Study Buddy', rarity: 'common', price: 8, requires: 'helper', text: "The second dog's scares give your dog XP too." },
+  { id: 'mentor', group: 'xp', icon: '🧑‍🏫', name: 'Old Mentor', rarity: 'common', price: 8, text: 'Rescuing a grabbed sheep gives triple XP.' },
+  { id: 'diploma', group: 'xp', icon: '🎓', name: 'Sheepskin Diploma', rarity: 'uncommon', price: 12, text: 'At the end of each wave, every 2 unspent wool gives 1 XP.' },
+  { id: 'glass', group: 'xp', icon: '⚖️', name: 'Glass Cannon', rarity: 'rare', price: 18, text: 'Double XP.', catch: 'The shepherd spares one sheep fewer.' },
+  { id: 'moonlighter', group: 'xp', icon: '🌕', name: 'Moonlighter', rarity: 'uncommon', price: 10, text: 'Triple XP on the line (instead of double).' },
   { id: 'stayPut', group: 'trick', icon: '🏕️', name: 'Staying Put', rarity: 'common', price: 8, text: 'The shepherd never moves the flock to new grass.', catch: 'Wolves learn the spot: they stalk 30% less.' },
 ];
 
@@ -170,13 +177,21 @@ export function modifiers(charms = [], perks = {}, specialties = []) {
     veteran: has('veteran'),
     stayPut: has('stayPut'),
     stalk: has('stayPut') ? 0.7 : 1, // × wolves' stalking time
+    xp: has('glass') ? 2 : 1, // × all XP
+    comboXp: has('scholar') ? 1.5 : 1, // × XP from scares in a ×3+ combo
+    helperXp: has('buddy'),
+    rescueXp: has('mentor') ? 3 : 1,
+    diploma: has('diploma') ? 0.5 : 0, // XP per unspent wool at the end of a wave
+    lineXp: has('moonlighter') ? 3 : 0, // XP multiplier on the line (0 = the usual)
+    glass: has('glass'),
     interest: has('piggy') ? 3 : 0, // extra interest cap
   };
 }
 
 // Up to `n` different charms not on the collar yet (and not in `exclude`), rarer ones less often.
+// `requires` keeps a charm out until another one is on the collar.
 export function drawCards(owned, n = SHOP.cards, exclude = []) {
-  const pool = CHARMS.filter((c) => !owned.includes(c.id) && !exclude.includes(c.id));
+  const pool = CHARMS.filter((c) => !owned.includes(c.id) && !exclude.includes(c.id) && (!c.requires || owned.includes(c.requires)));
   const cards = [];
   while (cards.length < n && pool.length) {
     const i = pickWeighted(pool.map((c) => SHOP.rarityWeight[c.rarity]));

@@ -511,7 +511,7 @@ export const GOAL = {
   // of the flock the wave starts with (the goat doesn't count). Lose more and the run is over on
   // the spot.
   lineFrom: 2,
-  spareBase: 1,
+  spareBase: 2,
   spareShare: 0.2,
 };
 
@@ -533,10 +533,10 @@ export const XP = {
   comboStep: 0.5, // ×1.5 at a ×2 combo, ×2 at ×3…
   comboMax: 3,
   onTheLine: 2,
-  // XP from `level` to the next: base × level^curve (10, 30, 58, 92, 131…). XP income grows a lot
+  // XP from `level` to the next: base × level^curve (10, 28, 52, 80, 112…). XP income grows a lot
   // over a run (more wolves, longer combos), so this lands about one level per wave.
   base: 10,
-  curve: 1.6,
+  curve: 1.5,
 };
 
 // XP needed to go from `level` to the next one.
