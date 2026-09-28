@@ -6,6 +6,7 @@ import { SUMMERS } from './config.js';
 import { ACHIEVEMENT } from './achievements.js';
 import { WARDROBE, SLOTS, item, rewardFor } from './cosmetics.js';
 import { Dog } from './entities.js';
+import { makeCard, CardTip, draggable } from './cards.js';
 
 const $ = (id) => document.getElementById(id);
 const tmp = new THREE.Vector3();
@@ -17,6 +18,9 @@ export class UI {
     this.cache = {};
     this.indicators = [];
     this.meters = [];
+    this.tip = new CardTip($('card-tip'));
+    this.cardInfo = new Map(); // card key → its tooltip
+    this.selected = null; // the selected card's key ('shop:crook', 'collar:piggy', 'perk:1')
     this.el = {
       hud: $('hud'),
       sheep: $('hud-sheep'),
@@ -28,6 +32,10 @@ export class UI {
       banner: $('banner'),
       indicatorLayer: $('indicator-layer'),
     };
+    // Clicking the shop's background puts a selected card back.
+    $('screen-wave').addEventListener('click', (e) => {
+      if (this.selected && !e.target.closest('.card-slot')) this.select(this.selected);
+    });
     document.querySelectorAll('[data-action]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -42,6 +50,20 @@ export class UI {
 
   show(name) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('hidden', s.id !== `screen-${name}`));
+    const shopping = name === 'wave';
+    if (shopping && !document.body.classList.contains('shopping')) {
+      // Entering the shop: wave tips make way for the tray's own hint line.
+      this.tipQueue = [];
+      this.nextTip();
+      $('tray-hint').textContent = '';
+    }
+    if (!shopping) {
+      this.selected = null;
+      this.levelData = null;
+      this.shopData = null;
+      this.tip.hide();
+    }
+    document.body.classList.toggle('shopping', shopping);
   }
 
   setHudVisible(visible) {
@@ -164,79 +186,75 @@ export class UI {
     el.classList.add('show');
   }
 
-  showWaveComplete({ wave, survived, lines, bounty, reward, line }) {
-    $('wave-title').textContent = `Wave ${wave} complete!`;
-    $('wave-sheep').textContent = `🐑 ${survived}`;
-    const rows = lines
-      .filter(([, amount]) => amount > 0)
-      .map(([label, amount]) => {
-        const li = document.createElement('li');
-        li.innerHTML = '<span></span><span></span>';
-        li.firstChild.textContent = label;
-        li.lastChild.textContent = `+${amount}`;
-        return li;
-      });
-    const sum = document.createElement('li');
-    sum.className = 'total';
-    sum.innerHTML = `<span>Wool from shearing</span><span>🧶 +${reward}</span>`;
-    const extra = [];
-    if (bounty) {
+  // --- End of a wave: the shop screen -------------------------------------------------
+  // Collar on top, the wave's result on the left, and the tray in the middle: level-up picks first,
+  // then the shop (two charms and an animal). Cards only show an icon and a name; details are in a
+  // tooltip on hover, or pinned when a card is selected (a click or a tap), which also shows its
+  // buttons. Charms are bought by dragging them onto the collar, animals onto the flock, and sold
+  // by dragging them off the collar.
+
+  showWaveComplete({ wave, survived, lines, bounty, reward, line, dog }) {
+    $('wave-title').textContent = `Wave ${wave} ✓`;
+    $('wave-sheep').textContent = survived;
+    $('wave-line').textContent = line ? `Lost ${line.lost} · could spare ${line.spare} ✓` : '';
+    const short = (label) => label.replace(/ \(.*\)$/, '').replace('Shearing: ', 'Shorn: ');
+    const row = (label, amount, cls = '') => {
       const li = document.createElement('li');
-      li.className = 'bounty';
-      li.innerHTML = `<span>Bounty tufts collected during the wave</span><span>🧶 +${bounty}</span>`;
-      extra.push(li);
+      li.className = cls;
+      li.innerHTML = '<span></span><span></span>';
+      li.firstChild.textContent = label;
+      li.lastChild.textContent = amount;
+      return li;
+    };
+    $('wave-breakdown').replaceChildren(
+      ...lines.filter(([, amount]) => amount > 0).map(([label, amount]) => row(short(label), `+${amount}`)),
+      ...(bounty ? [row('Bounty tufts', `+${bounty}`)] : []),
+      row('Wool', `🧶 +${reward + (bounty ?? 0)}`, 'total')
+    );
+    if (dog) {
+      $('side-level').textContent = `🐕 Lv ${dog.level}${dog.badges ? ' ' + dog.badges : ''}`;
+      $('side-xp').style.transform = `scaleX(${dog.xp})`;
     }
-    if (line) {
-      const li = document.createElement('li');
-      li.className = 'quota';
-      li.innerHTML = '<span></span><span>✓</span>';
-      li.firstChild.textContent = `Lost ${line.lost} of the ${line.spare} the shepherd could spare`;
-      extra.unshift(li);
-    }
-    $('wave-breakdown').replaceChildren(...rows, sum, ...extra);
     this.show('wave');
   }
 
-  // Level-up picks on the end-of-wave screen: three perk cards, each with a rarity. While a pick is
-  // waiting the shop and the Next wave button are hidden. null hides the picker.
+  // Level-up picks in the tray (like opening a booster pack): one of three cards. null hides them
+  // and brings the shop back.
   showLevelUp(offer) {
-    const box = $('levelup');
-    box.classList.toggle('hidden', !offer);
-    document.querySelector('#screen-wave .shop').classList.toggle('hidden', !!offer);
-    document.querySelector('#screen-wave [data-action=next]').classList.toggle('hidden', !!offer);
+    this.levelData = offer;
+    $('levelup').classList.toggle('hidden', !offer);
+    $('shop').classList.toggle('hidden', !!offer);
     if (!offer) return;
-    $('levelup-title').textContent = `🐕 Level ${offer.level}! ${offer.special ? 'Choose a specialty' : 'Pick a perk'}${offer.left > 1 ? ` (${offer.left} to pick)` : ''}`;
+    if (!this.selected?.startsWith('perk:')) this.selected = null;
+    $('levelup-title').textContent = `🐕 Level ${offer.level}! ${offer.special ? 'Choose a specialty' : 'Choose a perk'}${offer.left > 1 ? ` · ${offer.left - 1} more after this` : ''}`;
+    const rarityName = { common: 'Common', rare: 'Rare', legendary: 'Legendary', special: 'Specialty' };
     $('levelup-cards').replaceChildren(
       ...offer.cards.map((c, i) => {
-        const card = document.createElement('div');
-        card.className = `upgrade-card perk-card rarity-${c.rarity}`;
-        card.setAttribute('role', 'button');
-        card.tabIndex = 0;
-        card.innerHTML = `
-          <span class="upgrade-group"></span>
-          <span class="upgrade-icon"></span>
-          <strong class="upgrade-name"></strong>
-          <span class="upgrade-pips"></span>
-          <span class="upgrade-text"></span>
-          <span class="upgrade-catch"></span>`;
-        const q = (sel) => card.querySelector(sel);
-        q('.upgrade-group').textContent = { common: 'Common', rare: 'Rare', legendary: 'Legendary', special: 'Specialty' }[c.rarity];
-        q('.upgrade-catch').textContent = c.catch ? `Catch: ${c.catch}` : '';
-        q('.upgrade-icon').textContent = c.icon;
-        q('.upgrade-name').textContent = c.name;
-        q('.upgrade-pips').textContent = c.special ? 'Once per run' : '●'.repeat(c.owned) + '◆'.repeat(c.points) + '○'.repeat(Math.max(0, c.max - c.owned - c.points));
-        q('.upgrade-text').textContent = c.text;
-        const pick = () => this.onPick?.(i);
-        card.addEventListener('click', pick);
-        card.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), pick()));
-        return card;
+        const key = `perk:${i}`;
+        const info = {
+          title: c.name,
+          meta: c.special ? 'Specialty · once per run' : `${rarityName[c.rarity]} · +${c.points} point${c.points > 1 ? 's' : ''}`,
+          text: c.text,
+          catch: c.catch,
+          foot: c.special ? '' : `Dog has ${c.owned} of ${c.max} points`,
+        };
+        const pips = c.special ? '' : '◆'.repeat(c.points);
+        return this.cardSlot(key, { icon: c.icon, name: c.name, rarity: c.rarity, pips }, info, {
+          big: true,
+          actions: [['Take it', () => this.onPick?.(i)]],
+          zones: () => [{ name: 'dog', el: document.querySelector('.side-level') }],
+          onDrop: () => this.onPick?.(i),
+        });
       })
     );
+    this.pinSelected();
   }
 
-  // The charms on the dog's collar, shown small under the top bar during a wave.
+  // The charms on the dog's collar, shown small in the top bar during a wave.
   setCharms(charms) {
-    $('hud-charms').replaceChildren(
+    const box = $('hud-charms');
+    box.classList.toggle('hidden', !charms.length);
+    box.replaceChildren(
       ...charms.map((c) => {
         const el = document.createElement('span');
         el.className = 'hud-charm';
@@ -248,98 +266,162 @@ export class UI {
   }
 
   denyCollar() {
-    const el = $('shop-collar');
-    el.classList.remove('deny');
-    void el.offsetWidth;
-    el.classList.add('deny');
-  }
-
-  // Shop cards on the end-of-wave screen: charms and one livestock card. Click a card to buy it;
-  // the ❄️ button freezes it so it stays for the next wave's shop. Above them, the collar: the
-  // charms owned, each with a button to sell it.
-  renderShop({ cards, collar, slots, rerollCost, wool, frozen, maxFrozen }) {
-    $('shop-collar-count').textContent = `${collar.length} / ${slots}`;
-    $('shop-collar-slots').replaceChildren(
-      ...Array.from({ length: slots }, (_, i) => {
-        const c = collar[i];
-        const slot = document.createElement('div');
-        slot.className = `collar-slot${c ? '' : ' empty'}`;
-        if (!c) return slot;
-        slot.title = `${c.name}: ${c.text}${c.catch ? ` Catch: ${c.catch}` : ''}`;
-        slot.innerHTML = '<span class="collar-icon"></span><button class="collar-sell"></button>';
-        slot.firstChild.textContent = c.icon;
-        const sell = slot.lastChild;
-        sell.textContent = `Sell 🧶${c.sell}`;
-        sell.setAttribute('aria-label', `Sell ${c.name} for ${c.sell} wool`);
-        sell.addEventListener('click', () => this.onSell?.(c.id));
-        return slot;
-      })
-    );
-    $('shop-wool').textContent = wool;
-    const reroll = $('shop-reroll');
-    reroll.textContent = `🎲 Reroll (${rerollCost})`;
-    reroll.disabled = wool < rerollCost;
-    $('shop-frozen').textContent = `❄️ ${frozen} / ${maxFrozen} frozen`;
-    const group = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick', xp: 'XP' };
-    $('shop-cards').replaceChildren(
-      ...cards.map((c) => {
-        const card = document.createElement('div');
-        const style = c.livestock ? 'livestock' : `group-${c.group} charm-${c.rarity}`;
-        const affordable = !c.bought && wool >= c.price;
-        card.className = `upgrade-card ${style}${c.bought ? ' bought' : ''}${affordable ? '' : ' unaffordable'}${c.frozen ? ' frozen' : ''}`;
-        card.setAttribute('role', 'button');
-        card.tabIndex = affordable ? 0 : -1;
-        card.innerHTML = `
-          <span class="upgrade-group"></span>
-          <span class="upgrade-icon"></span>
-          <strong class="upgrade-name"></strong>
-          <span class="upgrade-pips"></span>
-          <span class="upgrade-text"></span>
-          <span class="upgrade-catch"></span>
-          <span class="upgrade-price"></span>`;
-        const q = (sel) => card.querySelector(sel);
-        q('.upgrade-name').textContent = c.name;
-        q('.upgrade-text').textContent = c.text;
-        q('.upgrade-catch').textContent = c.catch ? `Catch: ${c.catch}` : '';
-        if (c.frozen) card.dataset.frozen = ''; // adds "❄️ Frozen ·" before the group label (CSS)
-        if (c.livestock) {
-          q('.upgrade-group').textContent = 'Livestock';
-          q('.upgrade-icon').innerHTML = `<img alt="" src="${c.image}">`;
-          q('.upgrade-pips').textContent = c.pays;
-          q('.upgrade-price').textContent = c.bought ? '✓ Joins next wave' : `🧶 ${c.price}`;
-        } else {
-          q('.upgrade-group').textContent = `${group[c.group]} · ${c.rarity}`;
-          q('.upgrade-icon').textContent = c.icon;
-          q('.upgrade-pips').textContent = 'Charm';
-          q('.upgrade-price').textContent = c.bought ? '✓ On the collar' : c.full ? `🧶 ${c.price} · collar full` : `🧶 ${c.price}`;
-        }
-        const buy = () => affordable && this.onBuy?.(c.key);
-        card.addEventListener('click', buy);
-        card.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), buy()));
-        if (!c.bought) {
-          const freeze = document.createElement('button');
-          freeze.className = 'freeze-btn';
-          freeze.textContent = '❄️';
-          freeze.title = c.frozen ? 'Unfreeze' : 'Freeze: keep this card for the next wave';
-          freeze.setAttribute('aria-pressed', c.frozen ? 'true' : 'false');
-          freeze.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.onFreeze?.(c.key);
-          });
-          card.appendChild(freeze);
-        }
-        return card;
-      })
-    );
-    if (!cards.length) $('shop-cards').textContent = 'Nothing left to buy. Good dog!';
+    this.shake($('collar'));
+    this.trayHint('The collar is full: drag a charm off it to sell it first.');
   }
 
   denyFreeze() {
-    const el = $('shop-frozen');
+    this.trayHint('Only two cards can be frozen at a time.');
+  }
+
+  shake(el) {
     el.classList.remove('deny');
     void el.offsetWidth;
     el.classList.add('deny');
-    setTimeout(() => el.classList.remove('deny'), 600);
+  }
+
+  trayHint(text) {
+    const el = $('tray-hint');
+    el.textContent = text;
+    el.classList.remove('pop');
+    void el.offsetWidth;
+    el.classList.add('pop');
+  }
+
+  renderShop(data) {
+    this.shopData = data;
+    const { cards, collar, slots, rerollCost, wool } = data;
+    const keys = new Set([...cards.map((c) => `shop:${c.key}`), ...collar.map((c) => `collar:${c.id}`)]);
+    if (this.selected && !this.selected.startsWith('perk:') && !keys.has(this.selected)) this.selected = null;
+    $('shop-wool').textContent = wool;
+    $('reroll-cost').textContent = rerollCost;
+    $('shop-reroll').disabled = wool < rerollCost;
+    $('collar-count').textContent = `${collar.length} / ${slots}`;
+    const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick', xp: 'XP' };
+    const rarityName = (r) => r[0].toUpperCase() + r.slice(1);
+
+    // The collar: filled slots are cards you can drag off to sell.
+    $('collar-slots').replaceChildren(
+      ...Array.from({ length: slots }, (_, i) => {
+        const c = collar[i];
+        if (!c) {
+          const empty = document.createElement('div');
+          empty.className = 'card-slot empty';
+          empty.innerHTML = '<div class="card card-empty"></div>';
+          return empty;
+        }
+        const info = { title: c.name, meta: `${rarityName(c.rarity)} · ${groupName[c.group]}`, text: c.text, catch: c.catch, foot: `Sells for 🧶 ${c.sell} · drag it off the collar to sell` };
+        return this.cardSlot(`collar:${c.id}`, { icon: c.icon, name: c.name, rarity: c.rarity, group: c.group }, info, {
+          small: true,
+          actions: [[`Sell 🧶${c.sell}`, () => this.onSell?.(c.id)]],
+          zones: () => [{ name: 'sell', el: $('sell-zone') }],
+          onDrop: () => this.onSell?.(c.id),
+          onDragStart: () => {
+            $('sell-price').textContent = c.sell;
+            $('sell-zone').classList.remove('hidden');
+          },
+          onDragEnd: () => $('sell-zone').classList.add('hidden'),
+        });
+      })
+    );
+
+    // The shop: two charms, then the animal. Bought cards leave an empty spot.
+    const shopCard = (c) => {
+      if (c.bought) {
+        const gone = document.createElement('div');
+        gone.className = 'card-slot empty';
+        gone.innerHTML = `<div class="card card-empty">${c.livestock ? 'Joins next wave' : 'On the collar'}</div>`;
+        return gone;
+      }
+      const affordable = wool >= c.price;
+      const blocked = !affordable || (!c.livestock && c.full);
+      const info = c.livestock
+        ? { title: c.name, meta: `Livestock${c.frozen ? ' · ❄️ frozen' : ''}`, text: c.text, foot: `${c.pays ? c.pays + ' · ' : ''}Drag onto your flock to buy` }
+        : { title: c.name, meta: `${rarityName(c.rarity)} · ${groupName[c.group]}${c.frozen ? ' · ❄️ frozen' : ''}`, text: c.text, catch: c.catch, foot: c.full ? 'The collar is full: sell a charm first' : 'Drag onto the collar to buy' };
+      return this.cardSlot(
+        `shop:${c.key}`,
+        { icon: c.icon, image: c.image, name: c.name, rarity: c.livestock ? 'livestock' : c.rarity, group: c.group, frozen: c.frozen },
+        info,
+        {
+          price: c.price,
+          short: !affordable,
+          actions: [
+            [`Buy 🧶${c.price}`, () => this.onBuy?.(c.key), blocked],
+            [c.frozen ? 'Unfreeze' : '❄️ Freeze', () => this.onFreeze?.(c.key)],
+          ],
+          zones: () => [{ name: c.livestock ? 'flock' : 'collar', el: c.livestock ? $('side-flock') : $('collar') }],
+          onDrop: () => (blocked ? (c.full && affordable ? this.denyCollar() : this.shake($(c.livestock ? 'side-flock' : 'collar'))) : this.onBuy?.(c.key)),
+        }
+      );
+    };
+    $('shop-charms').replaceChildren(...cards.filter((c) => !c.livestock).map(shopCard));
+    $('shop-animal').replaceChildren(...cards.filter((c) => c.livestock).map(shopCard));
+    this.pinSelected();
+  }
+
+  // A card plus what goes around it: its price tag, and its buttons while it's selected.
+  cardSlot(key, spec, info, { price, short, actions = [], zones, onDrop, onDragStart, onDragEnd, big, small }) {
+    const slot = document.createElement('div');
+    slot.className = `card-slot${big ? ' big' : ''}${small ? ' small' : ''}${this.selected === key ? ' selected' : ''}`;
+    const card = makeCard(spec);
+    card.dataset.key = key;
+    this.cardInfo.set(key, info);
+    slot.appendChild(card);
+    // Under the card: its price tag, or its buttons while it's selected (in the same spot, so
+    // nothing below moves; the collar's small cards show them floating instead).
+    const foot = document.createElement('div');
+    foot.className = 'card-foot';
+    if (price != null && this.selected !== key) {
+      const tag = document.createElement('span');
+      tag.className = `card-price${short ? ' short' : ''}`;
+      tag.textContent = `🧶 ${price}`;
+      foot.appendChild(tag);
+    }
+    if (!small) slot.appendChild(foot);
+    if (this.selected === key) {
+      const row = document.createElement('div');
+      row.className = 'card-actions';
+      for (const [label, fn, disabled] of actions) {
+        const b = document.createElement('button');
+        b.className = 'btn btn-small';
+        b.textContent = label;
+        b.disabled = !!disabled;
+        b.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.selected = null;
+          this.tip.hide();
+          fn();
+        });
+        row.appendChild(b);
+      }
+      (small ? slot : foot).appendChild(row);
+    }
+    card.addEventListener('pointerenter', (e) => e.pointerType === 'mouse' && !document.querySelector('.card-ghost') && this.tip.show(card, info));
+    card.addEventListener('pointerleave', (e) => e.pointerType === 'mouse' && this.pinSelected());
+    draggable(card, {
+      zones,
+      onDrop,
+      onDragStart: () => {
+        this.tip.hide();
+        onDragStart?.();
+      },
+      onDragEnd,
+      onClick: () => this.select(key),
+    });
+    return slot;
+  }
+
+  select(key) {
+    this.selected = this.selected === key ? null : key;
+    if (this.levelData) this.showLevelUp(this.levelData);
+    if (this.shopData) this.renderShop(this.shopData);
+  }
+
+  // Keep the selected card's tooltip open (and hide the tooltip if nothing's selected).
+  pinSelected() {
+    const card = this.selected && document.querySelector(`.card[data-key="${this.selected}"]`);
+    if (card && card.offsetParent) this.tip.show(card, this.cardInfo.get(this.selected));
+    else this.tip.hide();
   }
 
   // Stat tiles plus what took the sheep and what was bought.
@@ -556,15 +638,16 @@ export class UI {
       onClick?.();
     });
     const layer = $('toast-layer');
-    while (layer.children.length >= 3) layer.firstChild.remove();
+    while (layer.children.length >= 2) layer.firstChild.remove();
     layer.appendChild(el);
-    setTimeout(() => el.classList.add('out'), 4000);
-    setTimeout(() => el.remove(), 4500);
+    setTimeout(() => el.classList.add('out'), 3200);
+    setTimeout(() => el.remove(), 3700);
   }
 
   // First-time tips: one at a time, each for a few seconds (click to dismiss), queued if several
   // come up together.
   showTip(text) {
+    if (document.body.classList.contains('shopping')) return this.trayHint(text);
     this.tipQueue = this.tipQueue ?? [];
     this.tipQueue.push(text);
     if (!this.tipShowing) this.nextTip();
@@ -573,7 +656,7 @@ export class UI {
   nextTip() {
     const el = $('tip');
     clearTimeout(this.tipTimer);
-    const text = this.tipQueue.shift();
+    const text = this.tipQueue?.shift();
     this.tipShowing = !!text;
     el.classList.toggle('hidden', !text);
     if (!text) return;

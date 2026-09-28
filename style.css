@@ -819,253 +819,6 @@ body[data-effects='off'] #last-stand.on {
   color: #d8e4ff;
 }
 
-/* --- Upgrade shop --------------------------------------------------------- */
-
-.panel-shop {
-  width: min(640px, 100%);
-  max-height: calc(100vh - 32px);
-  overflow-y: auto;
-}
-
-.wave-summary {
-  display: flex;
-  justify-content: center;
-  align-items: baseline;
-  gap: 16px;
-  margin: 4px 0 12px;
-}
-
-.wave-summary .big-stat,
-.wave-summary .reward {
-  margin: 0;
-}
-
-.shop {
-  padding: 12px;
-  background: var(--paper-2);
-  border-radius: 18px;
-}
-
-.shop-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin: 0 4px 10px;
-}
-
-.shop-head h3 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.shop-wool {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.shop-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.upgrade-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 8px 12px;
-  font: inherit;
-  color: var(--ink);
-  text-align: center;
-  background: var(--paper);
-  border: 3px solid var(--ink);
-  border-radius: 16px;
-  box-shadow: 0 5px 0 rgba(74, 52, 38, 0.3);
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-.upgrade-card:not(:disabled):hover {
-  transform: translateY(-3px);
-}
-
-.upgrade-card:not(:disabled):active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 rgba(74, 52, 38, 0.3);
-}
-
-.upgrade-card:disabled {
-  cursor: default;
-  opacity: 0.55;
-}
-
-.upgrade-card.bought {
-  opacity: 1;
-  background: #eaf2d6;
-  border-color: var(--grass);
-}
-
-/* Charm rarity shows in the border: uncommon blue, rare gold. */
-.upgrade-card.charm-uncommon {
-  border-color: #4f7fc2;
-  box-shadow: 0 5px 0 rgba(79, 127, 194, 0.45);
-}
-
-.upgrade-card.charm-rare {
-  border-color: #d9a441;
-  box-shadow: 0 5px 0 rgba(217, 164, 65, 0.5), 0 0 0 3px rgba(217, 164, 65, 0.25);
-}
-
-/* The collar in the shop: five slots, each owned charm with a sell button. */
-.shop-collar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 4px 12px;
-  flex-wrap: wrap;
-}
-
-.shop-collar.deny {
-  animation: bigbark-deny 0.3s;
-}
-
-.collar-label {
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.collar-slots {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.collar-slot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  width: 64px;
-  padding: 4px 0;
-  border: 2px solid var(--ink);
-  border-radius: 12px;
-  background: var(--paper);
-}
-
-.collar-slot.empty {
-  height: 50px;
-  border-style: dashed;
-  opacity: 0.4;
-}
-
-.collar-icon {
-  font-size: 24px;
-  line-height: 1;
-}
-
-.collar-sell {
-  font: inherit;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border: none;
-  border-radius: 8px;
-  background: #ead9b8;
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.collar-sell:hover {
-  background: var(--accent);
-  color: #fffaf0;
-}
-
-/* Charms on the collar during a wave: small icons in the top-left corner. */
-.hud-charms {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  display: flex;
-  gap: 6px;
-}
-
-.hud-charm {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  font-size: 19px;
-  border: 3px solid var(--ink);
-  border-radius: 50%;
-  background: var(--paper);
-  pointer-events: auto;
-  cursor: help;
-}
-
-@media (max-width: 1000px) {
-  .hud-charms {
-    top: 88px;
-  }
-}
-
-.upgrade-group {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink-soft);
-}
-
-.group-dog .upgrade-group {
-  color: #3d6fa0;
-}
-
-.group-shepherd .upgrade-group {
-  color: #8a5a3b;
-}
-
-.group-flock .upgrade-group {
-  color: #5f8a32;
-}
-
-.group-trick .upgrade-group {
-  color: #7d62b8;
-}
-
-.group-xp .upgrade-group {
-  color: #a0527a;
-}
-
-.upgrade-icon {
-  font-size: 32px;
-  line-height: 1.1;
-}
-
-.upgrade-name {
-  font-size: 16px;
-  line-height: 1.1;
-}
-
-.upgrade-pips {
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: var(--accent-dark);
-}
-
-.upgrade-text {
-  flex: 1;
-  font-size: 13px;
-  line-height: 1.25;
-  color: var(--ink-soft);
-}
-
-.upgrade-price {
-  margin-top: 4px;
-  font-size: 16px;
-  font-weight: 700;
-}
-
 .btn-small {
   width: auto;
   margin: 10px auto 0;
@@ -1077,39 +830,6 @@ body[data-effects='off'] #last-stand.on {
   opacity: 0.5;
   cursor: default;
   transform: none;
-}
-
-@media (max-width: 600px) {
-  .shop-cards {
-    grid-template-columns: 1fr;
-  }
-  .upgrade-card {
-    display: grid;
-    grid-template-columns: 44px 1fr auto;
-    grid-template-areas: 'icon name price' 'icon text price' 'icon pips price';
-    text-align: left;
-    column-gap: 10px;
-    row-gap: 2px;
-  }
-  .upgrade-group {
-    display: none;
-  }
-  .upgrade-icon {
-    grid-area: icon;
-  }
-  .upgrade-name {
-    grid-area: name;
-  }
-  .upgrade-text {
-    grid-area: text;
-  }
-  .upgrade-pips {
-    grid-area: pips;
-  }
-  .upgrade-price {
-    grid-area: price;
-    align-self: center;
-  }
 }
 
 #hint {
@@ -1260,16 +980,6 @@ body[data-effects='off'] #last-stand.on {
   border-radius: 12px;
 }
 
-.upgrade-catch {
-  font-size: 11px;
-  font-style: italic;
-  color: var(--danger);
-}
-
-.upgrade-catch:empty {
-  display: none;
-}
-
 .bigbark-btn.deny {
   animation: bigbark-deny 0.3s;
 }
@@ -1303,173 +1013,6 @@ body[data-effects='off'] #last-stand.on {
 @media (hover: none) {
   .bigbark-key {
     display: none;
-  }
-}
-
-/* --- Shearing breakdown -------------------------------------------------- */
-
-.breakdown {
-  margin: 0 auto 12px;
-  padding: 8px 14px;
-  max-width: 380px;
-  list-style: none;
-  background: var(--paper-2);
-  border-radius: 14px;
-  font-size: 15px;
-}
-
-.breakdown li {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 2px 0;
-}
-
-.breakdown li span:last-child {
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.breakdown .total {
-  margin-top: 4px;
-  padding-top: 6px;
-  border-top: 2px dashed rgba(74, 52, 38, 0.25);
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.breakdown .bounty {
-  font-weight: 600;
-  color: var(--accent-dark);
-}
-
-/* Livestock card: an animal to buy, with its bestiary portrait */
-/* Level-up perk cards: the rarity shows in the border. */
-.levelup h3 {
-  margin: 4px 0 8px;
-  text-align: center;
-}
-
-.perk-card {
-  cursor: pointer;
-}
-
-.perk-card.rarity-common {
-  border-color: var(--ink);
-}
-
-.perk-card.rarity-rare {
-  border-color: #4f7fc2;
-  box-shadow: 0 5px 0 rgba(79, 127, 194, 0.45), 0 0 0 3px rgba(79, 127, 194, 0.2);
-}
-
-.perk-card.rarity-rare .upgrade-group {
-  color: #3d6aa8;
-}
-
-.perk-card.rarity-legendary {
-  border-color: #b8862b;
-  background: #fff4d8;
-  box-shadow: 0 5px 0 rgba(184, 134, 43, 0.5), 0 0 0 4px rgba(242, 193, 78, 0.35);
-}
-
-.perk-card.rarity-special {
-  border-color: #7d62b8;
-  background: #f3eefb;
-  box-shadow: 0 5px 0 rgba(125, 98, 184, 0.5), 0 0 0 4px rgba(155, 127, 208, 0.3);
-}
-
-.perk-card.rarity-special .upgrade-group {
-  color: #6a4fa8;
-}
-
-.perk-card.rarity-legendary .upgrade-group {
-  color: #9a6a12;
-}
-
-.upgrade-card.livestock {
-  background: #f3f8e6;
-  border-color: #6f8f3f;
-  box-shadow: 0 5px 0 rgba(95, 138, 50, 0.4);
-}
-
-.livestock .upgrade-group {
-  color: #5f8a32;
-}
-
-.livestock .upgrade-icon img {
-  width: 64px;
-  height: 64px;
-  margin: -8px 0 -6px;
-}
-
-.livestock .upgrade-pips {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0;
-  color: #5f8a32;
-}
-
-.upgrade-card.livestock.bought {
-  background: #eaf2d6;
-}
-
-@media (max-width: 600px) {
-  .livestock .upgrade-icon img {
-    width: 44px;
-    height: 44px;
-    margin: 0;
-  }
-}
-
-/* Keep the end-of-wave screen compact enough for laptop screens */
-.panel-shop {
-  padding: 20px 24px 18px;
-}
-
-.panel-shop h2 {
-  font-size: 28px;
-  margin-bottom: 2px;
-}
-
-.panel-shop .breakdown {
-  margin-bottom: 10px;
-  padding: 6px 14px;
-  font-size: 14px;
-}
-
-.panel-shop .btn {
-  margin-top: 8px;
-  padding: 10px 20px;
-}
-
-/* Four shop cards: three upgrades and one livestock */
-.panel-shop {
-  width: min(760px, 100%);
-}
-
-.shop-cards {
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.upgrade-card {
-  padding: 8px 6px 10px;
-}
-
-.upgrade-text {
-  font-size: 12px;
-}
-
-@media (max-width: 760px) {
-  .shop-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
-  .shop-cards {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -1795,86 +1338,6 @@ body[data-effects='off'] #last-stand.on {
   box-shadow: 0 4px 0 #8f3a2c;
 }
 
-/* --- Freezing shop cards -------------------------------------------------- */
-
-.upgrade-card {
-  position: relative;
-}
-
-.upgrade-card.unaffordable {
-  cursor: default;
-}
-
-.upgrade-card.unaffordable:not(.bought) > :not(.freeze-btn) {
-  opacity: 0.55;
-}
-
-.upgrade-card.unaffordable:hover {
-  transform: none;
-}
-
-.upgrade-card.frozen {
-  border-color: #6fa8d6;
-  background: #eef6fc;
-  box-shadow: 0 5px 0 rgba(111, 168, 214, 0.5), 0 0 0 3px rgba(111, 168, 214, 0.3);
-}
-
-.freeze-btn {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  padding: 2px 6px;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  color: #2f6a99;
-  background: rgba(255, 255, 255, 0.7);
-  border: 2px solid transparent;
-  border-radius: 10px;
-  cursor: pointer;
-  opacity: 0.75;
-}
-
-.freeze-btn:hover,
-.frozen .freeze-btn {
-  opacity: 1;
-  border-color: #6fa8d6;
-  background: #fff;
-}
-
-.shop-foot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 10px;
-}
-
-.shop-foot .btn-small {
-  margin: 0;
-}
-
-.shop-frozen {
-  font-size: 14px;
-  font-weight: 700;
-  color: #2f6a99;
-}
-
-.shop-frozen.deny {
-  animation: bigbark-deny 0.3s;
-  color: var(--danger);
-}
-
-.upgrade-card[data-frozen] .upgrade-group::before {
-  content: '❄️ Frozen · ';
-  color: #2f6a99;
-}
-
-
-.upgrade-card .upgrade-group {
-  padding: 0 22px; /* room for the ❄️ button */
-}
-
 /* --- Wardrobe ------------------------------------------------------------- */
 
 .wardrobe-body {
@@ -2006,9 +1469,680 @@ body[data-effects='off'] #last-stand.on {
   color: var(--danger);
 }
 
-.breakdown .quota {
+
+
+
+/* --- End-of-wave shop (Balatro style) ------------------------------------- */
+
+/* While shopping the wave HUD steps aside; the sidebar shows what matters. */
+body.shopping .hud-bar,
+body.shopping #hud-combo,
+body.shopping #btn-bigbark,
+body.shopping #hud-boss,
+body.shopping .hud-buttons,
+body.shopping #indicator-layer,
+body.shopping #last-stand,
+body.shopping #hint {
+  display: none;
+}
+
+.shop-screen {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 16px;
+  padding: 18px 20px 24px;
+  overflow-y: auto;
+  background: rgba(46, 32, 22, 0.6);
+}
+
+.shop-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.collar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border: 3px dashed rgba(255, 240, 208, 0.45);
+  border-radius: 20px;
+  background: rgba(255, 240, 208, 0.08);
+  transition: transform 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.collar.drop-hot {
+  transform: scale(1.03);
+  border-color: #f2c14e;
+  border-style: solid;
+  background: rgba(242, 193, 78, 0.22);
+}
+
+.collar-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--paper);
+  white-space: nowrap;
+}
+
+.collar-slots {
+  display: flex;
+  gap: 10px;
+}
+
+.shop-wool {
+  padding: 6px 18px;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--paper);
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+}
+
+.shop-main {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.shop-side {
+  flex: none;
+  width: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  text-align: center;
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  border-radius: 22px;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.25);
+}
+
+.shop-side h2 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.side-flock {
+  padding: 8px;
+  border: 3px dashed transparent;
+  border-radius: 16px;
+  background: var(--paper-2);
+  transition: transform 0.15s, background 0.15s;
+}
+
+.side-flock.drop-hot {
+  transform: scale(1.04);
+  border-color: #5f8a32;
+  background: #eef5dd;
+}
+
+.side-flock-n {
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.side-flock small {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.side-line {
+  margin: 0;
+  font-size: 14px;
   font-weight: 700;
   color: #4d7a2a;
 }
 
+.side-line:empty {
+  display: none;
+}
 
+.side-breakdown {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.side-breakdown li {
+  display: flex;
+  justify-content: space-between;
+  padding: 1px 4px;
+  color: var(--ink-soft);
+}
+
+.side-breakdown .total {
+  margin-top: 4px;
+  padding-top: 6px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  border-top: 2px dashed rgba(74, 52, 38, 0.3);
+}
+
+.side-level {
+  padding: 8px 10px;
+  font-weight: 700;
+  background: #efe8f8;
+  border: 3px dashed transparent;
+  border-radius: 14px;
+  transition: transform 0.15s;
+}
+
+.side-level.drop-hot {
+  transform: scale(1.04);
+  border-color: #7d62b8;
+}
+
+.side-level .meter {
+  margin-top: 6px;
+}
+
+.side-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.shop-tray {
+  position: relative;
+  flex: 0 1 640px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px 20px;
+  background: #6b4a33;
+  border: 4px solid var(--ink);
+  border-radius: 24px;
+  box-shadow: inset 0 0 0 4px rgba(255, 240, 208, 0.1), 0 8px 0 rgba(0, 0, 0, 0.25);
+}
+
+.tray-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.tray-title {
+  margin: 0;
+  font-size: 20px;
+  color: var(--paper);
+  text-align: center;
+}
+
+.card-row {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.tray-divider {
+  width: 3px;
+  align-self: stretch;
+  border-radius: 2px;
+  background: rgba(255, 240, 208, 0.2);
+}
+
+.tray-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.tray-actions .btn {
+  width: auto;
+  margin: 0;
+}
+
+.btn-reroll {
+  white-space: nowrap;
+  font-size: 18px;
+  background: #5f8a32;
+  box-shadow: 0 5px 0 #43651f;
+}
+
+.btn-next {
+  flex: 0 1 260px;
+}
+
+.tray-hint {
+  max-width: 520px;
+  min-height: 1.3em;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--paper);
+}
+
+.tray-hint.pop {
+  animation: tip-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.sell-zone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+  color: #fffaf0;
+  background: rgba(201, 87, 69, 0.8);
+  border: 4px dashed #fffaf0;
+  border-radius: 20px;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.sell-zone.drop-hot {
+  transform: scale(1.02);
+  background: rgba(201, 87, 69, 0.95);
+}
+
+.collar.deny,
+.side-flock.deny {
+  animation: bigbark-deny 0.3s;
+}
+
+/* Cards: an icon and a short name; everything else is in the tooltip. */
+.card-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.card {
+  position: relative;
+  width: 96px;
+  height: 128px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 6px;
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.28);
+  cursor: grab;
+  outline: none;
+  transition: transform 0.15s cubic-bezier(0.2, 1.4, 0.4, 1), box-shadow 0.15s;
+}
+
+.card:hover,
+.card:focus-visible {
+  transform: translateY(-8px) rotate(-1.5deg);
+  box-shadow: 0 12px 0 rgba(0, 0, 0, 0.22);
+}
+
+.card-slot.selected .card {
+  transform: translateY(-10px);
+  box-shadow: 0 0 0 4px #f2c14e, 0 14px 0 rgba(0, 0, 0, 0.22);
+}
+
+.card.dragging {
+  opacity: 0.3;
+}
+
+.card-ghost {
+  position: fixed;
+  z-index: 60;
+  pointer-events: none;
+  transform: rotate(-4deg) scale(1.06);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
+}
+
+.card-group {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-size: 13px;
+}
+
+.card-icon {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.card-icon img {
+  width: 64px;
+  height: 64px;
+}
+
+.card-name {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.card-pips {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--accent-dark);
+}
+
+.card-pips:empty {
+  display: none;
+}
+
+.card-slot.big .card {
+  width: 120px;
+  height: 160px;
+}
+
+.card-slot.big .card-icon {
+  font-size: 58px;
+}
+
+.card-slot.big .card-name {
+  font-size: 15px;
+}
+
+.card-slot.small .card {
+  width: 64px;
+  height: 84px;
+  padding: 4px;
+  border-width: 3px;
+  border-radius: 11px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.28);
+}
+
+.card-slot.small .card-icon {
+  font-size: 30px;
+}
+
+.card-slot.small .card-name {
+  font-size: 9.5px;
+}
+
+.card-slot.small .card-group {
+  display: none;
+}
+
+.card-empty,
+.card-slot.empty .card {
+  width: 96px;
+  height: 128px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  color: rgba(255, 240, 208, 0.6);
+  background: transparent;
+  border: 3px dashed rgba(255, 240, 208, 0.35);
+  box-shadow: none;
+  cursor: default;
+  transform: none;
+}
+
+.collar .card-slot.empty .card {
+  width: 64px;
+  height: 84px;
+}
+
+.card.rarity-uncommon {
+  border-color: #3f73b8;
+  background: #eef4fc;
+}
+
+.card.rarity-rare {
+  border-color: #c48a1e;
+  background: #fff4d8;
+}
+
+.card.rarity-legendary {
+  border-color: #b8862b;
+  background: linear-gradient(160deg, #fff4d8, #f7d98a);
+}
+
+.card.rarity-special {
+  border-color: #6a4fa8;
+  background: #f1ebfb;
+}
+
+.card.rarity-livestock {
+  border-color: #5f8a32;
+  background: #f3f8e6;
+}
+
+.card.frozen {
+  border-color: #5a9bd4;
+  background: #e4f1fb;
+}
+
+.card.frozen::after {
+  content: '❄️';
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 14px;
+}
+
+.card-price {
+  padding: 2px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  background: #f2c14e;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+}
+
+.card-price.short {
+  color: rgba(74, 52, 38, 0.55);
+  background: #d9c7a6;
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.card-slot.small .card-actions {
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: 5;
+}
+
+.card-actions .btn {
+  width: auto;
+  margin: 0;
+  padding: 5px 12px;
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 var(--accent-dark);
+}
+
+.card-actions .btn:disabled {
+  opacity: 0.45;
+}
+
+/* The tooltip beside a card. */
+.card-tip {
+  position: fixed;
+  z-index: 70;
+  width: 230px;
+  padding: 10px 14px 12px;
+  font-size: 14px;
+  line-height: 1.35;
+  background: #fffaf0;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.card-tip strong {
+  display: block;
+  font-size: 17px;
+}
+
+.card-tip small {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-soft);
+}
+
+.card-tip p {
+  margin: 4px 0 0;
+}
+
+.tip-catch {
+  font-style: italic;
+  color: var(--danger);
+}
+
+.tip-foot {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.card-tip p:empty,
+.card-tip small:empty {
+  display: none;
+}
+
+/* Charms in the top bar during a wave. */
+.hud-charms {
+  display: flex;
+  gap: 2px;
+  padding-left: 12px;
+  border-left: 2px solid rgba(74, 52, 38, 0.2);
+}
+
+.hud-charm {
+  font-size: 20px;
+  pointer-events: auto;
+  cursor: help;
+}
+
+/* Toasts: small pills. */
+.toast {
+  gap: 8px;
+  padding: 4px 14px 4px 4px;
+  border-radius: 14px;
+}
+
+.toast img {
+  width: 36px;
+  height: 36px;
+}
+
+.toast-icon {
+  width: 36px;
+  font-size: 24px;
+}
+
+.toast small {
+  font-size: 10px;
+}
+
+.toast strong {
+  font-size: 15px;
+}
+
+@media (max-width: 860px) {
+  .shop-main {
+    flex-direction: column;
+    align-items: center;
+  }
+  .shop-side {
+    width: min(640px, 100%);
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+  }
+  .shop-tray {
+    width: min(640px, 100%);
+    flex: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .card {
+    width: 78px;
+    height: 106px;
+  }
+  .card-icon {
+    font-size: 36px;
+  }
+  .card-slot.big .card {
+    width: 96px;
+    height: 128px;
+  }
+  .card-slot.small .card,
+  .collar .card-slot.empty .card {
+    width: 50px;
+    height: 68px;
+  }
+  .card-slot.small .card-name {
+    display: none;
+  }
+  .card-row {
+    gap: 10px;
+  }
+  .collar-title {
+    display: none;
+  }
+  .shop-screen {
+    padding: 10px 10px 18px;
+    gap: 10px;
+  }
+  .shop-side {
+    gap: 6px 12px;
+    padding: 10px;
+  }
+  .shop-side h2 {
+    font-size: 20px;
+  }
+  .side-flock-n {
+    font-size: 24px;
+  }
+  .side-breakdown li:not(.total) {
+    display: none;
+  }
+  .shop-wool {
+    font-size: 22px;
+  }
+  .tray-actions .btn {
+    font-size: 17px;
+    white-space: nowrap;
+  }
+  body.shopping #toast-layer {
+    top: 8px;
+    bottom: auto;
+  }
+}

@@ -203,11 +203,21 @@ rule change for the dog, with a catch (shown next to the level on the HUD, e.g. 
 ### Charms (wool)
 
 Wool buys **charms** on the end-of-wave screen, hung on the dog's collar: up to **5** at once, one of
-each. The shop shows four random cards (three charms and one animal); buy any you can afford, or
+each. The shop shows three random cards (two charms and one animal); buy any you can afford, or
 reroll them (2 wool, +2 per extra reroll that wave). With a full collar, sell a charm for half its
-price to make room (the "Sell" button under each slot on the collar row). The collar is shown in the
-top-left corner during a wave. Uncommon charms (blue border) come up 60% as often as common ones,
-rare ones (gold) 35%.
+price to make room. During a wave the collar's charms show at the end of the top bar. Uncommon
+charms (blue border) come up 60% as often as common ones, rare ones (gold) 35%.
+
+**The shop screen** (Balatro style): the collar across the top with your wool, the wave's result
+on the left (sheep home, the line, the wool it made, the dog's level), and the tray in the middle:
+level-up picks first, then the shop with 🎲 Reroll and ▶ Next wave. Cards only show an icon and a
+name; hover (or tap) one for the tooltip with its effect, catch and price.
+
+- **Drag and drop:** drag a charm onto the collar to buy it, an animal onto your flock (the sheep
+  count on the left), a perk onto the dog's level; drag a charm off the collar onto the red sell zone
+  to sell it.
+- **Click / tap:** selects a card, pins its tooltip and shows its buttons in place of the price:
+  Buy, ❄️ Freeze, Sell or Take it. Click the background to put it back.
 
 | Charm | Group | Rarity | Price | Effect |
 | --- | --- | --- | --- | --- |
@@ -249,8 +259,8 @@ rare ones (gold) 35%.
 
 ### Freezing cards
 
-Can't afford a card yet? Tap its ❄️ to freeze it: a frozen card stays in the shop for the next
-wave (rerolls don't touch it) until you buy it or unfreeze it. Up to 2 of the 4 cards can be frozen,
+Can't afford a card yet? Select it and choose ❄️ Freeze: a frozen card (blue, with a ❄️) stays in the
+shop for the next wave (rerolls don't touch it) until you buy it or unfreeze it. Up to 2 cards can be frozen,
 so saving up (with interest) for something specific is a real plan. Frozen cards are saved with
 the run.
 
@@ -371,6 +381,7 @@ http://localhost:8000/guide.html.
 | `src/tips.js` | First-time tips and which ones the player has seen |
 | `src/achievements.js` | The 37 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | Dog perks (level-ups), charms (shop), livestock; card draws and the multipliers they add up to |
+| `src/cards.js` | Shop cards: the card element, its tooltip, drag and drop onto drop zones |
 | `src/helper.js` | AI for the Second Dog upgrade |
 
 `window.game` is exposed in the console for debugging.

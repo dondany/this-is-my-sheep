@@ -11,7 +11,7 @@ export const TIPS = {
   line: "📋 From now on the shepherd can spare only a few sheep each wave: two, plus one in five. The number after the slash is the line (🐑 12 / 9): drop below it and the summer's over.",
   levelUp: "🐕 Your dog levelled up! Scaring wolves earns experience: more for tough wolves, more with combos, double on the line. Pick a perk for every level.",
   lastStand: "❤️‍🔥 You're on the line: one more lost sheep ends the summer. Your dog has found a second wind: faster, with a bigger reach. Hold on!",
-  shop: "🧶 Wool comes from shearing the sheep that survive. Spend it on charms for the dog's collar (up to 5, sell one to make room) and on livestock. Can't afford a card yet? Tap ❄️ to keep it for the next wave (unspent wool earns interest).",
+  shop: "🧶 Drag a charm onto the collar to buy it (5 at most; drag one off to sell it), an animal onto your flock. Click a card for its details, or to ❄️ freeze it for the next wave.",
   tuft: '🎾 That wolf dropped a tuft of fur. Grab it with the dog for wool before it blows away!',
   stray: '❓ A sheep has wandered off. Get behind it and walk it back to the flock.',
   orphan: '🍼 A lamb lost its mother and ran off. Get behind it and walk it home.',

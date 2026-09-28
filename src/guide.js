@@ -237,7 +237,7 @@ const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Tr
 const helperMods = modifiers(['helper']);
 const rw = SHOP.rarityWeight;
 $('upgrades-body').innerHTML = `
-  <p>Charms are bought with wool in the end-of-wave shop and hang on the dog's collar: up to <strong>${SHOP.slots}</strong> at once, one of each. Sell one for ${Math.round(SHOP.sellBack * 100)}% of its price to make room. Three of the shop's four cards are charms; uncommon ones come up ${Math.round(rw.uncommon * 100)}% and rare ones ${Math.round(rw.rare * 100)}% as often as common ones. Summer 5 and later add 25% to all prices.</p>
+  <p>Charms are bought with wool in the end-of-wave shop and hang on the dog's collar: up to <strong>${SHOP.slots}</strong> at once, one of each. Sell one for ${Math.round(SHOP.sellBack * 100)}% of its price to make room. Two of the shop's three cards are charms (drag one onto the collar to buy it, or off it to sell); uncommon ones come up ${Math.round(rw.uncommon * 100)}% and rare ones ${Math.round(rw.rare * 100)}% as often as common ones. Summer 5 and later add 25% to all prices.</p>
   ${table(
     ['', 'Charm', 'Group', 'Rarity', 'Effect', 'Catch', 'Price'],
     CHARMS.map((c) => [c.icon, `<strong>${esc(c.name)}</strong>`, groupName[c.group], c.rarity, esc(c.text), esc(c.catch ?? ''), String(c.price)])
@@ -284,7 +284,7 @@ $('levels-body').innerHTML = `
   )}`;
 
 $('livestock-body').innerHTML = `
-  <p>One of the four shop cards offers an animal. It joins at the start of the next wave. Only animals already met in the run are offered (a lamb always is); each one you own makes the next of its kind cost 50% more.</p>
+  <p>One of the three shop cards offers an animal (drag it onto the flock to buy it). It joins at the start of the next wave. Only animals already met in the run are offered (a lamb always is); each one you own makes the next of its kind cost 50% more.</p>
   ${table(
     ['Animal', 'Price', 'Then', 'Shorn for', 'Notes'],
     LIVESTOCK.map((a) => [

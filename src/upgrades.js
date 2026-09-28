@@ -122,7 +122,7 @@ export const CHARMS = [
 export const CHARM = Object.fromEntries(CHARMS.map((c) => [c.id, c]));
 
 export const SHOP = {
-  cards: 4, // three charms and one livestock card
+  cards: 3, // two charms and one livestock card
   slots: 5, // charms on the collar at once
   sellBack: 0.5, // a sold charm returns this share of its price
   reroll: 2, // first reroll of a wave; each further reroll costs this much more

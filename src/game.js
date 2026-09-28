@@ -417,6 +417,8 @@ export class Game {
 
   // Show a first-time tip (only ever once per player).
   tip(id) {
+    // On the end-of-wave screen only the shop's own tips make sense; others wait for a real moment.
+    if (this.state === STATE.WAVE_COMPLETE && id !== 'shop' && id !== 'levelUp') return;
     const text = this.tips.take(id);
     if (text) this.ui.showTip(text);
   }
@@ -544,7 +546,7 @@ export class Game {
     this.juice.whistle(this.shepherd);
   }
 
-  // Three upgrade cards and one livestock card. Frozen cards come first and stay put; the rest are
+  // Two charm cards and one livestock card. Frozen cards come first and stay put; the rest are
   // drawn at random around them.
   drawShopCards() {
     this.frozen = this.frozen.filter((key) => this.canOfferCard(key));
@@ -631,7 +633,9 @@ export class Game {
   // The end-of-wave screen: level-up picks first (one at a time), then the shop.
   showWavePanel() {
     if (this.victoryPanel) return this.ui.showVictory(this.victoryPanel);
-    this.ui.showWaveComplete(this.pendingPanel);
+    const dog = { level: this.level, xp: this.xp / xpToNext(this.level), badges: this.specialties.map((id) => SPECIALTY[id].icon).join('') };
+    this.ui.showWaveComplete({ ...this.pendingPanel, dog });
+    this.showShop(); // the collar and wool show during level-up picks too (the shop waits behind them)
     if (this.levelOffer) {
       this.ui.showLevelUp({
         level: this.level - this.pendingLevels + 1,
@@ -647,7 +651,6 @@ export class Game {
       return;
     }
     this.ui.showLevelUp(null);
-    this.showShop();
     this.tip('shop');
   }
 

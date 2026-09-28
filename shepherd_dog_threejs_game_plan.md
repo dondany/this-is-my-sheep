@@ -2882,3 +2882,40 @@ two moments that define the dog.
         won 1 of 5 (★★★, dog level 16) and the others ended at waves 8-14,
         mostly close; average (with the Big Bark) ends at waves 5-9,
         median 7, level 5-10; casual at 2-5.
+
+------------------------------------------------------------------------
+
+# 98. Shop Screen Rework: Balatro Style, Drag and Drop (implemented)
+
+Playtest: "the UI is super cluttered". The end-of-wave panel had grown
+a wool breakdown, level-up cards, a collar row with sell buttons, four
+cards full of text, reroll and freeze counts and a Next button, with big
+toasts and tips over it.
+
+-   The end-of-wave screen is now a full-screen layout (`#screen-wave`,
+    `body.shopping` hides the wave HUD): the collar across the top (5
+    card slots) with the wool, a sidebar with the wave's result (sheep
+    home as a drop target, the line, compact wool rows, the dog's level
+    and XP, 📖 🏆), and a wooden tray in the middle: level-up picks
+    first (like opening a booster pack), then the shop.
+-   The shop offers **two charms and one animal** (`SHOP.cards` 3).
+-   Cards (`src/cards.js`): an icon and a short name, rarity in the
+    border colour (uncommon blue, rare gold, legendary gold gradient,
+    specialty purple, livestock green, frozen icy blue), a group glyph
+    in the corner, the price on a tag underneath. Details live in one
+    tooltip beside the card (`CardTip`): name, rarity · group, effect,
+    catch in red, a footer (price hint, sell value, points owned).
+-   Drag and drop with pointer events (mouse and touch, `draggable()`):
+    charm → collar buys, animal → flock buys, perk → dog level takes it,
+    collar charm → the red sell zone over the tray sells. Drop zones
+    light up under the pointer; a blocked buy shakes the target.
+-   Click / tap selects a card instead: its tooltip stays pinned and its
+    buttons (Buy, ❄️ Freeze, Sell, Take it) replace the price tag, so
+    nothing moves. The background deselects.
+-   Tips on the end-of-wave screen: only the shop's own (shop, level
+    up), shown as one line in the tray; other tips wait for the next
+    wave. Toasts are small pills, two at most, 3 s.
+-   During a wave the collar's charms sit at the end of the top bar
+    instead of a separate row in the corner.
+-   Phones: the sidebar becomes a strip, smaller cards, the collar title
+    and wool rows hidden, toasts at the top while shopping.
