@@ -6,7 +6,7 @@ import {
   SHEARING, BOUNTY, GOAT, LAMB, BLACK, BELL, SLEEPY, GOLDEN, DISGUISE, RAM_CALM, RASCAL, PUPS, HOWLER,
   TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, XP, xpToNext, waveConfig,
 } from './config.js';
-import { CHARMS, CHARM, SHOP, LIVESTOCK, PERKS, PERK, RARITY, animalPrice, modifiers, perkText } from './upgrades.js';
+import { CHARMS, CHARM, SHOP, LIVESTOCK, PERKS, PERK, RARITY, SPECIALTIES, SPECIALTY_LEVELS, animalPrice, modifiers, perkText } from './upgrades.js';
 import { ACHIEVEMENTS, ACHIEVEMENT } from './achievements.js';
 import { WARDROBE, SLOTS, rewardFor } from './cosmetics.js';
 import { ENTRIES, Bestiary } from './bestiary.js';
@@ -275,6 +275,12 @@ $('levels-body').innerHTML = `
       String(p.max),
       esc(perkText(p.id, p.max)),
     ])
+  )}
+  <h3>Specialties</h3>
+  <p>At levels ${SPECIALTY_LEVELS.join(' and ')} the level-up offers three specialties instead of perks: a rule change for the dog, with a catch. Each can be picked once; they show next to the level on the HUD.</p>
+  ${table(
+    ['', 'Specialty', 'Effect', 'Catch'],
+    SPECIALTIES.map((s) => [s.icon, `<strong>${esc(s.name)}</strong>`, esc(s.text), esc(s.catch)])
   )}`;
 
 $('livestock-body').innerHTML = `

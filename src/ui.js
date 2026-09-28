@@ -56,8 +56,11 @@ export class UI {
 
   // The flock against the line: "12 / 8" (just "12" before the line starts). The bar shows how many
   // of the sheep the shepherd can spare are left, and turns red on the line.
-  setHud({ sheep, line = 0, spare = 1, wave, timeLeft, wool, level = 1, xp = 0, pending = 0 }) {
-    this.set('level', `${level}${pending ? '+' : ''}`, (v) => ($('hud-level').textContent = `Lv ${v.replace('+', '')}`, $('hud-level-box').classList.toggle('pending', v.endsWith('+'))));
+  setHud({ sheep, line = 0, spare = 1, wave, timeLeft, wool, level = 1, badges = '', xp = 0, pending = 0 }) {
+    this.set('level', `${level}|${badges}|${pending ? '+' : ''}`, (v) => {
+      $('hud-level').textContent = `Lv ${level}${badges ? ' ' + badges : ''}`;
+      $('hud-level-box').classList.toggle('pending', pending > 0);
+    });
     this.set('xp', Math.round(xp * 100) / 100, (v) => ($('hud-xp-bar').style.transform = `scaleX(${v})`));
     this.set('sheep', line ? `${sheep} / ${line}` : String(sheep), (v) => (this.el.sheep.textContent = v));
     this.set('sheepBar', line ? Math.max(0, Math.min(1, (sheep - line) / spare)) : 1, (v) => (this.el.sheepBar.style.transform = `scaleX(${v})`));
@@ -202,7 +205,7 @@ export class UI {
     document.querySelector('#screen-wave .shop').classList.toggle('hidden', !!offer);
     document.querySelector('#screen-wave [data-action=next]').classList.toggle('hidden', !!offer);
     if (!offer) return;
-    $('levelup-title').textContent = `🐕 Level ${offer.level}! Pick a perk${offer.left > 1 ? ` (${offer.left} to pick)` : ''}`;
+    $('levelup-title').textContent = `🐕 Level ${offer.level}! ${offer.special ? 'Choose a specialty' : 'Pick a perk'}${offer.left > 1 ? ` (${offer.left} to pick)` : ''}`;
     $('levelup-cards').replaceChildren(
       ...offer.cards.map((c, i) => {
         const card = document.createElement('div');
@@ -214,12 +217,14 @@ export class UI {
           <span class="upgrade-icon"></span>
           <strong class="upgrade-name"></strong>
           <span class="upgrade-pips"></span>
-          <span class="upgrade-text"></span>`;
+          <span class="upgrade-text"></span>
+          <span class="upgrade-catch"></span>`;
         const q = (sel) => card.querySelector(sel);
-        q('.upgrade-group').textContent = { common: 'Common', rare: 'Rare', legendary: 'Legendary' }[c.rarity];
+        q('.upgrade-group').textContent = { common: 'Common', rare: 'Rare', legendary: 'Legendary', special: 'Specialty' }[c.rarity];
+        q('.upgrade-catch').textContent = c.catch ? `Catch: ${c.catch}` : '';
         q('.upgrade-icon').textContent = c.icon;
         q('.upgrade-name').textContent = c.name;
-        q('.upgrade-pips').textContent = '●'.repeat(c.owned) + '◆'.repeat(c.points) + '○'.repeat(Math.max(0, c.max - c.owned - c.points));
+        q('.upgrade-pips').textContent = c.special ? 'Once per run' : '●'.repeat(c.owned) + '◆'.repeat(c.points) + '○'.repeat(Math.max(0, c.max - c.owned - c.points));
         q('.upgrade-text').textContent = c.text;
         const pick = () => this.onPick?.(i);
         card.addEventListener('click', pick);

@@ -544,6 +544,15 @@ export function xpToNext(level) {
   return Math.round(XP.base * level ** XP.curve);
 }
 
+// Specialties, picked at dog levels 5 and 10 (see SPECIALTIES in src/upgrades.js).
+export const SPECIAL = {
+  zoomies: { speed: 1.4, reach: 0.7, dashSpeed: 0.85, dashRadius: 1.3 }, // dash: over this share of top speed, within this distance
+  nightWatch: { speed: 0.7, reach: 1.8 },
+  sentinel: { still: 0.8, grow: 2, max: 1, moving: 0.8 }, // still: speed below which the dog counts as standing
+  hotStreak: { perStep: 0.06, maxSteps: 5, window: 0.7 },
+  alphaDog: { sight: 1.8, courage: 1.5 }, // plain wolves and pups flee from reach × sight
+};
+
 // Veteran charm: every wave finished without a loss adds reach for good; a bad wave resets it.
 export const VETERAN = {
   reach: 0.05, // per clean wave

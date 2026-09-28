@@ -2832,3 +2832,28 @@ scaling, the shepherd.
 -   🏕️ Staying Put (common 8): the shepherd never roams; wolves stalk
     ×0.7 (`mods.stalk` in `toWander()`).
 -   Wolves can now be the `by` of a scare (chain); praise "DOMINO!".
+
+------------------------------------------------------------------------
+
+# 96. Specialties at Dog Levels 5 and 10 (implemented)
+
+The dog-shaped Tricks became specialties: at levels 5 and 10
+(`SPECIALTY_LEVELS`) the level-up offers three of five instead of perks,
+each a rule change with a catch (`SPECIALTIES` in `src/upgrades.js`,
+numbers in `SPECIAL` in `src/config.js`). Small steady gains from perks,
+two moments that define the dog.
+
+-   🏃 Zoomies: speed ×1.4, reach ×0.7; above 85% of top speed, any
+    wolf within 1.3 is scared outright (brutes too, not the boss).
+-   🌙 Night Watch: reach ×1.8, speed ×0.7.
+-   🗿 Sentinel: below 0.8 u/s the reach grows to ×2 over 2 s; moving,
+    ×0.8.
+-   🔥 Hot Streak: +6% speed and reach per combo step (up to 5) while
+    the chain lasts; combo window ×0.7.
+-   🐺 Alpha Dog: threatening plain wolves and pups within 1.8× reach
+    flee on sight; brutes' and the boss's courage ×1.5.
+-   The dog's stats are now recomputed every frame (`applyDogStats()`:
+    upgrades × last stand × Veteran × Sentinel × Hot Streak).
+-   Specialty cards are purple ("Specialty · Once per run"); the HUD
+    shows them after the level ("Lv 6 🌙"). Saved with the run; listed
+    in the run summary.

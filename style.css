@@ -1369,6 +1369,16 @@ body[data-effects='off'] #last-stand.on {
   box-shadow: 0 5px 0 rgba(184, 134, 43, 0.5), 0 0 0 4px rgba(242, 193, 78, 0.35);
 }
 
+.perk-card.rarity-special {
+  border-color: #7d62b8;
+  background: #f3eefb;
+  box-shadow: 0 5px 0 rgba(125, 98, 184, 0.5), 0 0 0 4px rgba(155, 127, 208, 0.3);
+}
+
+.perk-card.rarity-special .upgrade-group {
+  color: #6a4fa8;
+}
+
 .perk-card.rarity-legendary .upgrade-group {
   color: #9a6a12;
 }

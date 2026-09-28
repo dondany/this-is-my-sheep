@@ -189,6 +189,17 @@ or legendary (3 points, 6%).
 | 🐾 Pup Training *(needs Second Dog)* | Second dog +5% of your dog's speed | 8 |
 | 🔊 Pup's Bark *(needs Second Dog)* | Second dog's reach +4% | 8 |
 
+**Specialties.** At levels 5 and 10 the level-up offers three specialties instead of perks: a
+rule change for the dog, with a catch (shown next to the level on the HUD, e.g. "Lv 6 🌙").
+
+| Specialty | Effect | Catch |
+| --- | --- | --- |
+| 🏃 Zoomies | +40% speed; dashing through a wolf at full speed scares it, brutes included | −30% reach |
+| 🌙 Night Watch | Reach ×1.8 | −30% speed |
+| 🗿 Sentinel | Standing still, reach grows to ×2 over 2 s | −20% reach while moving |
+| 🔥 Hot Streak | Every combo step gives +6% speed and reach until the chain breaks (up to +30%) | Combo window 30% shorter |
+| 🐺 Alpha Dog | Plain wolves and pups flee on sight, from 1.8× the dog's reach | Brutes and the boss hold out 50% longer |
+
 ### Charms (wool)
 
 Wool buys **charms** on the end-of-wave screen, hung on the dog's collar: up to **5** at once, one of

@@ -2,6 +2,8 @@
 // picked at the end of the wave. Wool buys charms in the shop, hung on the dog's collar (up to 5).
 // `modifiers()` turns both into the multipliers the rest of the game reads (ctx.mods).
 
+import { SPECIAL } from './config.js';
+
 // --- Dog perks ------------------------------------------------------------------
 // Each pick adds 1, 2 or 3 points (common / rare / legendary); `per` is the effect of one point and
 // `max` the most points a perk can hold. `requires` keeps a perk out of the draw until that charm
@@ -47,6 +49,29 @@ export function drawPerks(perks, charms, n = 3) {
     const points = Math.min(rarity.points, p.max - (perks[p.id] ?? 0));
     offer.push({ id: p.id, rarity: RARITY.find((r) => r.points === points)?.id ?? 'common', points });
   }
+  return offer;
+}
+
+// --- Specialties -----------------------------------------------------------------------
+// At the levels in SPECIALTY_LEVELS the level-up offers three of these instead of perks: a rule
+// change for the dog, with a catch. The numbers are in SPECIAL (src/config.js).
+
+export const SPECIALTY_LEVELS = [5, 10];
+export const SPECIALTIES = [
+  { id: 'zoomies', icon: '🏃', name: 'Zoomies', text: '+40% speed. Dashing through a wolf at full speed scares it, brutes included.', catch: '-30% reach.' },
+  { id: 'nightWatch', icon: '🌙', name: 'Night Watch', text: 'Reach ×1.8.', catch: '-30% speed.' },
+  { id: 'sentinel', icon: '🗿', name: 'Sentinel', text: "Standing still, the dog's reach grows to ×2 over 2 s.", catch: '-20% reach while moving.' },
+  { id: 'hotStreak', icon: '🔥', name: 'Hot Streak', text: 'Every combo step gives +6% speed and reach until the chain breaks (up to +30%).', catch: 'The combo window is 30% shorter.' },
+  { id: 'alphaDog', icon: '🐺', name: 'Alpha Dog', text: "Plain wolves and pups flee on sight, from 1.8× the dog's reach.", catch: 'Brutes and the boss hold out 50% longer.' },
+];
+
+export const SPECIALTY = Object.fromEntries(SPECIALTIES.map((s) => [s.id, s]));
+
+// Three specialties the dog doesn't have yet.
+export function drawSpecialties(owned, n = 3) {
+  const pool = SPECIALTIES.filter((s) => !owned.includes(s.id));
+  const offer = [];
+  while (offer.length < n && pool.length) offer.push(pool.splice((Math.random() * pool.length) | 0, 1)[0].id);
   return offer;
 }
 
@@ -98,15 +123,16 @@ export const SHOP = {
   maxFrozen: 2, // cards you can freeze to keep them for the next wave's shop
 };
 
-export function modifiers(charms = [], perks = {}) {
+export function modifiers(charms = [], perks = {}, specialties = []) {
   const has = (id) => charms.includes(id);
+  const spec = (id) => specialties.includes(id);
   const p = (id) => (perks[id] ?? 0) * PERK[id].per; // a perk's total effect
   return {
     // Dog perks
-    dogSpeed: 1 + p('swift'),
+    dogSpeed: (1 + p('swift')) * (spec('zoomies') ? SPECIAL.zoomies.speed : 1) * (spec('nightWatch') ? SPECIAL.nightWatch.speed : 1),
     barkRange: p('loud'), // added to DOG.threatRadius
     flee: (1 + p('scary')) * (has('chain') ? 0.7 : 1),
-    courage: 1 - Math.min(0.75, p('brave')),
+    courage: (1 - Math.min(0.75, p('brave'))) * (spec('alphaDog') ? SPECIAL.alphaDog.courage : 1),
     bigBarkCooldown: 1 / (1 + p('lungs')), // × the Big Bark's refill time
     bigBarkRadius: 1 + p('booming'),
     reveal: 1 + p('nose'), // sneaky wolves' reveal distance
@@ -115,6 +141,13 @@ export function modifiers(charms = [], perks = {}) {
     tuftRadius: 1 + 0.6 * p('fetch'),
     helperSpeed: 0.55 + p('pupSpeed'), // fraction of the player's dog
     helperThreat: 0.55 + p('pupBark'), // × HELPER.threatRadius
+    // Specialties
+    reachScale: (spec('zoomies') ? SPECIAL.zoomies.reach : 1) * (spec('nightWatch') ? SPECIAL.nightWatch.reach : 1),
+    zoomies: spec('zoomies'),
+    sentinel: spec('sentinel'),
+    hotStreak: spec('hotStreak'),
+    comboWindow: spec('hotStreak') ? SPECIAL.hotStreak.window : 1,
+    alphaDog: spec('alphaDog'),
     // Charms
     helper: has('helper'),
     crook: has('crook') ? 4 : 0, // shepherd's swat radius (0 = none)

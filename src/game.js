@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GOAL, lineFor, LAST_STAND, VETERAN, XP, xpToNext, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, XP, xpToNext, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -14,7 +14,7 @@ import { Bestiary, ENTRY, entryId } from './bestiary.js';
 import { Achievements } from './achievements.js';
 import { Tips } from './tips.js';
 import { Wardrobe, rewardFor } from './cosmetics.js';
-import { CHARM, SHOP, ANIMAL, PERK, modifiers, drawCards, drawAnimal, animalPrice, drawPerks, perkText } from './upgrades.js';
+import { CHARM, SHOP, ANIMAL, PERK, SPECIALTY, SPECIALTY_LEVELS, modifiers, drawCards, drawAnimal, animalPrice, drawPerks, drawSpecialties, perkText } from './upgrades.js';
 
 export const STATE = {
   MENU: 'MENU',
@@ -456,12 +456,12 @@ export class Game {
   // --- Upgrades ------------------------------------------------------------
 
   applyUpgrades() {
-    const mods = (this.ctx.mods = modifiers(this.charms, this.perks));
+    const mods = (this.ctx.mods = modifiers(this.charms, this.perks, this.specialties));
     Object.assign(this.dog.stats, {
       maxSpeed: DOG.maxSpeed * mods.dogSpeed,
       acceleration: DOG.acceleration * mods.dogSpeed,
       turnSpeed: DOG.turnSpeed * mods.dogSpeed,
-      threatRadius: DOG.threatRadius + mods.barkRange,
+      threatRadius: (DOG.threatRadius + mods.barkRange) * mods.reachScale,
       fleeTime: DOG.fleeTime * mods.flee,
     });
     if (mods.helper && !this.helper) {
@@ -490,7 +490,7 @@ export class Game {
     if (!mods.veteran) this.veteran = 0; // Veteran's reach only lasts while it's on the collar
     const d = this.dog.stats;
     this.dogBase = { maxSpeed: d.maxSpeed, acceleration: d.acceleration, threatRadius: d.threatRadius };
-    this.applyLastStand();
+    this.applyDogStats();
     // Shepherd's Crook: the shepherd becomes a (short-range) guard too.
     this.shepherd.stats.threatRadius = mods.crook;
     const guards = this.ctx.guards;
@@ -634,7 +634,12 @@ export class Game {
       this.ui.showLevelUp({
         level: this.level - this.pendingLevels + 1,
         left: this.pendingLevels,
-        cards: this.levelOffer.map((c) => ({ ...c, icon: PERK[c.id].icon, name: PERK[c.id].name, text: perkText(c.id, c.points), owned: this.perks[c.id] ?? 0, max: PERK[c.id].max })),
+        special: this.levelOffer[0]?.special,
+        cards: this.levelOffer.map((c) =>
+          c.special
+            ? { ...c, ...SPECIALTY[c.id], rarity: 'special' }
+            : { ...c, icon: PERK[c.id].icon, name: PERK[c.id].name, text: perkText(c.id, c.points), owned: this.perks[c.id] ?? 0, max: PERK[c.id].max }
+        ),
       });
       this.tip('levelUp');
       return;
@@ -729,6 +734,8 @@ export class Game {
     this.rules = summerRules(this.summer);
     this.charms = [];
     this.perks = {};
+    this.specialties = []; // picked at dog levels 5 and 10
+    this.sentinel = 0; // Sentinel: how far the standing reach has grown (0-1)
     this.xp = 0;
     this.level = 1;
     this.pendingLevels = 0; // level-ups waiting for their pick at the end of the wave
@@ -856,7 +863,7 @@ export class Game {
         this.veteran++;
         this.juice.veteran(this.dog, this.veteran);
       } else if (lost >= VETERAN.resetAt) this.veteran = 0;
-      this.applyLastStand();
+      this.applyDogStats();
     }
 
     // Shearing Day: every surviving sheep pays its wool, calm ones a little extra.
@@ -940,6 +947,7 @@ export class Game {
       perks: this.perks,
       xp: this.xp,
       level: this.level,
+      specialties: this.specialties,
       veteran: this.veteran,
       pendingLevels: this.pendingLevels,
       levelOffer: atShop ? this.levelOffer : null,
@@ -984,6 +992,7 @@ export class Game {
     this.perks = data.perks;
     this.xp = data.xp;
     this.level = data.level;
+    this.specialties = data.specialties ?? [];
     this.veteran = data.veteran ?? 0;
     this.pendingLevels = data.pendingLevels;
     this.levelOffer = data.levelOffer;
@@ -1190,7 +1199,10 @@ export class Game {
   // The run summary shown on the win and game-over screens.
   runSummary() {
     const charms = this.charms.map((id) => ({ icon: CHARM[id].icon, name: CHARM[id].name }));
-    const perks = Object.entries(this.perks).map(([id, points]) => ({ icon: PERK[id].icon, name: PERK[id].name, level: points }));
+    const perks = [
+      ...this.specialties.map((id) => ({ icon: SPECIALTY[id].icon, name: SPECIALTY[id].name, level: 1 })),
+      ...Object.entries(this.perks).map(([id, points]) => ({ icon: PERK[id].icon, name: PERK[id].name, level: points })),
+    ];
     return { ...this.stats, level: this.level, perks, charms, animals: this.stats.animals.map((k) => ENTRY[k]?.name ?? k) };
   }
 
@@ -1460,7 +1472,12 @@ export class Game {
 
   // The next level-up's three perk cards, if one is waiting.
   offerLevelUp() {
-    if (!this.levelOffer && this.pendingLevels > 0) this.levelOffer = drawPerks(this.perks, this.charms);
+    const picking = this.level - this.pendingLevels + 1; // the level this pick is for
+    if (!this.levelOffer && this.pendingLevels > 0) {
+      this.levelOffer = SPECIALTY_LEVELS.includes(picking)
+        ? drawSpecialties(this.specialties).map((id) => ({ id, special: true }))
+        : drawPerks(this.perks, this.charms);
+    }
     if (this.levelOffer && !this.levelOffer.length) {
       // Everything maxed out: nothing to pick.
       this.levelOffer = null;
@@ -1471,7 +1488,8 @@ export class Game {
   pickPerk(i) {
     const card = this.levelOffer?.[i];
     if (!card) return;
-    this.perks[card.id] = (this.perks[card.id] ?? 0) + card.points;
+    if (card.special) this.specialties.push(card.id);
+    else this.perks[card.id] = (this.perks[card.id] ?? 0) + card.points;
     this.pendingLevels--;
     this.levelOffer = null;
     this.applyUpgrades();
@@ -1487,7 +1505,7 @@ export class Game {
   addCombo(wolf) {
     const c = this.combo;
     c.count = c.timer > 0 ? c.count + 1 : 1;
-    c.timer = FEEL.comboWindow;
+    c.timer = FEEL.comboWindow * this.ctx.mods.comboWindow;
     this.achievements.best('bestCombo', c.count);
     this.stats.bestCombo = Math.max(this.stats.bestCombo, c.count);
     if (c.count < 2) return;
@@ -1529,7 +1547,7 @@ export class Game {
     const on = this.state === STATE.PLAYING && this.line > 0 && this.sheepCount() <= this.line + (this.ctx.mods.brink ? 1 : 0);
     if (on !== !!this.lastStand) {
       this.lastStand = on;
-      this.applyLastStand();
+      this.applyDogStats();
       this.ui.setLastStand(on);
       if (on) {
         this.juice.lastStand(this.dog);
@@ -1543,13 +1561,45 @@ export class Game {
     }
   }
 
-  applyLastStand() {
+  // The dog's speed and reach right now: its upgrades (dogBase) × Last Sheep Standing × the charms
+  // and specialties that change during a wave (Veteran, Sentinel, Hot Streak). Runs every frame.
+  applyDogStats() {
     const b = this.dogBase;
     if (!b) return;
-    const twice = this.ctx.mods.brink ? 2 : 1; // On the Brink charm
-    const k = this.lastStand ? { speed: 1 + (LAST_STAND.speed - 1) * twice, reach: 1 + (LAST_STAND.reach - 1) * twice } : { speed: 1, reach: 1 };
-    const veteran = this.ctx.mods.veteran ? 1 + VETERAN.reach * this.veteran : 1;
-    Object.assign(this.dog.stats, { maxSpeed: b.maxSpeed * k.speed, acceleration: b.acceleration * k.speed, threatRadius: b.threatRadius * k.reach * veteran });
+    const m = this.ctx.mods;
+    const twice = m.brink ? 2 : 1; // On the Brink charm
+    let speed = this.lastStand ? 1 + (LAST_STAND.speed - 1) * twice : 1;
+    let reach = this.lastStand ? 1 + (LAST_STAND.reach - 1) * twice : 1;
+    if (m.veteran) reach *= 1 + VETERAN.reach * this.veteran;
+    if (m.sentinel) reach *= this.dog.speed < SPECIAL.sentinel.still ? 1 + this.sentinel : SPECIAL.sentinel.moving;
+    if (m.hotStreak) {
+      const k = 1 + SPECIAL.hotStreak.perStep * Math.min(SPECIAL.hotStreak.maxSteps, Math.max(0, this.combo.count - 1));
+      speed *= k;
+      reach *= k;
+    }
+    const s = this.dog.stats;
+    s.maxSpeed = b.maxSpeed * speed;
+    s.acceleration = b.acceleration * speed;
+    s.threatRadius = b.threatRadius * reach;
+  }
+
+  // Specialties that act during a wave: Sentinel's reach grows while the dog stands still, Zoomies
+  // dashes through wolves, and plain wolves flee from an Alpha Dog on sight.
+  updateSpecialties(dt) {
+    const m = this.ctx.mods;
+    const dog = this.dog;
+    if (m.sentinel) this.sentinel = dog.speed < SPECIAL.sentinel.still ? Math.min(SPECIAL.sentinel.max, this.sentinel + dt / SPECIAL.sentinel.grow) : 0;
+    if (this.state === STATE.PLAYING && (m.zoomies || m.alphaDog)) {
+      const dashing = m.zoomies && dog.speed > dog.stats.maxSpeed * SPECIAL.zoomies.dashSpeed;
+      const sight = dog.stats.threatRadius * SPECIAL.alphaDog.sight;
+      for (const w of this.wolves) {
+        if (w.state === 'FLEE' || w.state === 'LEAVE' || w.gone || w.type.boss) continue;
+        const d = w.position.distanceTo(dog.position);
+        const plain = w.kind === 'normal' || w.kind === 'pup';
+        if ((dashing && d < SPECIAL.zoomies.dashRadius) || (m.alphaDog && plain && d < sight && isThreatening(w))) forceScare(w, this.ctx, dog);
+      }
+    }
+    this.applyDogStats();
   }
 
   zoomBy(factor) {
@@ -1625,6 +1675,7 @@ export class Game {
     }
 
     this.updateLastStand(dt);
+    this.updateSpecialties(dt);
     this.simulate(dt);
     if (this.state !== STATE.MENU) {
       if (this.state === STATE.PLAYING && !this.tips.seen.has('wolfComing') && this.wolves.some((w) => w.state === 'APPROACH')) this.tip('wolfComing');
@@ -1648,7 +1699,7 @@ export class Game {
     const c = this.combo;
     c.timer = Math.max(0, c.timer - dt);
     if (!c.timer) c.count = 0;
-    this.ui.setCombo(c.count, c.timer / FEEL.comboWindow);
+    this.ui.setCombo(c.count, c.timer / (FEEL.comboWindow * this.ctx.mods.comboWindow));
     if (this.state !== STATE.MENU) {
       this.ui.setHud({
         sheep: this.sheepCount(), // the goat doesn't count towards the line
@@ -1658,6 +1709,7 @@ export class Game {
         timeLeft: this.cfg ? Math.max(0, 1 - this.waveTime / this.cfg.duration) : 1,
         wool: this.wool,
         level: this.level,
+        badges: this.specialties.map((id) => SPECIALTY[id].icon).join(''),
         xp: this.xp / xpToNext(this.level),
         pending: this.pendingLevels,
       });
