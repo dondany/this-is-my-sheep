@@ -2770,3 +2770,33 @@ pulls the dog away from the flock.
 -   Balance is redone once charms replace the shop (sections 94-97): for
     now wool only buys shepherd and flock upgrades on top of the dog's
     levels, and the strong bot won 4 of 4.
+
+------------------------------------------------------------------------
+
+# 94. Charms: a Collar With Five Slots (implemented)
+
+Second progression track: wool buys charms, the build (Balatro's jokers,
+under a name that fits: charms hang on the dog's collar, like Hollow
+Knight's charm notches).
+
+-   `CHARMS` in `src/upgrades.js`: unique (one of each, no levels), up
+    to `SHOP.slots` (5) on the collar at once. The first 11 are the old
+    shop upgrades rolled into single, stronger versions: Second Dog
+    (rare, 35), Shepherd's Crook (radius 4), Calming Song (-35% panic),
+    Herding Instinct (+40% cohesion, 20% closer), Shepherd's Whistle
+    (rare, every 15 s), Scarecrows (rare, two), Thick Fleece (+60% grab
+    time), Bigger Flock (+2 sheep), Lambing Season (+2 lambs), Sharp
+    Shears (+30%), Piggy Bank (+3 interest cap).
+-   Rarity (common / uncommon / rare) sets how often a charm is offered
+    (`SHOP.rarityWeight` 1 / 0.6 / 0.35) and its border (plain, blue,
+    gold). Prices are per charm.
+-   Selling: each slot on the shop's collar row has "Sell 🧶n" for half
+    the price (`SHOP.sellBack`); a sold Second Dog goes home, sold
+    scarecrows are taken down, a sold crook stops swatting. Buying with
+    a full collar shakes the collar row.
+-   HUD: the collar's charms as small icons in the top-left corner
+    (name and effect on hover).
+-   Pup perks now need the Second Dog charm on the collar. Save format
+    v3 (charms instead of upgrade levels). The run summary lists charms.
+-   Balance is redone in section 97 (with 5 slots of single charms the
+    strong bot lost at waves 7, 13 and 15).

@@ -14,7 +14,7 @@ import { Bestiary, ENTRY, entryId } from './bestiary.js';
 import { Achievements } from './achievements.js';
 import { Tips } from './tips.js';
 import { Wardrobe, rewardFor } from './cosmetics.js';
-import { UPGRADE, SHOP, ANIMAL, PERK, cost, modifiers, drawCards, drawAnimal, animalPrice, canOffer, drawPerks, perkText } from './upgrades.js';
+import { CHARM, SHOP, ANIMAL, PERK, modifiers, drawCards, drawAnimal, animalPrice, drawPerks, perkText } from './upgrades.js';
 
 export const STATE = {
   MENU: 'MENU',
@@ -53,7 +53,7 @@ const BEST_STARS_KEY = 'this-is-my-sheep.bestStars';
 // The run in progress, saved at checkpoints (the start of each wave, and the end-of-wave shop) so
 // it can be continued from the menu after quitting or closing the browser.
 const RUN_KEY = 'this-is-my-sheep.run';
-const RUN_VERSION = 2; // 2: dog levels and perks
+const RUN_VERSION = 3; // 2: dog levels and perks; 3: charms instead of shop upgrades
 
 function readSavedRun() {
   try {
@@ -132,7 +132,7 @@ export class Game {
     this.center = new THREE.Vector3();
     this.cameraFocus = new THREE.Vector3();
     this.zoom = 1;
-    this.levels = {}; // shop upgrade id → level, reset every run
+    this.charms = []; // charm ids on the dog's collar, in slot order; reset every run
     this.perks = {}; // dog perk id → points, from level-ups
     this.shop = null;
     this.frozen = []; // shop cards kept for the next wave's shop
@@ -168,7 +168,7 @@ export class Game {
       huntingAllowed: false,
       stampedes: false,
       cohesionScale: 1,
-      mods: modifiers({}),
+      mods: modifiers(),
       guards: [this.dog], // dogs that scare wolves (plus the helper once bought)
       scarecrows: this.scarecrows,
       onSheepPanic: (s) => this.juice.sheepPanic(s),
@@ -311,6 +311,7 @@ export class Game {
     ui.on('bigbark', () => this.bigBark());
     ui.onBuy = (id) => this.buy(id);
     ui.onFreeze = (id) => this.toggleFreeze(id);
+    ui.onSell = (id) => this.sellCharm(id);
     ui.onPick = (i) => this.pickPerk(i);
     ui.on('close-bestiary', () => this.closeOverlay());
     ui.on('achievements', () => this.openAchievements());
@@ -455,7 +456,7 @@ export class Game {
   // --- Upgrades ------------------------------------------------------------
 
   applyUpgrades() {
-    const mods = (this.ctx.mods = modifiers(this.levels, this.perks));
+    const mods = (this.ctx.mods = modifiers(this.charms, this.perks));
     Object.assign(this.dog.stats, {
       maxSpeed: DOG.maxSpeed * mods.dogSpeed,
       acceleration: DOG.acceleration * mods.dogSpeed,
@@ -468,6 +469,12 @@ export class Game {
       this.helper.setPosition(this.shepherd.position.x - 3, 0, this.shepherd.position.z + 3);
       this.ctx.guards.push(this.helper);
       this.juice.newSheep(this.helper);
+    }
+    if (!mods.helper && this.helper) {
+      // Sold: the second dog goes home.
+      this.ctx.guards.splice(this.ctx.guards.indexOf(this.helper), 1);
+      this.helper.destroy();
+      this.helper = null;
     }
     if (this.helper) {
       const s = this.dog.stats;
@@ -487,6 +494,10 @@ export class Game {
     this.shepherd.stats.threatRadius = mods.crook;
     const guards = this.ctx.guards;
     if (mods.crook && !guards.includes(this.shepherd)) guards.push(this.shepherd);
+    if (!mods.crook && guards.includes(this.shepherd)) guards.splice(guards.indexOf(this.shepherd), 1);
+    // Sold scarecrows are taken down.
+    while (this.scarecrows.length > mods.scarecrows) this.scarecrows.pop().destroy();
+    this.ui.setCharms(this.charms.map((id) => CHARM[id]));
     this.ui.hint(this.scarecrowsToPlace() > 0 && this.state !== STATE.WAVE_COMPLETE ? '🌾 Click the meadow to place your scarecrow' : null);
   }
 
@@ -537,15 +548,16 @@ export class Game {
     this.frozen = this.frozen.filter((key) => this.canOfferCard(key));
     const frozenAnimal = this.frozen.find((k) => k.startsWith('animal:'));
     const frozenUpgrades = this.frozen.filter((k) => !k.startsWith('animal:'));
-    const fresh = drawCards(this.levels, SHOP.cards - 1 - frozenUpgrades.length, frozenUpgrades);
+    const fresh = drawCards(this.charms, SHOP.cards - 1 - frozenUpgrades.length, frozenUpgrades);
     const animal = frozenAnimal ? null : drawAnimal((kind) => this.canBuyAnimal(kind));
     if (animal) fresh.splice(Math.floor(Math.random() * (fresh.length + 1)), 0, `animal:${animal}`);
     return [...this.frozen, ...fresh];
   }
 
-  // Whether a card (e.g. a frozen one) can still be offered: not maxed, animal still available.
+  // Whether a card (e.g. a frozen one) can still be offered: a charm not on the collar yet, an animal
+  // still available.
   canOfferCard(key) {
-    return key.startsWith('animal:') ? this.canBuyAnimal(key.slice(7)) : !!UPGRADE[key] && canOffer(UPGRADE[key], this.levels);
+    return key.startsWith('animal:') ? this.canBuyAnimal(key.slice(7)) : !!CHARM[key] && !this.charms.includes(key);
   }
 
   // Freeze a card to keep it in the shop for the next wave (up to SHOP.maxFrozen), or unfreeze it.
@@ -571,7 +583,7 @@ export class Game {
   }
 
   cardPrice(key) {
-    const base = key.startsWith('animal:') ? animalPrice(key.slice(7), this.ownedAnimals(key.slice(7))) : cost(UPGRADE[key], this.levels[key] ?? 0);
+    const base = key.startsWith('animal:') ? animalPrice(key.slice(7), this.ownedAnimals(key.slice(7))) : CHARM[key].price;
     return Math.round(base * this.rules.prices);
   }
 
@@ -606,10 +618,10 @@ export class Game {
           bought,
         };
       }
-      const u = UPGRADE[key];
-      return { key, ...u, level: this.levels[key] ?? 0, price, bought, frozen: this.frozen.includes(key) };
+      return { key, ...CHARM[key], price, bought, frozen: this.frozen.includes(key), full: this.charms.length >= SHOP.slots };
     });
-    this.ui.renderShop({ cards, rerollCost: this.shop.rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
+    const collar = this.charms.map((id) => ({ ...CHARM[id], sell: this.sellPrice(id) }));
+    this.ui.renderShop({ cards, collar, slots: SHOP.slots, rerollCost: this.shop.rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
   }
 
   // The end-of-wave screen: level-up picks first (one at a time), then the shop.
@@ -633,6 +645,7 @@ export class Game {
   buy(key) {
     const price = this.cardPrice(key);
     if (this.shop.bought.has(key) || this.wool < price) return;
+    if (!key.startsWith('animal:') && this.charms.length >= SHOP.slots) return this.ui.denyCollar();
     this.wool -= price;
     this.stats.woolSpent += price;
     if (key.startsWith('animal:')) this.stats.animals.push(key.slice(7));
@@ -640,11 +653,26 @@ export class Game {
     this.frozen = this.frozen.filter((k) => k !== key);
     if (key.startsWith('animal:')) this.pendingAnimals.push(key.slice(7));
     else {
-      this.levels[key] = (this.levels[key] ?? 0) + 1;
+      this.charms.push(key);
       this.applyUpgrades();
       this.checkAchievements();
     }
     this.sfx.upgrade();
+    this.showShop();
+    this.saveRun();
+  }
+
+  sellPrice(id) {
+    return Math.floor(CHARM[id].price * this.rules.prices * SHOP.sellBack);
+  }
+
+  // Take a charm off the collar for half its price, to make room for another.
+  sellCharm(id) {
+    if (this.state !== STATE.WAVE_COMPLETE || !this.charms.includes(id)) return;
+    this.wool += this.sellPrice(id);
+    this.charms = this.charms.filter((c) => c !== id);
+    this.applyUpgrades();
+    this.sfx.coin();
     this.showShop();
     this.saveRun();
   }
@@ -696,7 +724,7 @@ export class Game {
     this.achievements.newRun();
     this.stats = newRunStats();
     this.rules = summerRules(this.summer);
-    this.levels = {};
+    this.charms = [];
     this.perks = {};
     this.xp = 0;
     this.level = 1;
@@ -894,7 +922,7 @@ export class Game {
       endless: this.endless,
       wool: this.wool,
 
-      levels: this.levels,
+      charms: this.charms,
       perks: this.perks,
       xp: this.xp,
       level: this.level,
@@ -937,7 +965,7 @@ export class Game {
     this.wave = data.wave;
     this.wool = data.wool;
     this.endless = data.endless;
-    this.levels = data.levels;
+    this.charms = data.charms;
     this.perks = data.perks;
     this.xp = data.xp;
     this.level = data.level;
@@ -1145,11 +1173,9 @@ export class Game {
 
   // The run summary shown on the win and game-over screens.
   runSummary() {
-    const upgrades = Object.entries(this.levels)
-      .filter(([, level]) => level > 0)
-      .map(([id, level]) => ({ icon: UPGRADE[id].icon, name: UPGRADE[id].name, level }));
+    const charms = this.charms.map((id) => ({ icon: CHARM[id].icon, name: CHARM[id].name }));
     const perks = Object.entries(this.perks).map(([id, points]) => ({ icon: PERK[id].icon, name: PERK[id].name, level: points }));
-    return { ...this.stats, level: this.level, perks, upgrades, animals: this.stats.animals.map((k) => ENTRY[k]?.name ?? k) };
+    return { ...this.stats, level: this.level, perks, charms, animals: this.stats.animals.map((k) => ENTRY[k]?.name ?? k) };
   }
 
   // --- The goal ------------------------------------------------------------
@@ -1399,7 +1425,7 @@ export class Game {
 
   // The next level-up's three perk cards, if one is waiting.
   offerLevelUp() {
-    if (!this.levelOffer && this.pendingLevels > 0) this.levelOffer = drawPerks(this.perks, this.levels);
+    if (!this.levelOffer && this.pendingLevels > 0) this.levelOffer = drawPerks(this.perks, this.charms);
     if (this.levelOffer && !this.levelOffer.length) {
       // Everything maxed out: nothing to pick.
       this.levelOffer = null;

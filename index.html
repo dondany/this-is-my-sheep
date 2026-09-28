@@ -43,11 +43,12 @@
         <div id="hud-level" class="hud-value">Lv 1</div>
         <div class="meter"><div id="hud-xp-bar" class="meter-fill xp"></div></div>
       </div>
-      <div class="hud-wool" title="Wool: sheared from the flock after each wave, spent on upgrades">
+      <div class="hud-wool" title="Wool: sheared from the flock after each wave, spent on charms and livestock">
         <span class="hud-icon">🧶</span>
         <span id="hud-wool" class="hud-value">0</span>
       </div>
     </div>
+    <div id="hud-charms" class="hud-charms"></div>
     <div id="hud-boss" class="hud-boss hidden"><span id="hud-boss-text">Old Greymuzzle ○○○</span></div>
     <div id="hud-combo" class="hud-combo hidden">
       <span id="hud-combo-n">×2</span>
@@ -111,6 +112,10 @@
         <div class="shop-head">
           <h3>Spend your wool</h3>
           <span class="shop-wool">🧶 <span id="shop-wool">0</span></span>
+        </div>
+        <div id="shop-collar" class="shop-collar">
+          <span class="collar-label">🧿 Collar <span id="shop-collar-count">0 / 5</span></span>
+          <div id="shop-collar-slots" class="collar-slots"></div>
         </div>
         <div id="shop-cards" class="shop-cards"></div>
         <div class="shop-foot">

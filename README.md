@@ -189,26 +189,28 @@ or legendary (3 points, 6%).
 | 🐾 Pup Training *(needs Second Dog)* | Second dog +5% of your dog's speed | 8 |
 | 🔊 Pup's Bark *(needs Second Dog)* | Second dog's reach +4% | 8 |
 
-### Shop upgrades (wool)
+### Charms (wool)
 
-Wool buys upgrades on the end-of-wave screen: four random cards (three upgrades and one animal),
-each with a price; buy any you can afford, or reroll the cards (2 wool, +2 per extra reroll that
-wave). Level n of an upgrade costs its base price × (n + 1), and everything resets when a run ends.
-Rare cards (gold border) come up about a third as often.
+Wool buys **charms** on the end-of-wave screen, hung on the dog's collar: up to **5** at once, one of
+each. The shop shows four random cards (three charms and one animal); buy any you can afford, or
+reroll them (2 wool, +2 per extra reroll that wave). With a full collar, sell a charm for half its
+price to make room (the "Sell" button under each slot on the collar row). The collar is shown in the
+top-left corner during a wave. Uncommon charms (blue border) come up 60% as often as common ones,
+rare ones (gold) 35%.
 
-| Card | Group | Base price | Effect per level | Max |
+| Charm | Group | Rarity | Price | Effect |
 | --- | --- | --- | --- | --- |
-| 🦯 Shepherd's Crook | Shepherd | 10 | The shepherd swats wolves within 3 / 4 / 5 units of him ("BONK!") | 3 |
-| ✂️ Sharp Shears | Flock | 10 | +10% wool from shearing | 3 |
-| 🐷 Piggy Bank | Flock | 8 | Interest cap +2 | 2 |
-| 🎶 Calming Song | Shepherd | 6 | Sheep panic 15% less around wolves | 3 |
-| 🪄 Herding Instinct | Shepherd | 6 | Flock cohesion +20%, and sheep can stand 10% closer to each other | 3 |
-| 🧶 Thick Fleece | Flock | 8 | Wolves need 20% longer to take a sheep | 5 |
-| 🐑 Bigger Flock | Flock | 6 | +1 sheep every wave | 3 |
-| 🍼 Lambing Season | Flock | 6 | +1 lamb every wave | 2 |
-| 🐕 Second Dog *(rare)* | Dog | 40 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock. Starts slow: 55% of your dog's speed, reach 2.75, and it catches its breath for 1 s after each scare. Train it with pup perks | 1 |
-| 📯 Shepherd's Whistle *(rare)* | Shepherd | 20 | Every 20 / 15 / 10 s the shepherd whistles and every sheep heads back to him | 3 |
-| 🌾 Scarecrow *(rare)* | Shepherd | 20 | Click the meadow to place it; ordinary wolves within 4.5 units get scared (brutes ignore it). Stays for the rest of the run | 2 |
+| 🐕 Second Dog | Dog | rare | 35 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock. Starts slow: 55% of your dog's speed, reach 2.75, and it catches its breath for 1 s after each scare. Train it with pup perks. Sold: it goes home |
+| 🦯 Shepherd's Crook | Shepherd | common | 10 | The shepherd swats wolves within 4 units of him ("BONK!") |
+| 🎶 Calming Song | Shepherd | common | 8 | Sheep panic 35% less around wolves |
+| 🪄 Herding Instinct | Shepherd | common | 8 | Flock cohesion +40%, and sheep can stand 20% closer to each other |
+| 📯 Shepherd's Whistle | Shepherd | rare | 20 | Every 15 s the shepherd whistles and every sheep heads back to him |
+| 🌾 Scarecrows | Shepherd | rare | 20 | Click the meadow to place two; ordinary wolves within 4.5 units get scared (brutes ignore them). Taken down if sold |
+| 🧶 Thick Fleece | Flock | uncommon | 14 | Wolves need 60% longer to take a sheep |
+| 🐑 Bigger Flock | Flock | common | 8 | +2 sheep every wave |
+| 🍼 Lambing Season | Flock | common | 8 | +2 lambs every wave |
+| ✂️ Sharp Shears | Flock | uncommon | 12 | +30% wool from shearing |
+| 🐷 Piggy Bank | Flock | common | 8 | Interest cap +3 |
 
 ### Freezing cards
 
@@ -333,7 +335,7 @@ http://localhost:8000/guide.html.
 | `src/cosmetics.js` | Wardrobe items, how accessories are built, and the saved choices |
 | `src/tips.js` | First-time tips and which ones the player has seen |
 | `src/achievements.js` | The 37 achievements, lifetime counters and unlock checks |
-| `src/upgrades.js` | Upgrade cards: definitions, prices, card draws, stat multipliers |
+| `src/upgrades.js` | Dog perks (level-ups), charms (shop), livestock; card draws and the multipliers they add up to |
 | `src/helper.js` | AI for the Second Dog upgrade |
 
 `window.game` is exposed in the console for debugging.

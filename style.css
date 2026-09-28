@@ -906,9 +906,107 @@ body[data-effects='off'] #last-stand.on {
   border-color: var(--grass);
 }
 
-.upgrade-card.rare {
+/* Charm rarity shows in the border: uncommon blue, rare gold. */
+.upgrade-card.charm-uncommon {
+  border-color: #4f7fc2;
+  box-shadow: 0 5px 0 rgba(79, 127, 194, 0.45);
+}
+
+.upgrade-card.charm-rare {
   border-color: #d9a441;
   box-shadow: 0 5px 0 rgba(217, 164, 65, 0.5), 0 0 0 3px rgba(217, 164, 65, 0.25);
+}
+
+/* The collar in the shop: five slots, each owned charm with a sell button. */
+.shop-collar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 4px 12px;
+  flex-wrap: wrap;
+}
+
+.shop-collar.deny {
+  animation: bigbark-deny 0.3s;
+}
+
+.collar-label {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.collar-slots {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.collar-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 64px;
+  padding: 4px 0;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper);
+}
+
+.collar-slot.empty {
+  height: 50px;
+  border-style: dashed;
+  opacity: 0.4;
+}
+
+.collar-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.collar-sell {
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border: none;
+  border-radius: 8px;
+  background: #ead9b8;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.collar-sell:hover {
+  background: var(--accent);
+  color: #fffaf0;
+}
+
+/* Charms on the collar during a wave: small icons in the top-left corner. */
+.hud-charms {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  gap: 6px;
+}
+
+.hud-charm {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  font-size: 19px;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper);
+  pointer-events: auto;
+  cursor: help;
+}
+
+@media (max-width: 1000px) {
+  .hud-charms {
+    top: 88px;
+  }
 }
 
 .upgrade-group {

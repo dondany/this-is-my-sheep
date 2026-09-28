@@ -6,7 +6,7 @@ import {
   SHEARING, BOUNTY, GOAT, LAMB, BLACK, BELL, SLEEPY, GOLDEN, DISGUISE, RAM_CALM, RASCAL, PUPS, HOWLER,
   TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, XP, xpToNext, waveConfig,
 } from './config.js';
-import { UPGRADES, SHOP, LIVESTOCK, PERKS, PERK, RARITY, cost, animalPrice, modifiers, perkText } from './upgrades.js';
+import { CHARMS, CHARM, SHOP, LIVESTOCK, PERKS, PERK, RARITY, animalPrice, modifiers, perkText } from './upgrades.js';
 import { ACHIEVEMENTS, ACHIEVEMENT } from './achievements.js';
 import { WARDROBE, SLOTS, rewardFor } from './cosmetics.js';
 import { ENTRIES, Bestiary } from './bestiary.js';
@@ -231,21 +231,16 @@ for (const wave of [...Array(GOAL.finalWave).keys()].map((i) => i + 1).concat([1
 }
 $('wave-table').outerHTML = table(['Wave', 'Length', 'Wolves', 'Pack (one draw)', 'New sheep', 'First seen'], waveRows);
 
-// --- Upgrades & livestock ----------------------------------------------------
+// --- Charms & livestock ------------------------------------------------------
 
 const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock' };
-const helperMods = modifiers({ helper: 1 });
+const helperMods = modifiers(['helper']);
+const rw = SHOP.rarityWeight;
 $('upgrades-body').innerHTML = `
-  <p>Level <em>n</em> costs base × (<em>n</em> + 1). Summer 5 and later add 25% to all prices. Rare cards come up about ${Math.round(SHOP.rareWeight * 100)}% as often; Dog's Reach twice as often.</p>
+  <p>Charms are bought with wool in the end-of-wave shop and hang on the dog's collar: up to <strong>${SHOP.slots}</strong> at once, one of each. Sell one for ${Math.round(SHOP.sellBack * 100)}% of its price to make room. Three of the shop's four cards are charms; uncommon ones come up ${Math.round(rw.uncommon * 100)}% and rare ones ${Math.round(rw.rare * 100)}% as often as common ones. Summer 5 and later add 25% to all prices.</p>
   ${table(
-    ['', 'Upgrade', 'Group', 'Effect per level', 'Prices by level'],
-    UPGRADES.map((u) => [
-      u.icon,
-      `<strong>${esc(u.name)}</strong>${u.rare ? ' <small>(rare)</small>' : ''}${u.requires ? ` <small>(needs ${esc(UPGRADES.find((x) => x.id === u.requires).name)})</small>` : ''}`,
-      groupName[u.group],
-      esc(u.text),
-      [...Array(u.max).keys()].map((l) => cost(u, l)).join(' · '),
-    ])
+    ['', 'Charm', 'Group', 'Rarity', 'Effect', 'Price'],
+    CHARMS.map((c) => [c.icon, `<strong>${esc(c.name)}</strong>`, groupName[c.group], c.rarity, esc(c.text), String(c.price)])
   )}
   <h3>Helpers</h3>
   ${chips([
@@ -275,7 +270,7 @@ $('levels-body').innerHTML = `
     ['', 'Perk', 'Per point', 'Max points', 'At max'],
     PERKS.map((p) => [
       p.icon,
-      `<strong>${esc(p.name)}</strong>${p.requires ? ` <small>(needs ${esc(UPGRADES.find((u) => u.id === p.requires).name)})</small>` : ''}`,
+      `<strong>${esc(p.name)}</strong>${p.requires ? ` <small>(needs ${esc(CHARM[p.requires].name)})</small>` : ''}`,
       esc(perkText(p.id, 1)),
       String(p.max),
       esc(perkText(p.id, p.max)),

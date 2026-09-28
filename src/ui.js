@@ -228,9 +228,47 @@ export class UI {
     );
   }
 
-  // Shop cards on the end-of-wave screen: upgrades and one livestock card. Click a card to buy it;
-  // the ❄️ button freezes it so it stays for the next wave's shop.
-  renderShop({ cards, rerollCost, wool, frozen, maxFrozen }) {
+  // The charms on the dog's collar, shown small under the top bar during a wave.
+  setCharms(charms) {
+    $('hud-charms').replaceChildren(
+      ...charms.map((c) => {
+        const el = document.createElement('span');
+        el.className = 'hud-charm';
+        el.textContent = c.icon;
+        el.title = `${c.name}: ${c.text}`;
+        return el;
+      })
+    );
+  }
+
+  denyCollar() {
+    const el = $('shop-collar');
+    el.classList.remove('deny');
+    void el.offsetWidth;
+    el.classList.add('deny');
+  }
+
+  // Shop cards on the end-of-wave screen: charms and one livestock card. Click a card to buy it;
+  // the ❄️ button freezes it so it stays for the next wave's shop. Above them, the collar: the
+  // charms owned, each with a button to sell it.
+  renderShop({ cards, collar, slots, rerollCost, wool, frozen, maxFrozen }) {
+    $('shop-collar-count').textContent = `${collar.length} / ${slots}`;
+    $('shop-collar-slots').replaceChildren(
+      ...Array.from({ length: slots }, (_, i) => {
+        const c = collar[i];
+        const slot = document.createElement('div');
+        slot.className = `collar-slot${c ? '' : ' empty'}`;
+        if (!c) return slot;
+        slot.title = `${c.name}: ${c.text}`;
+        slot.innerHTML = '<span class="collar-icon"></span><button class="collar-sell"></button>';
+        slot.firstChild.textContent = c.icon;
+        const sell = slot.lastChild;
+        sell.textContent = `Sell 🧶${c.sell}`;
+        sell.setAttribute('aria-label', `Sell ${c.name} for ${c.sell} wool`);
+        sell.addEventListener('click', () => this.onSell?.(c.id));
+        return slot;
+      })
+    );
     $('shop-wool').textContent = wool;
     const reroll = $('shop-reroll');
     reroll.textContent = `🎲 Reroll (${rerollCost})`;
@@ -240,7 +278,7 @@ export class UI {
     $('shop-cards').replaceChildren(
       ...cards.map((c) => {
         const card = document.createElement('div');
-        const style = c.livestock ? 'livestock' : `group-${c.group}${c.rare ? ' rare' : ''}`;
+        const style = c.livestock ? 'livestock' : `group-${c.group} charm-${c.rarity}`;
         const affordable = !c.bought && wool >= c.price;
         card.className = `upgrade-card ${style}${c.bought ? ' bought' : ''}${affordable ? '' : ' unaffordable'}${c.frozen ? ' frozen' : ''}`;
         card.setAttribute('role', 'button');
@@ -262,10 +300,10 @@ export class UI {
           q('.upgrade-pips').textContent = c.pays;
           q('.upgrade-price').textContent = c.bought ? '✓ Joins next wave' : `🧶 ${c.price}`;
         } else {
-          q('.upgrade-group').textContent = c.rare ? `${group[c.group]} · rare` : group[c.group];
+          q('.upgrade-group').textContent = `${group[c.group]} · ${c.rarity}`;
           q('.upgrade-icon').textContent = c.icon;
-          q('.upgrade-pips').textContent = '●'.repeat(c.level) + '○'.repeat(c.max - c.level);
-          q('.upgrade-price').textContent = c.bought ? '✓ Bought' : `🧶 ${c.price}`;
+          q('.upgrade-pips').textContent = 'Charm';
+          q('.upgrade-price').textContent = c.bought ? '✓ On the collar' : c.full ? `🧶 ${c.price} · collar full` : `🧶 ${c.price}`;
         }
         const buy = () => affordable && this.onBuy?.(c.key);
         card.addEventListener('click', buy);
@@ -285,7 +323,7 @@ export class UI {
         return card;
       })
     );
-    if (!cards.length) $('shop-cards').textContent = 'Everything is maxed out. Good dog!';
+    if (!cards.length) $('shop-cards').textContent = 'Nothing left to buy. Good dog!';
   }
 
   denyFreeze() {
@@ -310,7 +348,7 @@ export class UI {
     const lostTo = Object.entries(s.lostTo).sort((a, b) => b[1] - a[1]);
     if (lostTo.length) lines.push(['Lost to', lostTo.map(([name, n]) => `${name} ×${n}`).join(' · ')]);
     if (s.perks?.length) lines.push([`Dog level ${s.level}`, s.perks.map((u) => `${u.icon} ${u.name}${u.level > 1 ? ' ' + u.level : ''}`).join(' · ')]);
-    if (s.upgrades.length) lines.push(['Upgrades', s.upgrades.map((u) => `${u.icon} ${u.name}${u.level > 1 ? ' ' + u.level : ''}`).join(' · ')]);
+    if (s.charms?.length) lines.push(['Charms', s.charms.map((c) => `${c.icon} ${c.name}`).join(' · ')]);
     if (s.animals.length) lines.push(['Bought', s.animals.join(' · ')]);
     if (s.tufts) lines.push(['Bounty tufts', String(s.tufts)]);
     const el = $(id);
