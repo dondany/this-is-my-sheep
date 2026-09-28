@@ -158,24 +158,46 @@ blows away). It's the only wool you can earn during a wave, and it's a detour aw
 
 The end-of-wave screen breaks the total down. Tuning: `SHEARING` and `BOUNTY` in `src/config.js`.
 
-## Upgrades
+## Two ways to grow: dog levels and the shop
+
+The dog grows by **doing**: scaring wolves earns XP and levels. The farm grows by **buying**: wool
+from the flock pays for shop upgrades. Chasing wolves for XP pulls the dog away from the flock that
+makes the wool, so every wave is a little hunter-versus-guardian decision.
+
+### Dog levels (XP)
+
+Each of the dog's own scares (Big Barks included) earns XP: 1 for a wolf or a pup, 2 for runners,
+rascals, howlers, sneaky wolves and tricksters, 3 for brutes and disguises, 5 for the alpha, 6 per
+Old Greymuzzle drive-off, 2 for a rescue. Combos multiply it (×1.5 at ×2, up to ×3) and it's doubled
+on the line. Level *n* needs 10 × n^1.6 XP (10, 30, 58, 92, 131…), about one level a wave. The HUD
+shows "Lv 4" and a bar; "LEVEL 4!" pops over the dog when it happens.
+
+Every level is a perk, picked at the end of the wave from three cards before the shop opens (several
+levels mean several picks). Each card rolls a rarity: common (1 point, 70%), rare (2 points, 24%)
+or legendary (3 points, 6%).
+
+| Perk | Per point | Max points |
+| --- | --- | --- |
+| ⚡ Swift Paws | Dog runs and turns 6% faster | 10 |
+| 🎯 Dog's Reach | Reach +0.5 (the ring: wolves inside it get scared, sheep react from proportionally further away). 2.5 at the start. Offered twice as often | 12 |
+| 😱 Scary Bark | Scared wolves run 12% longer | 8 |
+| 🦴 Brave Heart | Brutes and the boss give up 12% sooner | 6 |
+| 🌬️ Deep Lungs | Big Bark refills 12% faster on its own | 8 |
+| 💥 Booming Bark | Big Bark reaches 8% further | 8 |
+| 👃 Nose for Wolves | Sneaky wolves show up 25% sooner; disguises sniffed out faster | 6 |
+| 🎾 Fetch! | Bounty tufts last 25% longer and are easier to grab | 6 |
+| 🐾 Pup Training *(needs Second Dog)* | Second dog +5% of your dog's speed | 8 |
+| 🔊 Pup's Bark *(needs Second Dog)* | Second dog's reach +4% | 8 |
+
+### Shop upgrades (wool)
 
 Wool buys upgrades on the end-of-wave screen: four random cards (three upgrades and one animal),
 each with a price; buy any you can afford, or reroll the cards (2 wool, +2 per extra reroll that
-wave). Level n of an upgrade
-costs its base price × (n + 1), and everything resets when a run ends. Rare cards (gold border)
-come up about a third as often.
+wave). Level n of an upgrade costs its base price × (n + 1), and everything resets when a run ends.
+Rare cards (gold border) come up about a third as often.
 
 | Card | Group | Base price | Effect per level | Max |
 | --- | --- | --- | --- | --- |
-| ⚡ Swift Paws | Dog | 8 | Dog runs and turns 10% faster | 5 |
-| 🎯 Dog's Reach | Dog | 6 | The dog's reach +1 (the ring around it): wolves inside it get scared, and sheep react to the dog from proportionally further away. 2.5 at the start, up to 8.5. Offered twice as often as other cards | 6 |
-| 😱 Scary Bark | Dog | 6 | Scared wolves run 20% longer | 3 |
-| 🦴 Brave Heart | Dog | 8 | Brutes give up 25% sooner | 3 |
-| 🌬️ Deep Lungs | Dog | 8 | Big Bark refills 20% faster on its own | 3 |
-| 💥 Booming Bark | Dog | 8 | Big Bark reaches 15% further | 3 |
-| 👃 Nose for Wolves | Dog | 6 | Sneaky wolves are revealed from 50% further away; a disguise is sniffed out twice as fast | 2 |
-| 🎾 Fetch! | Dog | 6 | Bounty tufts last 50% longer and can be grabbed from 30% further | 2 |
 | 🦯 Shepherd's Crook | Shepherd | 10 | The shepherd swats wolves within 3 / 4 / 5 units of him ("BONK!") | 3 |
 | ✂️ Sharp Shears | Flock | 10 | +10% wool from shearing | 3 |
 | 🐷 Piggy Bank | Flock | 8 | Interest cap +2 | 2 |
@@ -184,9 +206,7 @@ come up about a third as often.
 | 🧶 Thick Fleece | Flock | 8 | Wolves need 20% longer to take a sheep | 5 |
 | 🐑 Bigger Flock | Flock | 6 | +1 sheep every wave | 3 |
 | 🍼 Lambing Season | Flock | 6 | +1 lamb every wave | 2 |
-| 🐕 Second Dog *(rare)* | Dog | 40 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock. Starts slow: 55% of your dog's speed, reach 2.75, and it catches its breath for 1 s after each scare | 1 |
-| 🐾 Pup Training *(needs Second Dog)* | Dog | 8 | Second dog +10% speed (up to 95% of yours) | 4 |
-| 🔊 Pup's Bark *(needs Second Dog)* | Dog | 8 | Second dog's reach +0.4 (2.75 → 3.95) | 3 |
+| 🐕 Second Dog *(rare)* | Dog | 40 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock. Starts slow: 55% of your dog's speed, reach 2.75, and it catches its breath for 1 s after each scare. Train it with pup perks | 1 |
 | 📯 Shepherd's Whistle *(rare)* | Shepherd | 20 | Every 20 / 15 / 10 s the shepherd whistles and every sheep heads back to him | 3 |
 | 🌾 Scarecrow *(rare)* | Shepherd | 20 | Click the meadow to place it; ordinary wolves within 4.5 units get scared (brutes ignore it). Stays for the rest of the run | 2 |
 

@@ -1,20 +1,68 @@
-// Upgrades bought with wool between waves. Each one has levels; `modifiers()` turns the levels
-// owned into the multipliers the rest of the game reads (ctx.mods). `requires` keeps a card out of
-// the draw until another upgrade is owned.
+// Two ways to grow during a run. The dog levels up by scaring wolves (XP): each level is a perk,
+// picked at the end of the wave. Wool buys upgrades for the shepherd and the flock in the shop.
+// `modifiers()` turns both into the multipliers the rest of the game reads (ctx.mods).
+
+// --- Dog perks ------------------------------------------------------------------
+// Each pick adds 1, 2 or 3 points (common / rare / legendary); `per` is the effect of one point and
+// `max` the most points a perk can hold. `requires` keeps a perk out of the draw until an upgrade
+// is owned.
+
+const pct = (v) => `${Math.round(v * 100)}%`;
+export const PERKS = [
+  { id: 'swift', icon: '⚡', name: 'Swift Paws', per: 0.06, max: 10, text: (v) => `The dog runs and turns ${pct(v)} faster.` },
+  { id: 'loud', icon: '🎯', name: "Dog's Reach", per: 0.5, max: 12, weight: 2, text: (v) => `Reach +${v}: wolves get scared and sheep herded from further away.` },
+  { id: 'scary', icon: '😱', name: 'Scary Bark', per: 0.12, max: 8, text: (v) => `Scared wolves run ${pct(v)} longer before coming back.` },
+  { id: 'brave', icon: '🦴', name: 'Brave Heart', per: 0.12, max: 6, text: (v) => `Brutes and the boss give up ${pct(v)} sooner.` },
+  { id: 'lungs', icon: '🌬️', name: 'Deep Lungs', per: 0.12, max: 8, text: (v) => `The Big Bark refills ${pct(v)} faster on its own.` },
+  { id: 'booming', icon: '💥', name: 'Booming Bark', per: 0.08, max: 8, text: (v) => `The Big Bark reaches ${pct(v)} further.` },
+  { id: 'nose', icon: '👃', name: 'Nose for Wolves', per: 0.25, max: 6, text: (v) => `Sneaky wolves show up ${pct(v)} sooner and disguises are sniffed out faster.` },
+  { id: 'fetch', icon: '🎾', name: 'Fetch!', per: 0.25, max: 6, text: (v) => `Bounty tufts last ${pct(v)} longer and are easier to grab.` },
+  { id: 'pupSpeed', icon: '🐾', name: 'Pup Training', per: 0.05, max: 8, requires: 'helper', text: (v) => `The second dog runs ${pct(v)} faster (of your dog's speed).` },
+  { id: 'pupBark', icon: '🔊', name: "Pup's Bark", per: 0.04, max: 8, requires: 'helper', text: (v) => `The second dog's reach +${pct(v)}.` },
+];
+
+export const PERK = Object.fromEntries(PERKS.map((p) => [p.id, p]));
+
+export const RARITY = [
+  { id: 'common', name: 'Common', points: 1, weight: 70 },
+  { id: 'rare', name: 'Rare', points: 2, weight: 24 },
+  { id: 'legendary', name: 'Legendary', points: 3, weight: 6 },
+];
+
+// The effect of `points` of a perk, as shown on its card.
+export function perkText(id, points) {
+  const p = PERK[id];
+  return p.text(Math.round(p.per * points * 100) / 100);
+}
+
+// Three different perks to choose from on a level-up, each with a rarity roll. Maxed perks (and
+// ones whose requirement isn't owned) are left out; a roll never goes past a perk's max.
+export function drawPerks(perks, levels, n = 3) {
+  const pool = PERKS.filter((p) => (perks[p.id] ?? 0) < p.max && (!p.requires || levels[p.requires]));
+  const offer = [];
+  while (offer.length < n && pool.length) {
+    const i = pickWeighted(pool.map((p) => p.weight ?? 1));
+    const p = pool.splice(i, 1)[0];
+    const rarity = RARITY[pickWeighted(RARITY.map((r) => r.weight))];
+    const points = Math.min(rarity.points, p.max - (perks[p.id] ?? 0));
+    offer.push({ id: p.id, rarity: RARITY.find((r) => r.points === points)?.id ?? 'common', points });
+  }
+  return offer;
+}
+
+function pickWeighted(weights) {
+  let r = Math.random() * weights.reduce((a, b) => a + b, 0);
+  let i = 0;
+  while (i < weights.length - 1 && r > weights[i]) r -= weights[i++];
+  return i;
+}
+
+// --- Shop upgrades (wool) ---------------------------------------------------------
+// Each one has levels. `requires` keeps a card out of the draw until another upgrade is owned.
 
 export const UPGRADES = [
   // --- Dog
-  { id: 'swift', group: 'dog', icon: '⚡', name: 'Swift Paws', text: 'The dog runs and turns 10% faster.', max: 5, cost: 8 },
-  { id: 'loud', group: 'dog', icon: '🎯', name: "Dog's Reach", text: "The dog's reach +1: wolves get scared and sheep herded from further away (2.5 at the start, up to 8.5).", max: 6, cost: 6, weight: 2 },
-  { id: 'scary', group: 'dog', icon: '😱', name: 'Scary Bark', text: 'Scared wolves run 20% longer before coming back.', max: 3, cost: 6 },
-  { id: 'brave', group: 'dog', icon: '🦴', name: 'Brave Heart', text: 'Brutes give up 25% sooner.', max: 3, cost: 8 },
-  { id: 'lungs', group: 'dog', icon: '🌬️', name: 'Deep Lungs', text: 'The Big Bark refills 20% faster on its own.', max: 3, cost: 8 },
-  { id: 'booming', group: 'dog', icon: '💥', name: 'Booming Bark', text: 'The Big Bark reaches 15% further.', max: 3, cost: 8 },
-  { id: 'nose', group: 'dog', icon: '👃', name: 'Nose for Wolves', text: 'Sneaky wolves show up sooner, and a wolf in sheep\'s clothing is sniffed out twice as fast.', max: 2, cost: 6 },
-  { id: 'fetch', group: 'dog', icon: '🎾', name: 'Fetch!', text: 'Bounty tufts last 50% longer and are easier to grab.', max: 2, cost: 6 },
-  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', text: 'A young dog joins you and guards the flock on its own. Slow and easily winded at first: train it with pup upgrades.', max: 1, cost: 40, rare: true },
-  { id: 'pupSpeed', group: 'dog', icon: '🐾', name: 'Pup Training', text: 'The second dog runs 10% faster (of your dog\'s speed).', max: 4, cost: 8, requires: 'helper' },
-  { id: 'pupBark', group: 'dog', icon: '🔊', name: "Pup's Bark", text: 'The second dog scares wolves from further away.', max: 3, cost: 8, requires: 'helper' },
+  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', text: 'A young dog joins you and guards the flock on its own. Slow and easily winded at first: train it with pup perks when your dog levels up.', max: 1, cost: 40, rare: true },
   // --- Shepherd
   { id: 'calm', group: 'shepherd', icon: '🎶', name: 'Calming Song', text: 'Sheep panic 15% less around wolves.', max: 3, cost: 6 },
   { id: 'herding', group: 'shepherd', icon: '🪄', name: 'Herding Instinct', text: 'The flock sticks together 20% more tightly, and sheep can stand 10% closer to each other.', max: 3, cost: 6 },
@@ -43,30 +91,31 @@ export function cost(upgrade, level) {
   return Math.round(upgrade.cost * (1 + SHOP.levelCostGrowth * level));
 }
 
-export function modifiers(levels) {
+export function modifiers(levels, perks = {}) {
   const l = (id) => levels[id] ?? 0;
+  const p = (id) => (perks[id] ?? 0) * PERK[id].per; // a perk's total effect
   return {
-    dogSpeed: 1 + 0.1 * l('swift'),
-    barkRange: l('loud'), // added to DOG.threatRadius
-    flee: 1 + 0.2 * l('scary'),
-    courage: 0.75 ** l('brave'),
+    dogSpeed: 1 + p('swift'),
+    barkRange: p('loud'), // added to DOG.threatRadius
+    flee: 1 + p('scary'),
+    courage: 1 - Math.min(0.75, p('brave')),
     panic: 0.85 ** l('calm'),
     cohesion: 1 + 0.2 * l('herding'),
     spacing: 1 - 0.1 * l('herding'), // × SHEEP.minDistance
     grab: 1 + 0.2 * l('fleece'),
     extraSheep: l('more'),
     lambs: l('lambing'),
-    bigBarkCooldown: 0.8 ** l('lungs'),
+    bigBarkCooldown: 1 / (1 + p('lungs')), // × the Big Bark's refill time
     whistle: l('whistle') ? 25 - 5 * l('whistle') : 0, // seconds between whistles (0 = none)
     scarecrows: l('scarecrow'),
     helper: l('helper') > 0,
-    helperSpeed: 0.55 + 0.1 * l('pupSpeed'), // fraction of the player's dog
-    helperThreat: 0.55 + 0.08 * l('pupBark'), // × HELPER.threatRadius
-    bigBarkRadius: 1 + 0.15 * l('booming'),
-    reveal: 1 + 0.5 * l('nose'), // sneaky wolves' reveal distance
-    sniff: 0.5 ** l('nose'), // time to expose a disguise
-    tuftLife: 1 + 0.5 * l('fetch'),
-    tuftRadius: 1 + 0.3 * l('fetch'),
+    helperSpeed: 0.55 + p('pupSpeed'), // fraction of the player's dog
+    helperThreat: 0.55 + p('pupBark'), // × HELPER.threatRadius
+    bigBarkRadius: 1 + p('booming'),
+    reveal: 1 + p('nose'), // sneaky wolves' reveal distance
+    sniff: 1 / (1 + 2 * p('nose')), // time to expose a disguise
+    tuftLife: 1 + p('fetch'),
+    tuftRadius: 1 + 0.6 * p('fetch'),
     crook: l('crook') ? 2 + l('crook') : 0, // shepherd's swat radius (0 = none)
     shears: 1 + 0.1 * l('shears'),
     interest: 2 * l('piggy'), // extra interest cap
@@ -82,10 +131,7 @@ export function drawCards(levels, n = SHOP.cards, exclude = []) {
   const pool = UPGRADES.filter((u) => canOffer(u, levels) && !exclude.includes(u.id));
   const cards = [];
   while (cards.length < n && pool.length) {
-    const weights = pool.map((u) => u.weight ?? (u.rare ? SHOP.rareWeight : 1));
-    let r = Math.random() * weights.reduce((a, b) => a + b, 0);
-    let i = 0;
-    while (r > weights[i]) r -= weights[i++];
+    const i = pickWeighted(pool.map((u) => u.weight ?? (u.rare ? SHOP.rareWeight : 1)));
     cards.push(pool.splice(i, 1)[0].id);
   }
   return cards;

@@ -56,7 +56,9 @@ export class UI {
 
   // The flock against the line: "12 / 8" (just "12" before the line starts). The bar shows how many
   // of the sheep the shepherd can spare are left, and turns red on the line.
-  setHud({ sheep, line = 0, spare = 1, wave, timeLeft, wool }) {
+  setHud({ sheep, line = 0, spare = 1, wave, timeLeft, wool, level = 1, xp = 0, pending = 0 }) {
+    this.set('level', `${level}${pending ? '+' : ''}`, (v) => ($('hud-level').textContent = `Lv ${v.replace('+', '')}`, $('hud-level-box').classList.toggle('pending', v.endsWith('+'))));
+    this.set('xp', Math.round(xp * 100) / 100, (v) => ($('hud-xp-bar').style.transform = `scaleX(${v})`));
     this.set('sheep', line ? `${sheep} / ${line}` : String(sheep), (v) => (this.el.sheep.textContent = v));
     this.set('sheepBar', line ? Math.max(0, Math.min(1, (sheep - line) / spare)) : 1, (v) => (this.el.sheepBar.style.transform = `scaleX(${v})`));
     this.set('short', line > 0 && sheep <= line, (short) => {
@@ -191,6 +193,41 @@ export class UI {
     this.show('wave');
   }
 
+  // Level-up picks on the end-of-wave screen: three perk cards, each with a rarity. While a pick is
+  // waiting the shop and the Next wave button are hidden. null hides the picker.
+  showLevelUp(offer) {
+    const box = $('levelup');
+    box.classList.toggle('hidden', !offer);
+    document.querySelector('#screen-wave .shop').classList.toggle('hidden', !!offer);
+    document.querySelector('#screen-wave [data-action=next]').classList.toggle('hidden', !!offer);
+    if (!offer) return;
+    $('levelup-title').textContent = `🐕 Level ${offer.level}! Pick a perk${offer.left > 1 ? ` (${offer.left} to pick)` : ''}`;
+    $('levelup-cards').replaceChildren(
+      ...offer.cards.map((c, i) => {
+        const card = document.createElement('div');
+        card.className = `upgrade-card perk-card rarity-${c.rarity}`;
+        card.setAttribute('role', 'button');
+        card.tabIndex = 0;
+        card.innerHTML = `
+          <span class="upgrade-group"></span>
+          <span class="upgrade-icon"></span>
+          <strong class="upgrade-name"></strong>
+          <span class="upgrade-pips"></span>
+          <span class="upgrade-text"></span>`;
+        const q = (sel) => card.querySelector(sel);
+        q('.upgrade-group').textContent = { common: 'Common', rare: 'Rare', legendary: 'Legendary' }[c.rarity];
+        q('.upgrade-icon').textContent = c.icon;
+        q('.upgrade-name').textContent = c.name;
+        q('.upgrade-pips').textContent = '●'.repeat(c.owned) + '◆'.repeat(c.points) + '○'.repeat(Math.max(0, c.max - c.owned - c.points));
+        q('.upgrade-text').textContent = c.text;
+        const pick = () => this.onPick?.(i);
+        card.addEventListener('click', pick);
+        card.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), pick()));
+        return card;
+      })
+    );
+  }
+
   // Shop cards on the end-of-wave screen: upgrades and one livestock card. Click a card to buy it;
   // the ❄️ button freezes it so it stays for the next wave's shop.
   renderShop({ cards, rerollCost, wool, frozen, maxFrozen }) {
@@ -272,6 +309,7 @@ export class UI {
     const lines = [];
     const lostTo = Object.entries(s.lostTo).sort((a, b) => b[1] - a[1]);
     if (lostTo.length) lines.push(['Lost to', lostTo.map(([name, n]) => `${name} ×${n}`).join(' · ')]);
+    if (s.perks?.length) lines.push([`Dog level ${s.level}`, s.perks.map((u) => `${u.icon} ${u.name}${u.level > 1 ? ' ' + u.level : ''}`).join(' · ')]);
     if (s.upgrades.length) lines.push(['Upgrades', s.upgrades.map((u) => `${u.icon} ${u.name}${u.level > 1 ? ' ' + u.level : ''}`).join(' · ')]);
     if (s.animals.length) lines.push(['Bought', s.animals.join(' · ')]);
     if (s.tufts) lines.push(['Bounty tufts', String(s.tufts)]);
@@ -309,14 +347,14 @@ export class UI {
     document.querySelector('[data-action=summer-up]').disabled = summer >= unlocked;
   }
 
-  showVictory({ stars, flock, summer, unlocked, wool, upgrades, summary }) {
+  showVictory({ stars, flock, summer, unlocked, wool, level, summary }) {
     this.renderSummary('victory-summary', summary);
     document.querySelector('#screen-victory h2').textContent = summer > 1 ? `Summer ${summer} won!` : "Summer's End!";
     $('victory-unlock').classList.toggle('hidden', !unlocked);
     if (unlocked) $('victory-unlock').textContent = `🔓 Summer ${unlocked.summer} unlocked: ${unlocked.text}`;
     $('victory-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
     $('victory-flock').textContent = flock === 1 ? '🐑 1 sheep made it home' : `🐑 ${flock} sheep made it home`;
-    $('victory-stats').textContent = `🧶 ${wool} wool left · ${upgrades} upgrades`;
+    $('victory-stats').textContent = `🧶 ${wool} wool left · 🐕 level ${level}`;
     this.show('victory');
   }
 

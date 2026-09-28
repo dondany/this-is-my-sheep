@@ -523,6 +523,27 @@ export const LAST_STAND = {
   slowmo: 0.6, // real seconds of slow motion when a wolf grabs a sheep on the line
 };
 
+// Dog levels: scaring wolves earns XP, more for tougher wolves, multiplied by the combo and doubled
+// on the line. Only the dog's own scares count (Big Barks included). Each level is a perk, picked
+// at the end of the wave.
+export const XP = {
+  wolf: { normal: 1, pup: 1, runner: 2, rascal: 2, howler: 2, sneaky: 2, trickster: 2, brute: 3, disguised: 3, alpha: 5, greymuzzle: 0 },
+  bossDrive: 6, // each time Old Greymuzzle is driven off
+  rescue: 2, // a grabbed sheep let go
+  comboStep: 0.5, // ×1.5 at a ×2 combo, ×2 at ×3…
+  comboMax: 3,
+  onTheLine: 2,
+  // XP from `level` to the next: base × level^curve (10, 30, 58, 92, 131…). XP income grows a lot
+  // over a run (more wolves, longer combos), so this lands about one level per wave.
+  base: 10,
+  curve: 1.6,
+};
+
+// XP needed to go from `level` to the next one.
+export function xpToNext(level) {
+  return Math.round(XP.base * level ** XP.curve);
+}
+
 // How many sheep the shepherd can spare this wave (Infinity before the line starts).
 export function spareFor(wave, flock) {
   if (wave < GOAL.lineFrom) return Infinity;

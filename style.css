@@ -116,6 +116,33 @@ body {
   transition: none;
 }
 
+/* The dog's level and XP towards the next one; glows while a level-up is waiting for its pick. */
+.hud-level {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 58px;
+}
+
+.hud-level .meter {
+  width: 58px;
+}
+
+.meter-fill.xp {
+  background: #7d62b8;
+}
+
+.hud-level.pending #hud-level {
+  color: #7d62b8;
+  animation: level-pending 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes level-pending {
+  to {
+    transform: scale(1.12);
+  }
+}
+
 .hud-buttons {
   position: absolute;
   top: 14px;
@@ -1187,6 +1214,39 @@ body[data-effects='off'] #last-stand.on {
 }
 
 /* Livestock card: an animal to buy, with its bestiary portrait */
+/* Level-up perk cards: the rarity shows in the border. */
+.levelup h3 {
+  margin: 4px 0 8px;
+  text-align: center;
+}
+
+.perk-card {
+  cursor: pointer;
+}
+
+.perk-card.rarity-common {
+  border-color: var(--ink);
+}
+
+.perk-card.rarity-rare {
+  border-color: #4f7fc2;
+  box-shadow: 0 5px 0 rgba(79, 127, 194, 0.45), 0 0 0 3px rgba(79, 127, 194, 0.2);
+}
+
+.perk-card.rarity-rare .upgrade-group {
+  color: #3d6aa8;
+}
+
+.perk-card.rarity-legendary {
+  border-color: #b8862b;
+  background: #fff4d8;
+  box-shadow: 0 5px 0 rgba(184, 134, 43, 0.5), 0 0 0 4px rgba(242, 193, 78, 0.35);
+}
+
+.perk-card.rarity-legendary .upgrade-group {
+  color: #9a6a12;
+}
+
 .upgrade-card.livestock {
   background: #f3f8e6;
   border-color: #6f8f3f;

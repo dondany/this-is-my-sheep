@@ -39,6 +39,10 @@
         <div class="hud-label">Wave <span id="hud-wave" class="hud-value">01</span></div>
         <div class="meter"><div id="hud-timer-bar" class="meter-fill timer"></div></div>
       </div>
+      <div id="hud-level-box" class="hud-level" title="The dog's level: scaring wolves earns XP, and every level is a perk picked at the end of the wave">
+        <div id="hud-level" class="hud-value">Lv 1</div>
+        <div class="meter"><div id="hud-xp-bar" class="meter-fill xp"></div></div>
+      </div>
       <div class="hud-wool" title="Wool: sheared from the flock after each wave, spent on upgrades">
         <span class="hud-icon">🧶</span>
         <span id="hud-wool" class="hud-value">0</span>
@@ -99,6 +103,10 @@
       <h2 id="wave-title">Wave 1 complete!</h2>
       <p class="wave-summary"><span id="wave-sheep" class="big-stat">🐑 10</span></p>
       <ul id="wave-breakdown" class="breakdown"></ul>
+      <div id="levelup" class="levelup hidden">
+        <h3 id="levelup-title">🐕 Level 2! Pick a perk</h3>
+        <div id="levelup-cards" class="shop-cards levelup-cards"></div>
+      </div>
       <div class="shop">
         <div class="shop-head">
           <h3>Spend your wool</h3>

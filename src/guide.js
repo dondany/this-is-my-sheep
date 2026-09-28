@@ -4,9 +4,9 @@
 import {
   spareFor, LAST_STAND, DOG, BIG_BARK, BUMP, ROAM, SHEEP, SHEEP_TYPES, WOLF, WOLF_TYPES, FIRST_WAVE, GOAL, ENDLESS, BOSS, SUMMERS,
   SHEARING, BOUNTY, GOAT, LAMB, BLACK, BELL, SLEEPY, GOLDEN, DISGUISE, RAM_CALM, RASCAL, PUPS, HOWLER,
-  TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, waveConfig,
+  TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, XP, xpToNext, waveConfig,
 } from './config.js';
-import { UPGRADES, SHOP, LIVESTOCK, cost, animalPrice, modifiers } from './upgrades.js';
+import { UPGRADES, SHOP, LIVESTOCK, PERKS, PERK, RARITY, cost, animalPrice, modifiers, perkText } from './upgrades.js';
 import { ACHIEVEMENTS, ACHIEVEMENT } from './achievements.js';
 import { WARDROBE, SLOTS, rewardFor } from './cosmetics.js';
 import { ENTRIES, Bestiary } from './bestiary.js';
@@ -36,12 +36,11 @@ $('toc').innerHTML = [...document.querySelectorAll('main section')]
 
 // --- The dog ------------------------------------------------------------------
 
-const loud = UPGRADES.find((u) => u.id === 'loud');
 $('dog-stats').innerHTML = `
   <h3>The dog</h3>
   ${chips([
     ['Top speed', `${DOG.maxSpeed} u/s`],
-    ['Reach (the ring)', `${startReach} at the start, +1 per Dog's Reach level, up to ${startReach + loud.max}`],
+    ['Reach (the ring)', `${startReach} at the start, +${PERK.loud.per} per Dog's Reach point, up to ${startReach + PERK.loud.per * PERK.loud.max}`],
     ['Big Bark', `every wolf within ${BIG_BARK.radius}, brutes included · refills in ${BIG_BARK.recharge} s on its own, and each scare adds ${Math.round(BIG_BARK.perScare * 100)}% × the combo · startles sheep within ${BIG_BARK.startleRadius}`],
     ['Running through the flock', `sheep it passes at over ${BUMP.minSpeed} u/s bounce aside`],
     ['Parking among the sheep', `they grow uneasy and keep up to ${SHEEP.pressureMax}× further away after ${SHEEP.pressureTime} s`],
@@ -253,6 +252,35 @@ $('upgrades-body').innerHTML = `
     ['Second Dog', `${Math.round(helperMods.helperSpeed * 100)}% of the dog's speed and reach ${n(HELPER.threatRadius * helperMods.helperThreat, 2)} at first; reacts to wolves within ${HELPER.reactRadius} of the flock; rests ${HELPER.rest} s after each scare`],
     ['Scarecrow', `scares ordinary wolves within ${SCARECROW.radius}; brutes ignore it`],
   ])}`;
+
+const cap = (t) => t[0].toUpperCase() + t.slice(1);
+const xpNeeded = Array.from({ length: 15 }, (_, i) => xpToNext(i + 1));
+$('levels-body').innerHTML = `
+  <p>The dog levels up by scaring wolves. Each level is a perk, picked at the end of the wave from three cards (the shop waits until you've picked). The HUD shows the level and a bar towards the next one.</p>
+  <h3>XP</h3>
+  ${chips([
+    ...Object.entries(XP.wolf)
+      .filter(([, v]) => v > 0)
+      .map(([k, v]) => [cap(nameOf(k)), `${v} XP`]),
+    ['Old Greymuzzle', `${XP.bossDrive} XP per drive-off`],
+    ['Rescue', `${XP.rescue} XP`],
+    ['Combo', `×${1 + XP.comboStep} at ×2, +${XP.comboStep} per step, up to ×${XP.comboMax}`],
+    ['On the line', `×${XP.onTheLine}`],
+  ])}
+  <p>Only the dog's own scares count (Big Barks included), not the second dog's, the shepherd's or a scarecrow's. XP to the next level: ${XP.base} × level<sup>${XP.curve}</sup>.</p>
+  ${table(['Level', ...xpNeeded.map((_, i) => String(i + 1))], [['XP to next', ...xpNeeded.map(String)]])}
+  <h3>Perks</h3>
+  <p>Each card is ${RARITY.map((r) => `${r.name.toLowerCase()} (${r.points} point${r.points > 1 ? 's' : ''}, ${r.weight}%)`).join(', ')}. A perk can't go past its max; maxed perks aren't offered. Dog's Reach comes up twice as often.</p>
+  ${table(
+    ['', 'Perk', 'Per point', 'Max points', 'At max'],
+    PERKS.map((p) => [
+      p.icon,
+      `<strong>${esc(p.name)}</strong>${p.requires ? ` <small>(needs ${esc(UPGRADES.find((u) => u.id === p.requires).name)})</small>` : ''}`,
+      esc(perkText(p.id, 1)),
+      String(p.max),
+      esc(perkText(p.id, p.max)),
+    ])
+  )}`;
 
 $('livestock-body').innerHTML = `
   <p>One of the four shop cards offers an animal. It joins at the start of the next wave. Only animals already met in the run are offered (a lamb always is); each one you own makes the next of its kind cost 50% more.</p>

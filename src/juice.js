@@ -207,6 +207,12 @@ export class Juice {
     this.sfx.waveComplete();
   }
 
+  levelUp(dog, level) {
+    this.floatText(`LEVEL ${level}!`, { follow: dog, offsetY: 3.4, cls: 'big', duration: 1.6, size: 34 });
+    this.ring(dog.position, { from: 0.5, to: 4, duration: 0.5, color: 0x9b7fd0, opacity: 0.8 });
+    this.sfx.levelUp();
+  }
+
   lastStand(dog) {
     this.floatText('HOLD THE LINE!', { follow: dog, offsetY: 3.2, cls: 'danger', duration: 1.8, size: 34 });
     this.flash('rgba(201, 87, 69, 0.25)');

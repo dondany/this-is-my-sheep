@@ -2732,3 +2732,41 @@ Second half of section 91.
     5-10 late, against margins of 2-10. With 2 + one in five the strong
     bot won 4 of 5, all close; the final choice leans hard because the
     first playtest win came easily.
+
+------------------------------------------------------------------------
+
+# 93. Dog Levels: XP From Scaring Wolves (implemented)
+
+First of two progression tracks (like Brotato: XP level-ups for stats,
+materials for items; or Balatro: planets level hands, jokers are the
+build). The dog grows by doing, the farm by buying: XP rewards attack
+(scaring wolves), wool rewards defence (keeping sheep), and chasing XP
+pulls the dog away from the flock.
+
+-   `XP` in `src/config.js`: per wolf kind (1 wolf/pup, 2 runner,
+    rascal, howler, sneaky, trickster, 3 brute/disguise, 5 alpha), 6 per
+    boss drive-off, 2 per rescue; ×1.5 at a ×2 combo, +0.5 per step, up
+    to ×3; ×2 on the line. Only the dog's own scares count.
+-   Level n needs `XP.base × n^XP.curve` = 10 × n^1.6. A linear curve
+    (8, +4 a level) was tried first: XP income grows a lot over a run
+    (more wolves, longer combos, the boss), and bots hit level 36-42 by
+    wave 15. With the power curve: strong bot level 13-15, average 5-10.
+-   Level-ups are picked at the end of the wave (Brotato, not Vampire
+    Survivors, since pausing mid-wave would break herding): the end of
+    wave screen shows three perk cards before the shop; the shop and
+    Next wave button wait until every pick is made. `drawPerks()`,
+    `pickPerk()`.
+-   Perks (`PERKS` in `src/upgrades.js`) are the old dog upgrades,
+    moved out of the shop: Swift Paws, Dog's Reach, Scary Bark, Brave
+    Heart, Deep Lungs, Booming Bark, Nose for Wolves, Fetch!, and the
+    pup perks (need the Second Dog). Each card rolls a rarity: common 1
+    point (70%), rare 2 (24%), legendary 3 (6%), shown by the border.
+-   HUD: "Lv 4" and a purple XP bar between the wave and wool; it
+    pulses while a pick is waiting. "LEVEL 4!", a ring and a chime when
+    it happens; a first-time tip.
+-   Saved with the run (level, XP, perks, picks waiting, the cards on
+    offer; save format v2, older saves are dropped). The run summary
+    lists the perks; the win screen shows the dog's level.
+-   Balance is redone once charms replace the shop (sections 94-97): for
+    now wool only buys shepherd and flock upgrades on top of the dog's
+    levels, and the strong bot won 4 of 4.

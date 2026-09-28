@@ -176,6 +176,11 @@ export class Sfx {
     this.tone({ type: 'square', freq: 1319, dur: 0.25, gain: 0.06, at: 0.07, filter: 'lowpass', filterFreq: 3000 });
   }
 
+  levelUp() {
+    if (!this.ready || !this.throttle('levelUp', 400)) return;
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.tone({ type: 'triangle', freq: f, dur: 0.3, gain: 0.1, at: i * 0.08 }));
+  }
+
   upgrade() {
     if (!this.ready) return;
     [659.25, 880, 1318.5].forEach((f, i) => this.tone({ type: 'triangle', freq: f, dur: 0.22, gain: 0.12, at: i * 0.07 }));
