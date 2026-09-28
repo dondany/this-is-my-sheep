@@ -1029,6 +1029,10 @@ body[data-effects='off'] #last-stand.on {
   color: #5f8a32;
 }
 
+.group-trick .upgrade-group {
+  color: #7d62b8;
+}
+
 .upgrade-icon {
   font-size: 32px;
   line-height: 1.1;
@@ -1236,6 +1240,30 @@ body[data-effects='off'] #last-stand.on {
   40% {
     transform: scale(1.12);
   }
+}
+
+.bigbark-btn[data-charges='2']::after {
+  content: '×2';
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  padding: 1px 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fffaf0;
+  background: #7d62b8;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+}
+
+.upgrade-catch {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--danger);
+}
+
+.upgrade-catch:empty {
+  display: none;
 }
 
 .bigbark-btn.deny {

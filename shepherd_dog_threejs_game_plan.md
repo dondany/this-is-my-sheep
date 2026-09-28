@@ -2800,3 +2800,35 @@ Knight's charm notches).
     v3 (charms instead of upgrade levels). The run summary lists charms.
 -   Balance is redone in section 97 (with 5 slots of single charms the
     strong bot lost at waves 7, 13 and 15).
+
+------------------------------------------------------------------------
+
+# 95. Tricks: Rule-Changing Charms (implemented)
+
+The first 8 of the Tricks brainstormed after the roguelike review: charms
+that change how a run plays rather than adding stats, each with a catch
+(`catch` on the charm, shown in red on the card and in tooltips).
+Picked so each opens a different build: economy, bark, combo, the line,
+scaling, the shepherd.
+
+-   💰 Bounty Hunter (uncommon 14): each counted scare pays wool equal
+    to the combo count (1-5; "+2 🧶" over the wolf). Shearing ×0.5.
+-   ✨ Golden Child (rare 22): +1 golden fleece every wave. Catch: the
+    golden fleece's usual lure.
+-   🔋 Overcharge (uncommon 14): the meter holds 2 Big Barks (`barkMax`,
+    "×2" badge on the button); no passive refill (`barkPassive` 0).
+-   📯 Herding Horn (common 10): the Big Bark sends every sheep in its
+    full range to the dog (the whistle's regroup, aimed at the dog) and
+    doesn't startle them; wolves only flee from half the range.
+-   💥 Chain Reaction (rare 20): a fleeing wolf (after its startled
+    pause) scares any wolf within 2.5 (`forceScare`, boss excluded):
+    dominoes, "DOMINO!", combo and XP. Flee time ×0.7.
+-   ❤️‍🔥 On the Brink (uncommon 12): line +1 (spare at least 1); the last
+    stand starts at line + 1 with double the boost (+30% speed, +40%
+    reach). With a small flock that means a whole wave on the brink.
+-   📈 Veteran (uncommon 14): +5% reach per wave finished without a
+    loss (`VETERAN`); 3+ lost in a wave, or selling it, resets it.
+    Saved with the run.
+-   🏕️ Staying Put (common 8): the shepherd never roams; wolves stalk
+    ×0.7 (`mods.stalk` in `toWander()`).
+-   Wolves can now be the `by` of a scare (chain); praise "DOMINO!".

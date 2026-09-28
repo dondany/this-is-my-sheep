@@ -92,8 +92,9 @@ export class UI {
   setBigBark(ready) {
     this.set('bigbark', Math.round(ready * 100) / 100, (v) => {
       const btn = $('btn-bigbark');
-      btn.style.setProperty('--p', v);
+      btn.style.setProperty('--p', Math.min(1, v));
       btn.classList.toggle('ready', v >= 1);
+      btn.dataset.charges = v >= 2 ? '2' : ''; // Overcharge charm: a second bark stored
     });
   }
 
@@ -235,7 +236,7 @@ export class UI {
         const el = document.createElement('span');
         el.className = 'hud-charm';
         el.textContent = c.icon;
-        el.title = `${c.name}: ${c.text}`;
+        el.title = `${c.name}: ${c.text}${c.catch ? ` Catch: ${c.catch}` : ''}`;
         return el;
       })
     );
@@ -259,7 +260,7 @@ export class UI {
         const slot = document.createElement('div');
         slot.className = `collar-slot${c ? '' : ' empty'}`;
         if (!c) return slot;
-        slot.title = `${c.name}: ${c.text}`;
+        slot.title = `${c.name}: ${c.text}${c.catch ? ` Catch: ${c.catch}` : ''}`;
         slot.innerHTML = '<span class="collar-icon"></span><button class="collar-sell"></button>';
         slot.firstChild.textContent = c.icon;
         const sell = slot.lastChild;
@@ -274,7 +275,7 @@ export class UI {
     reroll.textContent = `🎲 Reroll (${rerollCost})`;
     reroll.disabled = wool < rerollCost;
     $('shop-frozen').textContent = `❄️ ${frozen} / ${maxFrozen} frozen`;
-    const group = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock' };
+    const group = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick' };
     $('shop-cards').replaceChildren(
       ...cards.map((c) => {
         const card = document.createElement('div');
@@ -289,10 +290,12 @@ export class UI {
           <strong class="upgrade-name"></strong>
           <span class="upgrade-pips"></span>
           <span class="upgrade-text"></span>
+          <span class="upgrade-catch"></span>
           <span class="upgrade-price"></span>`;
         const q = (sel) => card.querySelector(sel);
         q('.upgrade-name').textContent = c.name;
         q('.upgrade-text').textContent = c.text;
+        q('.upgrade-catch').textContent = c.catch ? `Catch: ${c.catch}` : '';
         if (c.frozen) card.dataset.frozen = ''; // adds "❄️ Frozen ·" before the group label (CSS)
         if (c.livestock) {
           q('.upgrade-group').textContent = 'Livestock';

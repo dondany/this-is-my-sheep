@@ -233,14 +233,14 @@ $('wave-table').outerHTML = table(['Wave', 'Length', 'Wolves', 'Pack (one draw)'
 
 // --- Charms & livestock ------------------------------------------------------
 
-const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock' };
+const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick' };
 const helperMods = modifiers(['helper']);
 const rw = SHOP.rarityWeight;
 $('upgrades-body').innerHTML = `
   <p>Charms are bought with wool in the end-of-wave shop and hang on the dog's collar: up to <strong>${SHOP.slots}</strong> at once, one of each. Sell one for ${Math.round(SHOP.sellBack * 100)}% of its price to make room. Three of the shop's four cards are charms; uncommon ones come up ${Math.round(rw.uncommon * 100)}% and rare ones ${Math.round(rw.rare * 100)}% as often as common ones. Summer 5 and later add 25% to all prices.</p>
   ${table(
-    ['', 'Charm', 'Group', 'Rarity', 'Effect', 'Price'],
-    CHARMS.map((c) => [c.icon, `<strong>${esc(c.name)}</strong>`, groupName[c.group], c.rarity, esc(c.text), String(c.price)])
+    ['', 'Charm', 'Group', 'Rarity', 'Effect', 'Catch', 'Price'],
+    CHARMS.map((c) => [c.icon, `<strong>${esc(c.name)}</strong>`, groupName[c.group], c.rarity, esc(c.text), esc(c.catch ?? ''), String(c.price)])
   )}
   <h3>Helpers</h3>
   ${chips([

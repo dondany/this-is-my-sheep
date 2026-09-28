@@ -76,6 +76,15 @@ export const CHARMS = [
   { id: 'lambing', group: 'flock', icon: '🍼', name: 'Lambing Season', rarity: 'common', price: 8, text: '+2 lambs every wave (they pay double).' },
   { id: 'shears', group: 'flock', icon: '✂️', name: 'Sharp Shears', rarity: 'uncommon', price: 12, text: '+30% wool from shearing.' },
   { id: 'piggy', group: 'flock', icon: '🐷', name: 'Piggy Bank', rarity: 'common', price: 8, text: 'Interest on unspent wool can go 3 higher.' },
+  // --- Tricks: charms that change the rules, each with a catch
+  { id: 'bounty', group: 'trick', icon: '💰', name: 'Bounty Hunter', rarity: 'uncommon', price: 14, text: 'Every wolf scared pays wool: 1, or the combo count in a combo (up to 5).', catch: 'Shearing pays half.' },
+  { id: 'goldenChild', group: 'trick', icon: '✨', name: 'Golden Child', rarity: 'rare', price: 22, text: 'A golden fleece (10 wool a wave) joins every wave.', catch: 'Every wolf wants them.' },
+  { id: 'overcharge', group: 'trick', icon: '🔋', name: 'Overcharge', rarity: 'uncommon', price: 14, text: 'The Big Bark meter holds two barks.', catch: 'It only fills from scares, never on its own.' },
+  { id: 'horn', group: 'trick', icon: '📯', name: 'Herding Horn', rarity: 'common', price: 10, text: 'The Big Bark calls every sheep in its range to the dog instead of startling them.', catch: 'Wolves only flee from half the range.' },
+  { id: 'chain', group: 'trick', icon: '💥', name: 'Chain Reaction', rarity: 'rare', price: 20, text: 'A fleeing wolf scares every wolf it runs past (not the boss). Each one extends the combo.', catch: 'Scared wolves come back 30% sooner.' },
+  { id: 'brink', group: 'trick', icon: '❤️‍🔥', name: 'On the Brink', rarity: 'uncommon', price: 12, text: 'Last Sheep Standing starts one sheep above the line and is twice as strong.', catch: 'The shepherd spares one sheep fewer.' },
+  { id: 'veteran', group: 'trick', icon: '📈', name: 'Veteran', rarity: 'uncommon', price: 14, text: 'Every wave you finish without losing a sheep gives the dog +5% reach, for good.', catch: 'Losing 3 or more sheep in a wave resets it.' },
+  { id: 'stayPut', group: 'trick', icon: '🏕️', name: 'Staying Put', rarity: 'common', price: 8, text: 'The shepherd never moves the flock to new grass.', catch: 'Wolves learn the spot: they stalk 30% less.' },
 ];
 
 export const CHARM = Object.fromEntries(CHARMS.map((c) => [c.id, c]));
@@ -96,7 +105,7 @@ export function modifiers(charms = [], perks = {}) {
     // Dog perks
     dogSpeed: 1 + p('swift'),
     barkRange: p('loud'), // added to DOG.threatRadius
-    flee: 1 + p('scary'),
+    flee: (1 + p('scary')) * (has('chain') ? 0.7 : 1),
     courage: 1 - Math.min(0.75, p('brave')),
     bigBarkCooldown: 1 / (1 + p('lungs')), // × the Big Bark's refill time
     bigBarkRadius: 1 + p('booming'),
@@ -117,7 +126,17 @@ export function modifiers(charms = [], perks = {}) {
     grab: has('fleece') ? 1.6 : 1,
     extraSheep: has('more') ? 2 : 0,
     lambs: has('lambing') ? 2 : 0,
-    shears: has('shears') ? 1.3 : 1,
+    shears: (has('shears') ? 1.3 : 1) * (has('bounty') ? 0.5 : 1),
+    woolPerScare: has('bounty') ? 5 : 0, // the most a single scare pays (its combo count)
+    extraGolden: has('goldenChild') ? 1 : 0,
+    barkMax: has('overcharge') ? 2 : 1, // Big Barks the meter holds
+    barkPassive: has('overcharge') ? 0 : 1, // × the meter's own refill
+    horn: has('horn'),
+    chain: has('chain') ? 2.5 : 0, // how close a fleeing wolf must pass to scare another
+    brink: has('brink'),
+    veteran: has('veteran'),
+    stayPut: has('stayPut'),
+    stalk: has('stayPut') ? 0.7 : 1, // × wolves' stalking time
     interest: has('piggy') ? 3 : 0, // extra interest cap
   };
 }

@@ -38,7 +38,7 @@ export function toWander(w, ctx) {
   const stalk = cfg ? cfg.stalkMin + Math.random() * (cfg.stalkMax - cfg.stalkMin) : 4;
   const alphaAround = ctx.wolves.some((o) => o.type.leader && o.state !== 'LEAVE');
   const led = alphaAround && !w.type.leader ? ALPHA.stalk : 1;
-  w.stateTimer = stalk * w.type.stalk * led;
+  w.stateTimer = stalk * w.type.stalk * led * (ctx.mods.stalk ?? 1);
   w.feinted = false;
 }
 
@@ -514,6 +514,13 @@ export function updateWolves(wolves, ctx, dt) {
           break;
         }
         w.stateTimer -= dt;
+        // Chain Reaction charm: a fleeing wolf knocks the fright into any wolf it runs past.
+        if (ctx.mods.chain) {
+          for (const o of wolves) {
+            if (o === w || o.type.boss || o.state === 'FLEE' || o.state === 'LEAVE' || o.gone) continue;
+            if (o.position.distanceTo(w.position) < ctx.mods.chain) forceScare(o, ctx, w);
+          }
+        }
         const fleeSpeed = WOLF.fleeSpeed * Math.max(T.speed, 0.85);
         vx = w.fleeDir.x * fleeSpeed;
         vz = w.fleeDir.z * fleeSpeed;

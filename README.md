@@ -212,6 +212,19 @@ rare ones (gold) 35%.
 | ✂️ Sharp Shears | Flock | uncommon | 12 | +30% wool from shearing |
 | 🐷 Piggy Bank | Flock | common | 8 | Interest cap +3 |
 
+**Tricks** are charms that change the rules, each with a catch (shown in red on the card):
+
+| Charm | Rarity | Price | Effect | Catch |
+| --- | --- | --- | --- | --- |
+| 💰 Bounty Hunter | uncommon | 14 | Every wolf scared pays wool: 1, or the combo count in a combo (up to 5) | Shearing pays half |
+| ✨ Golden Child | rare | 22 | A golden fleece joins every wave | Every wolf wants them |
+| 🔋 Overcharge | uncommon | 14 | The Big Bark meter holds two barks ("×2" on the button) | It only fills from scares |
+| 📯 Herding Horn | common | 10 | The Big Bark calls every sheep in its range to the dog instead of startling them | Wolves only flee from half the range |
+| 💥 Chain Reaction | rare | 20 | A fleeing wolf scares every wolf it runs past ("DOMINO!", not the boss); each extends the combo and earns XP | Scared wolves come back 30% sooner |
+| ❤️‍🔥 On the Brink | uncommon | 12 | Last Sheep Standing starts one sheep above the line and is twice as strong | The shepherd spares one sheep fewer |
+| 📈 Veteran | uncommon | 14 | Every wave finished without a loss gives +5% reach for good | Losing 3+ sheep in a wave resets it (so does selling it) |
+| 🏕️ Staying Put | common | 8 | The shepherd never moves the flock to new grass | Wolves stalk 30% less |
+
 ### Freezing cards
 
 Can't afford a card yet? Tap its ❄️ to freeze it: a frozen card stays in the shop for the next

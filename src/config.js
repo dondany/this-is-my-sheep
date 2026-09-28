@@ -544,6 +544,12 @@ export function xpToNext(level) {
   return Math.round(XP.base * level ** XP.curve);
 }
 
+// Veteran charm: every wave finished without a loss adds reach for good; a bad wave resets it.
+export const VETERAN = {
+  reach: 0.05, // per clean wave
+  resetAt: 3, // sheep lost in one wave
+};
+
 // How many sheep the shepherd can spare this wave (Infinity before the line starts).
 export function spareFor(wave, flock) {
   if (wave < GOAL.lineFrom) return Infinity;

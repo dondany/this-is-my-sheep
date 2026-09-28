@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GOAL, lineFor, LAST_STAND, XP, xpToNext, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { GOAL, lineFor, LAST_STAND, VETERAN, XP, xpToNext, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -487,6 +487,7 @@ export class Game {
         fleeTime: s.fleeTime,
       });
     }
+    if (!mods.veteran) this.veteran = 0; // Veteran's reach only lasts while it's on the collar
     const d = this.dog.stats;
     this.dogBase = { maxSpeed: d.maxSpeed, acceleration: d.acceleration, threatRadius: d.threatRadius };
     this.applyLastStand();
@@ -518,6 +519,7 @@ export class Game {
   // The shepherd leads the flock to a new grazing spot.
   roam() {
     this.roamTimer = between(ROAM.interval);
+    if (this.ctx.mods.stayPut) return; // Staying Put charm
     const from = this.shepherd.position;
     for (let tries = 0; tries < 20; tries++) {
       const a = Math.random() * Math.PI * 2;
@@ -702,6 +704,7 @@ export class Game {
   resetRun() {
     this.line = 0;
     this.heartbeat = 0;
+    this.veteran = 0; // Veteran charm stacks
     this.lineStart = 0;
     for (const w of this.wolves) w.destroy();
     this.wolves.length = 0;
@@ -764,6 +767,7 @@ export class Game {
     const kinds = [];
     for (const kind of ['ram', 'black', 'bellwether']) for (let i = count(kind); i < cfg[kind]; i++) kinds.push(kind);
     if (cfg.golden && !count('golden')) kinds.push('golden');
+    for (let i = 0; i < this.ctx.mods.extraGolden; i++) kinds.push('golden'); // Golden Child charm
     for (let i = 0; i < cfg.sleepy; i++) kinds.push('sleepy');
     for (let i = 0; i < cfg.wanderers; i++) kinds.push('wanderer');
     const mods = this.ctx.mods;
@@ -789,6 +793,7 @@ export class Game {
     // The line: the flock may lose a share of its sheep this wave, but no more.
     this.lineStart = this.sheepCount();
     this.line = lineFor(this.wave, this.lineStart);
+    if (this.line && this.ctx.mods.brink) this.line = Math.min(this.lineStart - 1, this.line + 1); // On the Brink charm
     this.boss = null;
     this.bossSpawned = false;
     this.bossOvertime = false;
@@ -844,6 +849,15 @@ export class Game {
     }
 
     if (this.line && this.sheepCount() === this.line) this.achievements.add('heldLine');
+    // Veteran charm: a clean wave adds reach for good; a bad one resets it.
+    if (this.ctx.mods.veteran) {
+      const lost = this.lineStart - this.sheepCount();
+      if (lost === 0) {
+        this.veteran++;
+        this.juice.veteran(this.dog, this.veteran);
+      } else if (lost >= VETERAN.resetAt) this.veteran = 0;
+      this.applyLastStand();
+    }
 
     // Shearing Day: every surviving sheep pays its wool, calm ones a little extra.
     const flock = this.sheep.filter((s) => !s.type.fake);
@@ -926,6 +940,7 @@ export class Game {
       perks: this.perks,
       xp: this.xp,
       level: this.level,
+      veteran: this.veteran,
       pendingLevels: this.pendingLevels,
       levelOffer: atShop ? this.levelOffer : null,
       stats: this.stats,
@@ -969,6 +984,7 @@ export class Game {
     this.perks = data.perks;
     this.xp = data.xp;
     this.level = data.level;
+    this.veteran = data.veteran ?? 0;
     this.pendingLevels = data.pendingLevels;
     this.levelOffer = data.levelOffer;
     this.frozen = data.frozen ?? [];
@@ -1279,7 +1295,7 @@ export class Game {
     } else if (by === this.shepherd) {
       this.shepherd.play('swat', 0.5, wolf.position);
       this.juice.crook(this.shepherd);
-    } else if (by?.bark()) this.juice.bark(by);
+    } else if (by?.bark?.()) this.juice.bark(by);
     if (by === this.helper) this.helper.rest = HELPER.rest; // catches its breath before the next chase
     // A scare that stopped a real threat: counts for combos, tufts and achievements.
     const counted = threatening && this.state === STATE.PLAYING;
@@ -1290,15 +1306,24 @@ export class Game {
       if (wolf.kind === 'howler') this.achievements.add('howlers');
       this.addCombo(wolf);
       this.dropBounty(wolf);
-      if (by === this.dog) this.addXp((XP.wolf[wolf.kind] ?? 1) * Math.min(XP.comboMax, 1 + XP.comboStep * (this.combo.count - 1)));
+      // The dog's scares earn XP, and so do the dominoes they set off (Chain Reaction).
+      if (by === this.dog || by instanceof Wolf) this.addXp((XP.wolf[wolf.kind] ?? 1) * Math.min(XP.comboMax, 1 + XP.comboStep * (this.combo.count - 1)));
+      // Bounty Hunter charm: every scare pays, more in a combo.
+      const mods = this.ctx.mods;
+      if (mods.woolPerScare) {
+        const pay = Math.min(mods.woolPerScare, this.combo.count);
+        this.addWool(pay);
+        this.stats.woolEarned += pay;
+        this.juice.bountyPaid(wolf, pay);
+      }
       // Scares charge the Big Bark, more the longer the combo.
-      if (!this.barking && this.barkCharge < 1) {
-        this.barkCharge = Math.min(1, this.barkCharge + BIG_BARK.perScare * this.combo.count);
+      if (!this.barking && this.barkCharge < this.ctx.mods.barkMax) {
+        this.barkCharge = Math.min(this.ctx.mods.barkMax, this.barkCharge + BIG_BARK.perScare * this.combo.count);
         this.ui.chargeBigBark();
       }
     }
     if (by === this.dog) this.dog.recoil = 1;
-    const praise = by instanceof Scarecrow ? 'SCARED OFF!' : by === this.helper ? 'GOOD PUP!' : by === this.shepherd ? 'NICE SWING!' : 'GOOD DOG!';
+    const praise = by instanceof Scarecrow ? 'SCARED OFF!' : by instanceof Wolf ? 'DOMINO!' : by === this.helper ? 'GOOD PUP!' : by === this.shepherd ? 'NICE SWING!' : 'GOOD DOG!';
     this.juice.wolfScared(wolf, counted && praise);
   }
 
@@ -1329,11 +1354,13 @@ export class Game {
       this.juice.floatText(`Big Bark unlocks at wave ${this.rules.bigBarkFrom}`, { follow: this.dog, offsetY: 3, cls: 'warn', duration: 1.4 });
       return this.ui.denyBigBark();
     }
-    this.barkCharge = 0;
+    this.barkCharge -= 1;
     const dog = this.dog;
     dog.barkAnim = 1;
     dog.barkTimer = dog.stats.barkCooldown; // the normal bark waits its turn
-    const radius = BIG_BARK.radius * this.ctx.mods.bigBarkRadius;
+    const full = BIG_BARK.radius * this.ctx.mods.bigBarkRadius;
+    const horn = this.ctx.mods.horn; // Herding Horn charm: half the range for wolves, the flock comes to the dog
+    const radius = horn ? full / 2 : full;
     let scared = 0;
     this.barking = true; // its own scares don't charge the meter
     for (const w of this.wolves) {
@@ -1342,6 +1369,14 @@ export class Game {
     this.barking = false;
     for (const s of this.sheep) {
       const d = s.position.distanceTo(dog.position);
+      if (horn) {
+        if (d < full && !s.grabbedBy) {
+          s.regroup = WHISTLE.regroupTime;
+          s.regroupTo = dog;
+          if (s.asleep) s.asleep = false;
+        }
+        continue;
+      }
       if (d < BIG_BARK.startleRadius && d > 1e-3 && !s.grabbedBy) {
         s.fear = Math.max(s.fear, 0.7);
         s.velocity.x += ((s.position.x - dog.position.x) / d) * 3;
@@ -1491,7 +1526,7 @@ export class Game {
   // Last Sheep Standing: on the line, one more loss ends the run, so the dog finds a second wind
   // (faster, bigger reach), the screen closes in with a heartbeat and every grab plays in slow motion.
   updateLastStand(dt) {
-    const on = this.state === STATE.PLAYING && this.line > 0 && this.sheepCount() <= this.line;
+    const on = this.state === STATE.PLAYING && this.line > 0 && this.sheepCount() <= this.line + (this.ctx.mods.brink ? 1 : 0);
     if (on !== !!this.lastStand) {
       this.lastStand = on;
       this.applyLastStand();
@@ -1511,8 +1546,10 @@ export class Game {
   applyLastStand() {
     const b = this.dogBase;
     if (!b) return;
-    const k = this.lastStand ? LAST_STAND : { speed: 1, reach: 1 };
-    Object.assign(this.dog.stats, { maxSpeed: b.maxSpeed * k.speed, acceleration: b.acceleration * k.speed, threatRadius: b.threatRadius * k.reach });
+    const twice = this.ctx.mods.brink ? 2 : 1; // On the Brink charm
+    const k = this.lastStand ? { speed: 1 + (LAST_STAND.speed - 1) * twice, reach: 1 + (LAST_STAND.reach - 1) * twice } : { speed: 1, reach: 1 };
+    const veteran = this.ctx.mods.veteran ? 1 + VETERAN.reach * this.veteran : 1;
+    Object.assign(this.dog.stats, { maxSpeed: b.maxSpeed * k.speed, acceleration: b.acceleration * k.speed, threatRadius: b.threatRadius * k.reach * veteran });
   }
 
   zoomBy(factor) {
@@ -1604,7 +1641,8 @@ export class Game {
     this.ui.updateFearMeters(this.wolves, this.world.camera, this.ctx.mods.courage);
     const boss = this.bossActive() ? this.boss : null;
     this.ui.setBoss(boss && { name: 'Old Greymuzzle', done: boss.drivesTotal - boss.drivesLeft, left: boss.drivesLeft });
-    this.barkCharge = Math.min(1, this.barkCharge + dt / (BIG_BARK.recharge * this.ctx.mods.bigBarkCooldown));
+    const barkMax = this.ctx.mods.barkMax;
+    this.barkCharge = Math.min(barkMax, this.barkCharge + (dt * this.ctx.mods.barkPassive) / (BIG_BARK.recharge * this.ctx.mods.bigBarkCooldown));
     const barkLocked = this.wave < this.rules.bigBarkFrom;
     this.ui.setBigBark(barkLocked ? 0 : this.barkCharge);
     const c = this.combo;

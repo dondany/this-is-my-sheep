@@ -213,6 +213,14 @@ export class Juice {
     this.sfx.levelUp();
   }
 
+  bountyPaid(wolf, wool) {
+    this.floatText(`+${wool} 🧶`, { follow: wolf, offsetY: 3.6, cls: 'good', duration: 1 });
+  }
+
+  veteran(dog, stacks) {
+    this.floatText(`VETERAN +${stacks * 5}% REACH`, { follow: dog, offsetY: 3.2, cls: 'good', duration: 1.8 });
+  }
+
   lastStand(dog) {
     this.floatText('HOLD THE LINE!', { follow: dog, offsetY: 3.2, cls: 'danger', duration: 1.8, size: 34 });
     this.flash('rgba(201, 87, 69, 0.25)');
