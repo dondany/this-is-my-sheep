@@ -7,7 +7,7 @@ export const TIPS = {
   move: '🖱️ Click or tap the meadow to send your dog. Wolves inside the ring around it get scared off.',
   wolfComing: '🐺 A wolf is heading for the flock. Run your dog at it!',
   grabbed: '😱 A wolf grabbed a sheep! Get your dog there fast and it lets go.',
-  bigBark: '🐕 Right-click, press Space or tap the 🐕 button for a Big Bark: it scares every wolf nearby. It recharges slowly on its own, and every wolf you scare charges it up, more with combos.',
+  bigBark: '📢 A Big Bark! Every wolf nearby flees, brutes included. There\'s no button for it: bark charms on the collar decide when your dog lets one out.',
   line: "📋 From now on the shepherd can spare only a few sheep each wave: two, plus one in five. The number after the slash is the line (🐑 12 / 9): drop below it and the summer's over.",
   lastStand: "❤️‍🔥 You're on the line: one more lost sheep ends the summer. Your dog has found a second wind: faster, with a bigger reach. Hold on!",
   shop: "🧶 Drag a charm onto the collar to buy it (5 at most; drag one off to sell it), a training card onto your dog, an animal onto your flock. Click a card for its details, or to ❄️ freeze it for the next wave.",

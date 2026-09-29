@@ -107,33 +107,6 @@ export class UI {
     if (count >= 2) $('hud-combo-bar').style.transform = `scaleX(${left})`;
   }
 
-  // ready: 0 → just used, 1 → available
-  setBigBark(ready) {
-    this.set('bigbark', Math.round(ready * 100) / 100, (v) => {
-      const btn = $('btn-bigbark');
-      btn.style.setProperty('--p', Math.min(1, v));
-      btn.classList.toggle('ready', v >= 1);
-      btn.dataset.charges = v >= 2 ? '2' : ''; // Overcharge charm: a second bark stored
-    });
-  }
-
-  // A scare topped up the meter: a quick pop on the button.
-  chargeBigBark() {
-    const btn = $('btn-bigbark');
-    btn.classList.remove('charge');
-    void btn.offsetWidth;
-    btn.classList.add('charge');
-    clearTimeout(this.chargeTimer);
-    this.chargeTimer = setTimeout(() => btn.classList.remove('charge'), 300); // hand the animation back to .ready
-  }
-
-  denyBigBark() {
-    const btn = $('btn-bigbark');
-    btn.classList.remove('deny');
-    void btn.offsetWidth;
-    btn.classList.add('deny');
-  }
-
   // Boss bar under the HUD: how many more times it has to be driven off.
   setBoss(boss) {
     const el = $('hud-boss');

@@ -41,7 +41,7 @@ $('dog-stats').innerHTML = `
   ${chips([
     ['Top speed', `${DOG.maxSpeed} u/s`],
     ['Reach (the ring)', `${startReach} at the start, +${TRAIN.loud.per} per Reach training level, up to ${startReach + TRAIN.loud.per * TRAIN.loud.max}`],
-    ['Big Bark', `every wolf within ${BIG_BARK.radius}, brutes included · refills in ${BIG_BARK.recharge} s on its own, and each scare adds ${Math.round(BIG_BARK.perScare * 100)}% × the combo · startles sheep within ${BIG_BARK.startleRadius}`],
+    ['Big Bark', `only from bark charms (no button): every wolf within ${BIG_BARK.radius}, brutes included · startles sheep within ${BIG_BARK.startleRadius}`],
     ['Running through the flock', `sheep it passes at over ${BUMP.minSpeed} u/s bounce aside`],
     ['Parking among the sheep', `they grow uneasy and keep up to ${SHEEP.pressureMax}× further away after ${SHEEP.pressureTime} s`],
   ])}

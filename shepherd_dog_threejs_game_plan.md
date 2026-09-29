@@ -2966,3 +2966,33 @@ level).
     14), Alpha Dog (rare 22). Same effects as section 96.
 -   The run summary lists training; the win screen shows how many
     training levels the dog took.
+
+------------------------------------------------------------------------
+
+# 101. No Manual Bark: Big Barks Come From Charms (implemented)
+
+Like Vampire Survivors and Brotato, the attacks are automatic and the
+build decides what fires and when; the dog's movement stays the skill.
+
+-   Removed: the Big Bark button, Space and right-click, the bark meter
+    and its combo charging, the Overcharge charm. Summer 6's "No Big
+    Bark until wave 5" is now "The collar has one slot fewer" (`rules.slots`,
+    `collarSlots()`).
+-   `bigBark(from, { echo })` is an event: every wolf within
+    `BIG_BARK.radius` × `bigBarkRadius` of `from` (the dog, or the
+    shepherd for Echo) flees, sheep within 6 are startled. Numbers in
+    `BARK` (`src/config.js`).
+-   Bark charms (group `bark`): Watchdog (common 8, a Big Bark every
+    15 s, restarting each wave), Short Fuse (common 6, needs Watchdog:
+    twice as often, range ×0.6), Booming Bark (common 8, range ×1.4),
+    Alarm Bell (uncommon 12, a grab within 8 of the dog, at most every
+    2 s), Combo Bark (uncommon 14, every ×4 combo; a bark's own scares
+    don't count), Howl Back (uncommon 10, the howler is scared at the
+    start of its wind-up, so the howl never happens), Echo (rare 20, a
+    second Big Bark from the shepherd 1 s later), Thunderclap (rare 24,
+    scared wolves stand dizzy 1.2 s and flee twice as long), Pent Up
+    (rare 22, every 4th Big Bark is a Mega Bark: double range, calms
+    every sheep, "MEGA WOOOF!!"), Last Light (uncommon 12, on the line a
+    Big Bark every 4 s). Herding Horn joins the group.
+-   The first Big Bark of a player's first run shows a tip explaining
+    that charms set them off.

@@ -46,7 +46,7 @@ a rule on top of all the earlier ones:
 | 3 | One more wolf every wave |
 | 4 | Wolves stalk 25% less before they attack |
 | 5 | Shop prices +25% |
-| 6 | No Big Bark until wave 5 |
+| 6 | The collar has one slot fewer (4) |
 | 7 | Brutes, sneaky wolves and the alpha turn up two waves earlier |
 | 8 | Old Greymuzzle needs one more drive-off and comes early |
 
@@ -59,7 +59,6 @@ Tuning: `GOAL`, `ENDLESS` and `SUMMERS` in `src/config.js`.
 | Input | Action |
 | --- | --- |
 | Click / tap the meadow | Send the dog there (hold and drag to steer) |
-| Right-click, Space, or the 🐕 button | **Big Bark**: every wolf within 12 units flees, brutes included, but sheep within 6 units get startled too. The button is a meter: it refills in 25 s on its own, and every wolf you scare charges it, more the longer the combo |
 | Scroll, pinch, `+` / `-` | Zoom |
 | Esc / P | Pause |
 | B | Bestiary |
@@ -126,7 +125,7 @@ newcomers each wave.
   slow motion (40% speed), a camera push-in and "CLOSE ONE!", at most once every 5 s.
 - **Combos:** scares within 2.5 s of each other chain up: "COMBO ×N" grows with the chain, plays a
   rising chime, and a badge under the top bar shows the chain and how long you have to extend it.
-  Combos charge the Big Bark: each scare adds 8% × the combo, so a ×4 chain fills most of it.
+  On their own combos are just celebration; charms like Hot Streak and Combo Bark build on them.
 
 - **Bowling through the flock:** sheep the dog runs through at speed get knocked into a little
   bounce, tilt away from it and get nudged out of its path, with a puff of wool and a "boing"
@@ -219,14 +218,29 @@ name; hover (or tap) one for the tooltip with its effect, catch and price.
 | ✂️ Sharp Shears | Flock | uncommon | 12 | +30% wool from shearing |
 | 🐷 Piggy Bank | Flock | common | 8 | Interest cap +3 |
 
+**Bark charms.** There's no Big Bark button: a Big Bark (every wolf within 12 flees, brutes
+included; sheep within 6 get startled) only happens when a bark charm sets it off.
+
+| Charm | Rarity | Price | Effect | Catch |
+| --- | --- | --- | --- | --- |
+| 📢 Watchdog | common | 8 | A Big Bark every 15 s | |
+| 🧨 Short Fuse | common | 6 | Watchdog's barks come twice as often (needs Watchdog) | Big Barks reach 40% less far |
+| 💥 Booming Bark | common | 8 | Big Barks reach 40% further | |
+| 🔔 Alarm Bell | uncommon | 12 | A Big Bark whenever a wolf grabs a sheep within 8 of the dog (at most every 2 s) | |
+| ⚡ Combo Bark | uncommon | 14 | Every ×4 combo sets off a Big Bark | |
+| 😤 Howl Back | uncommon | 10 | The dog barks back at every howl: the howler flees before the flock panics | |
+| 🗣️ Echo | rare | 20 | Every Big Bark echoes from the shepherd a second later | |
+| 🌩️ Thunderclap | rare | 24 | Big Barks knock wolves dizzy for 1.2 s, then they run twice as far | |
+| 🔋 Pent Up | rare | 22 | Every 4th Big Bark is a Mega Bark: double range, calms the whole flock | |
+| 🕯️ Last Light | uncommon | 12 | On the line, a Big Bark every 4 s | |
+
 **Tricks** are charms that change the rules, each with a catch (shown in red on the card):
 
 | Charm | Rarity | Price | Effect | Catch |
 | --- | --- | --- | --- | --- |
 | 💰 Bounty Hunter | uncommon | 14 | Every wolf scared pays wool: 1, or the combo count in a combo (up to 5) | Shearing pays half |
 | ✨ Golden Child | rare | 22 | A golden fleece joins every wave | Every wolf wants them |
-| 🔋 Overcharge | uncommon | 14 | The Big Bark meter holds two barks ("×2" on the button) | It only fills from scares |
-| 📯 Herding Horn | common | 10 | The Big Bark calls every sheep in its range to the dog instead of startling them | Wolves only flee from half the range |
+| 📯 Herding Horn | common | 10 | Big Barks call every sheep in their range to the dog instead of startling them | Wolves only flee from half the range |
 | 💥 Chain Reaction | rare | 20 | A fleeing wolf scares every wolf it runs past ("DOMINO!", not the boss); each extends the combo | Scared wolves come back 30% sooner |
 | ❤️‍🔥 On the Brink | uncommon | 12 | Last Sheep Standing starts one sheep above the line and is twice as strong | The shepherd spares one sheep fewer |
 | 📈 Veteran | uncommon | 14 | Every wave finished without a loss gives +5% reach for good | Losing 3+ sheep in a wave resets it (so does selling it) |
@@ -283,8 +297,8 @@ and spent, bounty tufts, the upgrades you owned and the animals you bought.
 ### First-time tips
 
 The first time something happens in a game (a wolf closes in, a sheep is grabbed, the first shop,
-a tuft drops, a brute resists, a stampede winds up, the boss arrives…) a short tip slides in above
-the Big Bark button. Each tip shows once per player (saved in `localStorage`); "Show the first-time
+a tuft drops, a brute resists, a stampede winds up, the boss arrives…) a short tip slides in at the
+bottom right. Each tip shows once per player (saved in `localStorage`); "Show the first-time
 tips again" on the menu resets them. The texts are in `src/tips.js`.
 
 ### Wardrobe

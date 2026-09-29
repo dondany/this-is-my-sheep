@@ -131,10 +131,6 @@ export const BUMP = {
 // The dog's special move: right-click, Space, or the HUD button.
 export const BIG_BARK = {
   radius: 12, // every wolf this close flees, brutes included
-  // A meter, like a fighting game's super: it refills slowly on its own, and every scare adds a
-  // chunk that grows with the combo (a ×3 scare adds 3 × perScare).
-  recharge: 25, // seconds to refill on its own
-  perScare: 0.08,
   startleRadius: 6, // sheep this close to the dog get startled too
 };
 
@@ -523,6 +519,17 @@ export const LAST_STAND = {
   slowmo: 0.6, // real seconds of slow motion when a wolf grabs a sheep on the line
 };
 
+// Big Barks come only from charms (there's no manual one).
+export const BARK = {
+  watchdog: 15, // seconds between Watchdog's barks
+  lastLight: 4, // seconds between Last Light's barks on the line
+  echoDelay: 1, // Echo: seconds before the shepherd's echo
+  daze: 1.2, // Thunderclap: seconds a wolf stands dizzy before running
+  megaRange: 2, // Pent Up: a Mega Bark's range ×
+  alarmGap: 2, // Alarm Bell: at most one bark per this many seconds
+  alarmRadius: 8, // Alarm Bell: grabs this close to the dog
+};
+
 // The dog's rule-changing charms (Zoomies, Night Watch, Sentinel, Hot Streak, Alpha Dog).
 export const SPECIAL = {
   zoomies: { speed: 1.4, reach: 0.7, dashSpeed: 0.85, dashRadius: 1.3 }, // dash: over this share of top speed, within this distance
@@ -568,14 +575,14 @@ export const SUMMERS = [
   { text: 'One more wolf every wave.', extraWolves: 1 },
   { text: 'Wolves stalk 25% less before they attack.', stalk: 0.75 },
   { text: 'Shop prices +25%.', prices: 1.25 },
-  { text: 'No Big Bark until wave 5.', bigBarkFrom: 5 },
+  { text: 'The collar has one slot fewer (4).', slots: -1 },
   { text: 'Brutes, sneaky wolves and the alpha turn up two waves earlier.', earlier: 2 },
   { text: 'Old Greymuzzle needs one more drive-off and comes early.', bossDrives: 1, bossEarly: true },
 ];
 
 // The combined rules for a summer (1-based).
 export function summerRules(summer) {
-  const rules = { summer, startSheep: 0, extraWolves: 0, stalk: 1, prices: 1, bigBarkFrom: 0, earlier: 0, bossDrives: 0, bossEarly: false };
+  const rules = { summer, startSheep: 0, extraWolves: 0, stalk: 1, prices: 1, slots: 0, earlier: 0, bossDrives: 0, bossEarly: false };
   for (const s of SUMMERS.slice(1, summer)) {
     for (const [k, v] of Object.entries(s)) {
       if (k === 'text') continue;

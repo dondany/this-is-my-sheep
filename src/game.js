@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, BARK, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -154,7 +154,6 @@ export class Game {
     }
     this.punch = 0;
     this.combo = { count: 0, timer: 0 };
-    this.barkCharge = 1; // the Big Bark meter, 0-1
 
     // Shared context handed to the flock and wolf systems.
     this.ctx = {
@@ -222,6 +221,13 @@ export class Game {
         this.juice.goatButt(g, w);
       },
       onHowlStart: (w) => {
+        // Howl Back charm: the dog answers first and the howler bolts before the flock panics.
+        if (this.ctx.mods.howlBack && this.state === STATE.PLAYING) {
+          this.dog.barkAnim = 1;
+          this.juice.bark(this.dog);
+          forceScare(w, this.ctx, this.dog);
+          return;
+        }
         this.juice.howlStart(w);
         this.tip('howl');
       },
@@ -244,6 +250,11 @@ export class Game {
       onSheepGrabbed: (s, w) => {
         this.juice.sheepGrabbed(s);
         this.tip('grabbed');
+        // Alarm Bell charm: a grab near the dog sets off a Big Bark.
+        if (this.ctx.mods.alarm && s.position.distanceTo(this.dog.position) < BARK.alarmRadius && this.time - (this.lastAlarm ?? -99) > BARK.alarmGap) {
+          this.lastAlarm = this.time;
+          this.bigBark();
+        }
         // On the line every grab could end the run: play it in slow motion.
         if (this.lastStand && this.effects === 'full') {
           this.slowmo = LAST_STAND.slowmo;
@@ -262,7 +273,6 @@ export class Game {
       },
       onDrag: (p) => this.dog.setTarget(p),
       onZoom: (factor) => this.zoomBy(factor),
-      onAltPress: () => this.bigBark(),
     });
 
     this.bindUI();
@@ -308,7 +318,6 @@ export class Game {
     ui.on('summer-down', () => this.pickSummer(-1));
     ui.on('summer-up', () => this.pickSummer(1));
     ui.on('reroll', () => this.reroll());
-    ui.on('bigbark', () => this.bigBark());
     ui.onBuy = (id) => this.buy(id);
     ui.onFreeze = (id) => this.toggleFreeze(id);
     ui.onSell = (id) => this.sellCharm(id);
@@ -329,10 +338,6 @@ export class Game {
       if (this.overlay && (e.key === 'Escape' || e.key === 'b' || e.key === 'B')) this.closeOverlay();
       else if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') this.togglePause();
       else if (e.key === 'b' || e.key === 'B') this.openBestiary();
-      if (e.key === ' ' && this.input.enabled) {
-        e.preventDefault();
-        this.bigBark();
-      }
       if (e.key === '+' || e.key === '=') this.zoomBy(1 / 1.15);
       if (e.key === '-' || e.key === '_') this.zoomBy(1.15);
     });
@@ -636,10 +641,10 @@ export class Game {
         const level = this.training[t.id] ?? 0;
         return { key, training: true, icon: t.icon, name: t.name, stat: t.stat, level, max: t.max, text: trainingText(t.id), total: trainingText(t.id, level + 1), price, bought, frozen: this.frozen.includes(key) };
       }
-      return { key, ...CHARM[key], price, bought, frozen: this.frozen.includes(key), full: this.charms.length >= SHOP.slots };
+      return { key, ...CHARM[key], price, bought, frozen: this.frozen.includes(key), full: this.charms.length >= this.collarSlots() };
     });
     const collar = this.charms.map((id) => ({ ...CHARM[id], sell: this.sellPrice(id) }));
-    this.ui.renderShop({ cards, collar, slots: SHOP.slots, rerollCost: this.shop.rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
+    this.ui.renderShop({ cards, collar, slots: this.collarSlots(), rerollCost: this.shop.rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
   }
 
   // The end-of-wave screen: the wave's result, the dog's training and the shop.
@@ -660,7 +665,7 @@ export class Game {
   buy(key) {
     const price = this.cardPrice(key);
     if (this.shop.bought.has(key) || this.wool < price) return;
-    if (!key.startsWith('animal:') && this.charms.length >= SHOP.slots) return this.ui.denyCollar();
+    if (!key.startsWith('animal:') && this.charms.length >= this.collarSlots()) return this.ui.denyCollar();
     this.wool -= price;
     this.stats.woolSpent += price;
     if (key.startsWith('animal:')) this.stats.animals.push(key.slice(7));
@@ -683,6 +688,11 @@ export class Game {
     this.sfx.upgrade();
     this.showShop();
     this.saveRun();
+  }
+
+  // Charms the collar can hold (Summer 6 takes one away).
+  collarSlots() {
+    return SHOP.slots + this.rules.slots;
   }
 
   sellPrice(id) {
@@ -753,7 +763,10 @@ export class Game {
     this.sentinel = 0; // Sentinel charm: how far the standing reach has grown (0-1)
     this.frozen = [];
     this.pendingAnimals.length = 0;
-    this.barkCharge = 1;
+    this.barkTimer = 0; // Watchdog: seconds to the next timed Big Bark
+    this.lastLightTimer = 0;
+    this.barkCount = 0; // Big Barks this run (Pent Up)
+    this.echoIn = 0; // Echo: seconds until the shepherd's echo (0 = none waiting)
     for (const t of this.tufts) t.destroy();
     this.tufts.length = 0;
     this.helper?.destroy();
@@ -848,7 +861,7 @@ export class Game {
     this.ui.banner(title, this.line ? `${sub} · the shepherd can spare ${this.lineStart - this.line}` : sub);
     if (this.line) this.tip('line');
     if (this.wave === 1) setTimeout(() => this.tip('move'), 800);
-    if (this.wave === 2) this.tip('bigBark');
+    this.barkTimer = this.ctx.mods.barkEvery; // Watchdog starts counting fresh every wave
     if (this.sheep.some((s) => s.kind === 'sleepy')) this.tip('sleepy');
     this.whistleTimer = this.ctx.mods.whistle;
     this.roamTimer = between(ROAM.interval) * 0.6;
@@ -1334,11 +1347,9 @@ export class Game {
         this.stats.woolEarned += pay;
         this.juice.bountyPaid(wolf, pay);
       }
-      // Scares charge the Big Bark, more the longer the combo.
-      if (!this.barking && this.barkCharge < this.ctx.mods.barkMax) {
-        this.barkCharge = Math.min(this.ctx.mods.barkMax, this.barkCharge + BIG_BARK.perScare * this.combo.count);
-        this.ui.chargeBigBark();
-      }
+      // Combo Bark charm: every few combo steps set off a Big Bark (its own scares don't count).
+      const every = this.ctx.mods.comboBark;
+      if (every && !this.barking && this.combo.count % every === 0) this.bigBark();
     }
     if (by === this.dog) this.dog.recoil = 1;
     const praise = by instanceof Scarecrow ? 'SCARED OFF!' : by instanceof Wolf ? 'DOMINO!' : by === this.helper ? 'GOOD PUP!' : by === this.shepherd ? 'NICE SWING!' : 'GOOD DOG!';
@@ -1363,48 +1374,76 @@ export class Game {
     }
   }
 
-  // Scares every wolf around the dog, brutes included, but startles nearby sheep too.
-  bigBark() {
-    if (!this.input.enabled) return;
-    if (this.barkCharge < 1) return this.ui.denyBigBark();
-    if (this.wave < this.rules.bigBarkFrom) {
-      this.juice.floatText(`Big Bark unlocks at wave ${this.rules.bigBarkFrom}`, { follow: this.dog, offsetY: 3, cls: 'warn', duration: 1.4 });
-      return this.ui.denyBigBark();
-    }
-    this.barkCharge -= 1;
-    const dog = this.dog;
-    dog.barkAnim = 1;
-    dog.barkTimer = dog.stats.barkCooldown; // the normal bark waits its turn
-    const full = BIG_BARK.radius * this.ctx.mods.bigBarkRadius;
-    const horn = this.ctx.mods.horn; // Herding Horn charm: half the range for wolves, the flock comes to the dog
+  // A Big Bark: every wolf around `from` (the dog, or the shepherd for Echo) flees, brutes included,
+  // but nearby sheep get startled too. There's no manual one: charms set it off.
+  bigBark(from = this.dog, { echo = false } = {}) {
+    if (this.state !== STATE.PLAYING) return;
+    const m = this.ctx.mods;
+    this.barkCount++;
+    const mega = m.pentUp && this.barkCount % m.pentUp === 0; // Pent Up charm
+    if (from.barkAnim !== undefined) from.barkAnim = 1;
+    if (from === this.dog) from.barkTimer = from.stats.barkCooldown; // the normal bark waits its turn
+    const full = BIG_BARK.radius * m.bigBarkRadius * (mega ? BARK.megaRange : 1);
+    const horn = m.horn; // Herding Horn charm: half the range for wolves, the flock comes to the dog
     const radius = horn ? full / 2 : full;
     let scared = 0;
-    this.barking = true; // its own scares don't charge the meter
+    this.barking = true; // its own scares don't set off Combo Bark
     for (const w of this.wolves) {
-      if (w.position.distanceTo(dog.position) < radius && forceScare(w, this.ctx, dog)) scared++;
+      if (w.position.distanceTo(from.position) < radius && forceScare(w, this.ctx, from)) {
+        scared++;
+        // Thunderclap charm: dizzy for a moment, then it runs twice as far.
+        if (m.thunder) {
+          w.pause = Math.max(w.pause, BARK.daze);
+          w.stateTimer *= 2;
+        }
+      }
     }
     this.barking = false;
     for (const s of this.sheep) {
-      const d = s.position.distanceTo(dog.position);
+      const d = s.position.distanceTo(from.position);
+      if (mega) s.fear = 0; // a Mega Bark calms the whole flock
       if (horn) {
         if (d < full && !s.grabbedBy) {
           s.regroup = WHISTLE.regroupTime;
-          s.regroupTo = dog;
+          s.regroupTo = this.dog;
           if (s.asleep) s.asleep = false;
         }
         continue;
       }
-      if (d < BIG_BARK.startleRadius && d > 1e-3 && !s.grabbedBy) {
+      if (!mega && d < BIG_BARK.startleRadius && d > 1e-3 && !s.grabbedBy) {
         s.fear = Math.max(s.fear, 0.7);
-        s.velocity.x += ((s.position.x - dog.position.x) / d) * 3;
-        s.velocity.z += ((s.position.z - dog.position.z) / d) * 3;
+        s.velocity.x += ((s.position.x - from.position.x) / d) * 3;
+        s.velocity.z += ((s.position.z - from.position.z) / d) * 3;
         if (s.asleep) s.asleep = false;
       }
     }
     this.achievements.best('bestBigBark', scared);
     this.stats.bigBarks++;
     this.freeze(FEEL.bigHitstop);
-    this.juice.bigBark(dog, radius, scared);
+    this.juice.bigBark(from, radius, scared, mega);
+    this.tip('bigBark');
+    if (m.echo && !echo) this.echoIn = BARK.echoDelay; // Echo charm
+  }
+
+  // Charm-driven Big Barks: Watchdog's timer, Last Light on the line, Echo's delayed answer.
+  updateBarks(dt) {
+    if (this.state !== STATE.PLAYING) return;
+    const m = this.ctx.mods;
+    if (m.barkEvery) {
+      if (!this.barkTimer || this.barkTimer > m.barkEvery) this.barkTimer = m.barkEvery;
+      if ((this.barkTimer -= dt) <= 0) {
+        this.barkTimer = m.barkEvery;
+        this.bigBark();
+      }
+    }
+    if (m.lastLight && this.lastStand && (this.lastLightTimer -= dt) <= 0) {
+      this.lastLightTimer = m.lastLight;
+      this.bigBark();
+    }
+    if (this.echoIn > 0 && (this.echoIn -= dt) <= 0) {
+      this.echoIn = 0;
+      this.bigBark(this.shepherd, { echo: true });
+    }
   }
 
   // The first time a big wolf is scared off it leaves a tuft of fur behind.
@@ -1636,6 +1675,7 @@ export class Game {
 
     this.updateLastStand(dt);
     this.updateSpecialties(dt);
+    this.updateBarks(dt);
     this.simulate(dt);
     if (this.state !== STATE.MENU) {
       if (this.state === STATE.PLAYING && !this.tips.seen.has('wolfComing') && this.wolves.some((w) => w.state === 'APPROACH')) this.tip('wolfComing');
@@ -1652,10 +1692,6 @@ export class Game {
     this.ui.updateFearMeters(this.wolves, this.world.camera, this.ctx.mods.courage);
     const boss = this.bossActive() ? this.boss : null;
     this.ui.setBoss(boss && { name: 'Old Greymuzzle', done: boss.drivesTotal - boss.drivesLeft, left: boss.drivesLeft });
-    const barkMax = this.ctx.mods.barkMax;
-    this.barkCharge = Math.min(barkMax, this.barkCharge + (dt * this.ctx.mods.barkPassive) / (BIG_BARK.recharge * this.ctx.mods.bigBarkCooldown));
-    const barkLocked = this.wave < this.rules.bigBarkFrom;
-    this.ui.setBigBark(barkLocked ? 0 : this.barkCharge);
     const c = this.combo;
     c.timer = Math.max(0, c.timer - dt);
     if (!c.timer) c.count = 0;

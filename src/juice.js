@@ -147,10 +147,10 @@ export class Juice {
     this.shake(0.08, 160);
   }
 
-  bigBark(dog, radius, scared) {
+  bigBark(dog, radius, scared, mega = false) {
     this.ring(dog.position, { from: 1, to: radius, duration: 0.5, color: COLORS.ui, opacity: 1 });
-    this.ring(dog.position, { from: 0.5, to: radius * 0.7, duration: 0.4, color: COLORS.accent, opacity: 0.8 });
-    this.floatText('WOOOF!!', { follow: dog, offsetY: 2, cls: 'big', duration: 1, size: 48 });
+    this.ring(dog.position, { from: 0.5, to: radius * 0.7, duration: 0.4, color: mega ? 0x9b7fd0 : COLORS.accent, opacity: 0.8 });
+    this.floatText(mega ? 'MEGA WOOOF!!' : 'WOOOF!!', { follow: dog, offsetY: 2, cls: 'big', duration: 1, size: mega ? 60 : 48 });
     if (scared > 1) this.floatText(`×${scared} SCATTERED!`, { follow: dog, offsetY: 5.6, cls: 'good', duration: 1.3 });
     for (let i = 0; i < 12; i++) {
       const a = (i / 12) * Math.PI * 2;

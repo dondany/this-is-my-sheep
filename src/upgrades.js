@@ -4,7 +4,7 @@
 // joins the flock. `modifiers()` turns charms and training into the multipliers the rest of the
 // game reads (ctx.mods).
 
-import { SPECIAL } from './config.js';
+import { SPECIAL, BARK } from './config.js';
 
 // --- Training (the dog's levels) ------------------------------------------------------
 // `per` is what one level adds and `max` the highest level. Each level costs more than the last.
@@ -78,8 +78,18 @@ export const CHARMS = [
   // --- Tricks: charms that change the rules, each with a catch
   { id: 'bounty', group: 'trick', icon: '💰', name: 'Bounty Hunter', rarity: 'uncommon', price: 14, text: 'Every wolf scared pays wool: 1, or the combo count in a combo (up to 5).', catch: 'Shearing pays half.' },
   { id: 'goldenChild', group: 'trick', icon: '✨', name: 'Golden Child', rarity: 'rare', price: 22, text: 'A golden fleece (10 wool a wave) joins every wave.', catch: 'Every wolf wants them.' },
-  { id: 'overcharge', group: 'trick', icon: '🔋', name: 'Overcharge', rarity: 'uncommon', price: 14, text: 'The Big Bark meter holds two barks.', catch: 'It only fills from scares, never on its own.' },
-  { id: 'horn', group: 'trick', icon: '📯', name: 'Herding Horn', rarity: 'common', price: 10, text: 'The Big Bark calls every sheep in its range to the dog instead of startling them.', catch: 'Wolves only flee from half the range.' },
+  // --- Bark: charms that make the dog let out Big Barks (there's no manual one)
+  { id: 'watchdog', group: 'bark', icon: '📢', name: 'Watchdog', rarity: 'common', price: 8, text: 'The dog lets out a Big Bark every 15 s: every wolf nearby flees, brutes included.' },
+  { id: 'shortFuse', group: 'bark', icon: '🧨', name: 'Short Fuse', rarity: 'common', price: 6, requires: 'watchdog', text: "Watchdog's Big Barks come twice as often.", catch: 'Big Barks reach 40% less far.' },
+  { id: 'booming', group: 'bark', icon: '💥', name: 'Booming Bark', rarity: 'common', price: 8, text: 'Big Barks reach 40% further.' },
+  { id: 'alarm', group: 'bark', icon: '🔔', name: 'Alarm Bell', rarity: 'uncommon', price: 12, text: 'A Big Bark whenever a wolf grabs a sheep near the dog.' },
+  { id: 'comboBark', group: 'bark', icon: '⚡', name: 'Combo Bark', rarity: 'uncommon', price: 14, text: 'Every ×4 combo sets off a Big Bark.' },
+  { id: 'howlBack', group: 'bark', icon: '😤', name: 'Howl Back', rarity: 'uncommon', price: 10, text: 'The dog barks back at every howl: the howler flees before the flock panics.' },
+  { id: 'echo', group: 'bark', icon: '🗣️', name: 'Echo', rarity: 'rare', price: 20, text: 'Every Big Bark echoes from the shepherd a second later.' },
+  { id: 'thunder', group: 'bark', icon: '🌩️', name: 'Thunderclap', rarity: 'rare', price: 24, text: 'Big Barks knock wolves dizzy for a moment, then they run twice as far.' },
+  { id: 'pentUp', group: 'bark', icon: '🔋', name: 'Pent Up', rarity: 'rare', price: 22, text: 'Every 4th Big Bark is a Mega Bark: double the range, and it calms the whole flock.' },
+  { id: 'lastLight', group: 'bark', icon: '🕯️', name: 'Last Light', rarity: 'uncommon', price: 12, text: 'On the line, a Big Bark every 4 s.' },
+  { id: 'horn', group: 'bark', icon: '📯', name: 'Herding Horn', rarity: 'common', price: 10, text: 'The Big Bark calls every sheep in its range to the dog instead of startling them.', catch: 'Wolves only flee from half the range.' },
   { id: 'chain', group: 'trick', icon: '💥', name: 'Chain Reaction', rarity: 'rare', price: 20, text: 'A fleeing wolf scares every wolf it runs past (not the boss). Each one extends the combo.', catch: 'Scared wolves come back 30% sooner.' },
   { id: 'brink', group: 'trick', icon: '❤️‍🔥', name: 'On the Brink', rarity: 'uncommon', price: 12, text: 'Last Sheep Standing starts one sheep above the line and is twice as strong.', catch: 'The shepherd spares one sheep fewer.' },
   { id: 'veteran', group: 'trick', icon: '📈', name: 'Veteran', rarity: 'uncommon', price: 14, text: 'Every wave you finish without losing a sheep gives the dog +5% reach, for good.', catch: 'Losing 3 or more sheep in a wave resets it.' },
@@ -110,8 +120,16 @@ export function modifiers(charms = [], training = {}) {
     sniff: 1 / (1 + 2 * t('nose')), // time to expose a disguise
     helperSpeed: 0.55 + t('pupSpeed'), // fraction of the player's dog
     helperThreat: 0.55 + t('pupBark'), // × HELPER.threatRadius
-    bigBarkCooldown: 1, // × the Big Bark's refill time
-    bigBarkRadius: 1,
+    // Big Barks: which charms set them off, and how far they reach
+    barkEvery: has('watchdog') ? BARK.watchdog / (has('shortFuse') ? 2 : 1) : 0, // seconds between timed barks (0 = none)
+    bigBarkRadius: (has('booming') ? 1.4 : 1) * (has('shortFuse') ? 0.6 : 1),
+    alarm: has('alarm'),
+    comboBark: has('comboBark') ? 4 : 0, // a Big Bark every this many combo steps
+    howlBack: has('howlBack'),
+    echo: has('echo'),
+    thunder: has('thunder'),
+    pentUp: has('pentUp') ? 4 : 0, // every this many Big Barks is a Mega Bark
+    lastLight: has('lastLight') ? BARK.lastLight : 0, // seconds between Big Barks on the line
     tuftLife: 1,
     tuftRadius: 1,
     // Charms: your dog
@@ -137,8 +155,6 @@ export function modifiers(charms = [], training = {}) {
     // Charms: tricks
     woolPerScare: has('bounty') ? 5 : 0, // the most a single scare pays (its combo count)
     extraGolden: has('goldenChild') ? 1 : 0,
-    barkMax: has('overcharge') ? 2 : 1, // Big Barks the meter holds
-    barkPassive: has('overcharge') ? 0 : 1, // × the meter's own refill
     horn: has('horn'),
     chain: has('chain') ? 2.5 : 0, // how close a fleeing wolf must pass to scare another
     brink: has('brink'),
