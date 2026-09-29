@@ -3015,3 +3015,41 @@ combos matter only through charms.
     breakdown). The wool still comes from the flock; combos multiply it.
 -   Achievement Bounty Hunter (collect 20 tufts) becomes ⛓️ Chain Gang
     (land 10 combos of ×3 or more in total). Still 37.
+
+------------------------------------------------------------------------
+
+# 103. Fifty-Four Charms (implemented)
+
+From the Balatro / Vampire Survivors / Slay the Spire review: jokers come
+as flat boosts, scaling ones, money makers, rule benders, position tricks
+(Blueprint) and trade-offs; relics are triggers. 21 new charms bring the
+collar to 54, grouped by the build they feed (full list in the README):
+
+-   Your dog: Tracker (+30% speed while a wolf threatens the flock,
+    −10% otherwise).
+-   Helpers: Chorus (needs the Second Dog: it Big Barks too, 60% range),
+    Grumpy Old Man (the shepherd walks at wolves near the flock and
+    swats within 3; the flock trails him), Snares (needs Scarecrows: each
+    holds the first wolf of the wave for 5 s).
+-   Flock: Battering Rams (rams butt nearby wolves like the goat, a ram
+    joins every 3 waves; rams give no wool), Safety in Numbers (wolves
+    ignore a sheep with 5+ others within 3; fewer than 2 and it's taken
+    twice as fast), Sheepdog's Oath (the first grab each wave fails),
+    Bellwether's Call (brings one; bell twice as often, 50% further),
+    Greener Pastures (calm sheep ×1.4 grab time, calm bonus ×2),
+    Strength in Numbers (+1% speed and reach per 2 sheep, up to +50%).
+-   Wool (only ever from the flock): Nest Egg (+3 sell value a wave),
+    Haggler (−25% prices, rerolls 1), Wool Market (animals half price,
+    two animal cards), Savings Account (no interest cap, no rerolls),
+    County Fair (+1 per 3 sheep, +5 for no losses).
+-   Edge: Blood Price (+3 per lost sheep at shearing, sheep panic 25%
+    more), Double or Nothing (×2 or ×½ shearing), Wolf Moon (+40%
+    shearing, +1 wolf a wave).
+-   Collar: Mimic Bell (legendary 40, 6% weight: copies the charm to its
+    right; `effectiveCharms()`), Glass Collar (+1 slot, spare one
+    fewer), Lucky Collar (rare/legendary ×2 odds).
+-   `modifiers()` now counts copies (`n(id)`): numeric effects add or
+    multiply per copy, so a Mimic Bell doubles them; on/off effects
+    can't be doubled (its tooltip says what it copies). Collar charms can
+    be dragged along the collar to reorder (`moveCharm()`).
+-   Numbers in `FLOCK_CHARMS` and `BARK` (`src/config.js`).

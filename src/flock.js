@@ -99,7 +99,7 @@ function ringBell(s, sheep, ctx) {
   s.bellSwing = 1;
   for (const o of sheep) {
     if (o === s || o.grabbedBy || o.asleep || o.leader) continue;
-    if (o.position.distanceTo(s.position) < BELL.radius) {
+    if (o.position.distanceTo(s.position) < BELL.radius * (ctx.mods.bellRadius ?? 1)) {
       o.regroup = BELL.regroupTime;
       o.regroupTo = s;
     }
@@ -256,9 +256,10 @@ export function updateFlock(sheep, ctx, dt) {
 
     // Bellwether: rings every few seconds, calling nearby sheep back to it.
     if (s.kind === 'bellwether') {
-      s.ringTimer = (s.ringTimer ?? between(BELL.interval)) - dt;
+      const rate = ctx.mods.bellRate ?? 1; // Bellwether's Call charm
+      s.ringTimer = (s.ringTimer ?? between(BELL.interval) / rate) - dt;
       if (s.ringTimer <= 0) {
-        s.ringTimer = between(BELL.interval);
+        s.ringTimer = between(BELL.interval) / rate;
         ringBell(s, sheep, ctx);
       }
     }

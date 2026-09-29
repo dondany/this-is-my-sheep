@@ -207,6 +207,16 @@ export class Juice {
     this.floatText(`VETERAN +${stacks * 5}% REACH`, { follow: dog, offsetY: 3.2, cls: 'good', duration: 1.8 });
   }
 
+  oath(sheep) {
+    this.floatText('NOT TODAY!', { follow: sheep, offsetY: 3, cls: 'good', duration: 1.4 });
+    this.particles.sparkle(tmp.copy(sheep.position).setY(1.2), 10);
+  }
+
+  snare(scarecrow, wolf) {
+    this.floatText('SNARED!', { follow: wolf, offsetY: 3, cls: 'good', duration: 1.4 });
+    this.sfx.bonk();
+  }
+
   lastStand(dog) {
     this.floatText('HOLD THE LINE!', { follow: dog, offsetY: 3.2, cls: 'danger', duration: 1.8, size: 34 });
     this.flash('rgba(201, 87, 69, 0.25)');

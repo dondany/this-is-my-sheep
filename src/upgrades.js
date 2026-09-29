@@ -62,19 +62,43 @@ export const CHARMS = [
   { id: 'sentinel', group: 'dog', icon: '🗿', name: 'Sentinel', rarity: 'uncommon', price: 14, text: "Standing still, the dog's reach grows to ×2 over 2 s.", catch: '-20% reach while moving.' },
   { id: 'hotStreak', group: 'dog', icon: '🔥', name: 'Hot Streak', rarity: 'uncommon', price: 14, text: 'Every combo step gives +6% speed and reach until the chain breaks (up to +30%).', catch: 'The combo window is 30% shorter.' },
   { id: 'alphaDog', group: 'dog', icon: '🐺', name: 'Alpha Dog', rarity: 'rare', price: 22, text: "Plain wolves and pups flee on sight, from 1.8× the dog's reach.", catch: 'Brutes and the boss hold out 50% longer.' },
+  { id: 'tracker', group: 'dog', icon: '🐾', name: 'Tracker', rarity: 'common', price: 8, text: 'The dog runs 30% faster while a wolf is going for the flock.', catch: '10% slower the rest of the time.' },
   { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', rarity: 'rare', price: 35, text: 'A young dog joins you and guards the flock on its own. Slow and easily winded at first: Pup Sprints and Pup\'s Bark training make it better.' },
+  { id: 'chorus', group: 'dog', icon: '🎵', name: 'Chorus', rarity: 'uncommon', price: 12, requires: 'helper', text: 'The second dog lets out a Big Bark of its own (60% of the range) whenever yours does.' },
   // --- Shepherd
   { id: 'crook', group: 'shepherd', icon: '🦯', name: "Shepherd's Crook", rarity: 'common', price: 10, text: 'The shepherd swats wolves that come within 4 units of him.' },
   { id: 'calm', group: 'shepherd', icon: '🎶', name: 'Calming Song', rarity: 'common', price: 8, text: 'Sheep panic 35% less around wolves.' },
   { id: 'herding', group: 'shepherd', icon: '🪄', name: 'Herding Instinct', rarity: 'common', price: 8, text: 'The flock sticks together 40% more tightly, and sheep can stand 20% closer to each other.' },
   { id: 'whistle', group: 'shepherd', icon: '📯', name: "Shepherd's Whistle", rarity: 'rare', price: 20, text: 'Every 15 s the shepherd whistles the whole flock back to him.' },
   { id: 'scarecrow', group: 'shepherd', icon: '🌾', name: 'Scarecrows', rarity: 'rare', price: 20, text: 'Place two scarecrows that scare off ordinary wolves (not brutes). They go if you sell this charm.' },
+  { id: 'grumpy', group: 'shepherd', icon: '👴', name: 'Grumpy Old Man', rarity: 'uncommon', price: 14, text: 'The shepherd goes after wolves near the flock himself and swats them with his crook.', catch: 'The flock trails after him.' },
+  { id: 'snares', group: 'shepherd', icon: '🪤', name: 'Snares', rarity: 'uncommon', price: 12, requires: 'scarecrow', text: 'Each scarecrow holds the first wolf that comes near it every wave for 5 s.' },
   // --- Flock
   { id: 'fleece', group: 'flock', icon: '🧶', name: 'Thick Fleece', rarity: 'uncommon', price: 14, text: 'Wolves need 60% longer to take a sheep.' },
   { id: 'more', group: 'flock', icon: '🐑', name: 'Bigger Flock', rarity: 'common', price: 8, text: '+2 sheep join every wave.' },
   { id: 'lambing', group: 'flock', icon: '🍼', name: 'Lambing Season', rarity: 'common', price: 8, text: '+2 lambs every wave (they pay double).' },
   { id: 'shears', group: 'flock', icon: '✂️', name: 'Sharp Shears', rarity: 'uncommon', price: 12, text: '+30% wool from shearing.' },
   { id: 'piggy', group: 'flock', icon: '🐷', name: 'Piggy Bank', rarity: 'common', price: 8, text: 'Interest on unspent wool can go 3 higher.' },
+  { id: 'rams', group: 'flock', icon: '🐏', name: 'Battering Rams', rarity: 'uncommon', price: 14, text: 'Rams head-butt wolves that come near them, like the goat. A ram joins every 3 waves.', catch: 'Rams give no wool.' },
+  { id: 'safety', group: 'flock', icon: '🛡️', name: 'Safety in Numbers', rarity: 'uncommon', price: 14, text: "Wolves can't take a sheep that has 5 or more others close around it.", catch: 'Stragglers (fewer than 2 close by) are taken twice as fast.' },
+  { id: 'oath', group: 'flock', icon: '🤞', name: "Sheepdog's Oath", rarity: 'rare', price: 22, text: 'The first time a wolf grabs a sheep each wave, it lets go and runs.' },
+  { id: 'bellCall', group: 'flock', icon: '🔔', name: "Bellwether's Call", rarity: 'uncommon', price: 12, text: 'A bellwether joins the flock (if there isn\'t one), and its bell rings twice as often and reaches 50% further.' },
+  { id: 'pastures', group: 'flock', icon: '🌻', name: 'Greener Pastures', rarity: 'uncommon', price: 12, text: 'Calm sheep take wolves 40% longer to grab, and the calm bonus at shearing is doubled.' },
+  { id: 'strength', group: 'flock', icon: '💪', name: 'Strength in Numbers', rarity: 'rare', price: 22, text: 'The dog gets +1% speed and reach for every 2 sheep in the flock (up to +50%).' },
+  // --- Wool: the shop and shearing (wool only ever comes from the flock)
+  { id: 'nestEgg', group: 'wool', icon: '🥚', name: 'Nest Egg', rarity: 'common', price: 4, text: 'Sells for 3 more wool for every wave it stays on the collar.' },
+  { id: 'haggler', group: 'wool', icon: '🏷️', name: 'Haggler', rarity: 'uncommon', price: 12, text: 'Everything in the shop costs 25% less, and rerolls always cost 1.' },
+  { id: 'market', group: 'wool', icon: '🧺', name: 'Wool Market', rarity: 'uncommon', price: 10, text: 'Animals cost half, and the shop offers two of them.' },
+  { id: 'savings', group: 'wool', icon: '🏦', name: 'Savings Account', rarity: 'rare', price: 18, text: 'Interest on unspent wool has no cap.', catch: "You can't reroll the shop." },
+  { id: 'fair', group: 'wool', icon: '🎪', name: 'County Fair', rarity: 'rare', price: 20, text: 'Shearing pays +1 wool for every 3 sheep, and +5 for a wave with no losses.' },
+  // --- Edge: risk for reward
+  { id: 'blood', group: 'edge', icon: '🩸', name: 'Blood Price', rarity: 'uncommon', price: 10, text: 'Every sheep lost leaves its fleece behind: +3 wool each at shearing.', catch: 'Sheep panic 25% more.' },
+  { id: 'double', group: 'edge', icon: '🎲', name: 'Double or Nothing', rarity: 'common', price: 6, text: 'A wave with no losses shears double.', catch: 'Any loss and it shears half.' },
+  { id: 'wolfMoon', group: 'edge', icon: '🌑', name: 'Wolf Moon', rarity: 'rare', price: 18, text: 'Shearing pays 40% more.', catch: 'One more wolf every wave.' },
+  // --- Collar: slots and position
+  { id: 'mimic', group: 'collar', icon: '🪞', name: 'Mimic Bell', rarity: 'legendary', price: 40, text: 'Copies the charm to its right (drag charms along the collar to reorder them). Charms with a number stack; the rest can\'t be doubled.' },
+  { id: 'glassCollar', group: 'collar', icon: '🔮', name: 'Glass Collar', rarity: 'rare', price: 16, text: '+1 collar slot.', catch: 'The shepherd spares one sheep fewer.' },
+  { id: 'lucky', group: 'collar', icon: '🍀', name: 'Lucky Collar', rarity: 'uncommon', price: 10, text: 'Rare and legendary charms turn up twice as often.' },
   // --- Tricks: charms that change the rules, each with a catch
   { id: 'proud', group: 'trick', icon: '🏆', name: 'Proud Shepherd', rarity: 'uncommon', price: 14, text: 'Every combo that reaches ×3 makes the shepherd prouder: +8% wool from that wave\'s shearing (up to +80%).' },
   { id: 'goldenChild', group: 'trick', icon: '✨', name: 'Golden Child', rarity: 'rare', price: 22, text: 'A golden fleece (10 wool a wave) joins every wave.', catch: 'Every wolf wants them.' },
@@ -103,72 +127,112 @@ export const SHOP = {
   slots: 5, // charms on the collar at once
   sellBack: 0.5, // a sold charm returns this share of its price
   reroll: 2, // first reroll of a wave; each further reroll costs this much more
-  rarityWeight: { common: 1, uncommon: 0.6, rare: 0.35 }, // how often each rarity is offered
+  rarityWeight: { common: 1, uncommon: 0.6, rare: 0.35, legendary: 0.06 }, // how often each rarity is offered
   maxFrozen: 2, // cards you can freeze to keep them for the next wave's shop
 };
 
+// The collar as it counts: every charm, plus a copy of whatever sits right of a Mimic Bell.
+export function effectiveCharms(charms) {
+  const eff = [...charms];
+  charms.forEach((c, i) => {
+    const next = charms[i + 1];
+    if (c === 'mimic' && next && next !== 'mimic') eff.push(next);
+  });
+  return eff;
+}
+
 export function modifiers(charms = [], training = {}) {
-  const has = (id) => charms.includes(id);
+  const eff = effectiveCharms(charms);
+  const n = (id) => eff.filter((c) => c === id).length; // copies (a Mimic Bell makes two)
+  const has = (id) => n(id) > 0;
+  const pow = (id, k) => k ** n(id); // multiplicative charms stack by multiplying again
   const t = (id) => (training[id] ?? 0) * TRAIN[id].per; // a training's total effect
   return {
-    // Training
-    dogSpeed: (1 + t('swift')) * (has('zoomies') ? SPECIAL.zoomies.speed : 1) * (has('nightWatch') ? SPECIAL.nightWatch.speed : 1),
+    // Training, and the dog's own charms
+    dogSpeed: (1 + t('swift')) * pow('zoomies', SPECIAL.zoomies.speed) * pow('nightWatch', SPECIAL.nightWatch.speed),
     barkRange: t('loud'), // added to DOG.threatRadius
-    flee: (1 + t('scary')) * (has('chain') ? 0.7 : 1),
-    courage: (1 - Math.min(0.75, t('brave'))) * (has('alphaDog') ? SPECIAL.alphaDog.courage : 1),
+    reachScale: pow('zoomies', SPECIAL.zoomies.reach) * pow('nightWatch', SPECIAL.nightWatch.reach),
+    flee: (1 + t('scary')) * pow('chain', 0.7),
+    courage: (1 - Math.min(0.75, t('brave'))) * pow('alphaDog', SPECIAL.alphaDog.courage),
     reveal: 1 + t('nose'), // sneaky wolves' reveal distance
     sniff: 1 / (1 + 2 * t('nose')), // time to expose a disguise
     helperSpeed: 0.55 + t('pupSpeed'), // fraction of the player's dog
     helperThreat: 0.55 + t('pupBark'), // × HELPER.threatRadius
+    zoomies: has('zoomies'),
+    sentinel: n('sentinel'), // standing reach grows to ×(1 + this)
+    hotStreak: n('hotStreak'), // × the per-step boost
+    comboWindow: pow('hotStreak', SPECIAL.hotStreak.window),
+    alphaDog: has('alphaDog'),
+    tracker: n('tracker'),
     // Big Barks: which charms set them off, and how far they reach
-    barkEvery: has('watchdog') ? BARK.watchdog / (has('shortFuse') ? 2 : 1) : 0, // seconds between timed barks (0 = none)
-    bigBarkRadius: (has('booming') ? 1.4 : 1) * (has('shortFuse') ? 0.6 : 1),
+    barkEvery: has('watchdog') ? BARK.watchdog / n('watchdog') / 2 ** n('shortFuse') : 0, // seconds between timed barks (0 = none)
+    bigBarkRadius: pow('booming', 1.4) * pow('shortFuse', 0.6),
     alarm: has('alarm'),
-    comboBark: has('comboBark') ? 4 : 0, // a Big Bark every this many combo steps
+    comboBark: has('comboBark') ? Math.max(2, 5 - n('comboBark')) : 0, // a Big Bark every this many combo steps
     howlBack: has('howlBack'),
     echo: has('echo'),
     thunder: has('thunder'),
-    pentUp: has('pentUp') ? 4 : 0, // every this many Big Barks is a Mega Bark
-    lastLight: has('lastLight') ? BARK.lastLight : 0, // seconds between Big Barks on the line
-    // Charms: your dog
-    reachScale: (has('zoomies') ? SPECIAL.zoomies.reach : 1) * (has('nightWatch') ? SPECIAL.nightWatch.reach : 1),
-    zoomies: has('zoomies'),
-    sentinel: has('sentinel'),
-    hotStreak: has('hotStreak'),
-    comboWindow: has('hotStreak') ? SPECIAL.hotStreak.window : 1,
-    alphaDog: has('alphaDog'),
-    // Charms: helpers, the shepherd, the flock
-    helper: has('helper'),
-    crook: has('crook') ? 4 : 0, // shepherd's swat radius (0 = none)
-    panic: has('calm') ? 0.65 : 1,
-    cohesion: has('herding') ? 1.4 : 1,
-    spacing: has('herding') ? 0.8 : 1, // × SHEEP.minDistance
-    whistle: has('whistle') ? 15 : 0, // seconds between whistles (0 = none)
-    scarecrows: has('scarecrow') ? 2 : 0,
-    grab: has('fleece') ? 1.6 : 1,
-    extraSheep: has('more') ? 2 : 0,
-    lambs: has('lambing') ? 2 : 0,
-    shears: has('shears') ? 1.3 : 1,
-    interest: has('piggy') ? 3 : 0, // extra interest cap
-    // Charms: tricks
-    proud: has('proud') ? 0.08 : 0, // extra shearing per ×3 combo this wave (up to 10 of them)
-    extraGolden: has('goldenChild') ? 1 : 0,
+    pentUp: has('pentUp') ? Math.max(2, 5 - n('pentUp')) : 0, // every this many Big Barks is a Mega Bark
+    lastLight: has('lastLight') ? BARK.lastLight / n('lastLight') : 0, // seconds between Big Barks on the line
     horn: has('horn'),
-    chain: has('chain') ? 2.5 : 0, // how close a fleeing wolf must pass to scare another
-    brink: has('brink'),
-    veteran: has('veteran'),
+    // Helpers and the shepherd
+    helper: has('helper'),
+    chorus: has('chorus'),
+    crook: has('crook') ? 2 + 2 * n('crook') : has('grumpy') ? 3 : 0, // shepherd's swat radius (0 = none)
+    grumpy: has('grumpy'),
+    whistle: has('whistle') ? 15 / n('whistle') : 0, // seconds between whistles (0 = none)
+    scarecrows: 2 * n('scarecrow'),
+    snares: has('snares'),
     stayPut: has('stayPut'),
-    stalk: has('stayPut') ? 0.7 : 1, // × wolves' stalking time
+    stalk: pow('stayPut', 0.7), // × wolves' stalking time
+    // The flock
+    panic: pow('calm', 0.65) * pow('blood', 1.25),
+    cohesion: 1 + 0.4 * n('herding'),
+    spacing: pow('herding', 0.8), // × SHEEP.minDistance
+    grab: 1 + 0.6 * n('fleece'),
+    extraSheep: 2 * n('more'),
+    lambs: 2 * n('lambing'),
+    extraGolden: n('goldenChild'),
+    rams: has('rams'),
+    safety: has('safety'),
+    oath: n('oath'), // grabs that fail each wave
+    bellRate: 1 + n('bellCall'), // × how often the bellwether rings
+    bellRadius: 1 + 0.5 * n('bellCall'),
+    pastures: has('pastures'),
+    strength: n('strength'), // +1% speed and reach per 2 sheep, per copy (up to +50%)
+    // Wool
+    shears: (1 + 0.3 * n('shears')) * (1 + 0.4 * n('wolfMoon')),
+    interest: 3 * n('piggy'), // extra interest cap
+    noInterestCap: has('savings'),
+    noReroll: has('savings'),
+    proud: 0.08 * n('proud'), // extra shearing per ×3 combo this wave (up to 10 of them)
+    fair: n('fair'),
+    blood: 3 * n('blood'), // wool per sheep lost, at shearing
+    double: has('double'),
+    wolfMoon: n('wolfMoon'), // extra wolves per wave
+    discount: pow('haggler', 0.75), // × shop prices
+    cheapReroll: has('haggler'),
+    market: has('market'),
+    nestEgg: has('nestEgg'),
+    // The collar and the line
+    extraSlots: n('glassCollar'),
+    spareFewer: n('brink') + n('glassCollar'), // sheep the shepherd won't spare
+    brink: has('brink'),
+    veteran: n('veteran'), // × the reach per clean wave
+    chain: has('chain') ? 2.5 : 0, // how close a fleeing wolf must pass to scare another
+    lucky: n('lucky'), // rare and legendary charms turn up 2^this as often
   };
 }
 
-// Up to `n` different charms not on the collar yet (and not in `exclude`), rarer ones less often.
-// `requires` keeps a charm out until another one is on the collar.
-export function drawCards(owned, n = SHOP.charms, exclude = []) {
+// Up to `n` different charms not on the collar yet (and not in `exclude`), rarer ones less often
+// (Lucky Collar: `lucky` doubles rare and legendary odds per copy). `requires` keeps a charm out
+// until another one is on the collar.
+export function drawCards(owned, n = SHOP.charms, exclude = [], lucky = 0) {
   const pool = CHARMS.filter((c) => !owned.includes(c.id) && !exclude.includes(c.id) && (!c.requires || owned.includes(c.requires)));
+  const weight = (c) => SHOP.rarityWeight[c.rarity] * (c.rarity === 'rare' || c.rarity === 'legendary' ? 2 ** lucky : 1);
   const cards = [];
   while (cards.length < n && pool.length) {
-    const i = pickWeighted(pool.map((c) => SHOP.rarityWeight[c.rarity]));
+    const i = pickWeighted(pool.map(weight));
     cards.push(pool.splice(i, 1)[0].id);
   }
   return cards;

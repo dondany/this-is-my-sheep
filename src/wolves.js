@@ -1,4 +1,4 @@
-import { WOLF, WORLD, SNEAKY, ALPHA, PUPS, HOWLER, TRICKSTER, SCARECROW, RASCAL } from './config.js';
+import { WOLF, WORLD, SNEAKY, ALPHA, PUPS, HOWLER, TRICKSTER, SCARECROW, RASCAL, SHEARING, FLOCK_CHARMS } from './config.js';
 import { angleTo } from './entities.js';
 
 // Wolf states:
@@ -113,12 +113,30 @@ export function isThreatening(w) {
   return THREATENING.has(w.state);
 }
 
+// How many sheep stand close around this one (Safety in Numbers charm).
+function crowd(s, ctx) {
+  let n = 0;
+  for (const o of ctx.sheep) if (o !== s && !o.type.fake && o.position.distanceTo(s.position) < FLOCK_CHARMS.crowdRadius) n++;
+  return n;
+}
+
+const safe = (s, ctx) => ctx.mods.safety && crowd(s, ctx) >= FLOCK_CHARMS.crowd;
+
+// How long this sheep takes to grab, × the usual: stragglers go fast with Safety in Numbers, calm
+// sheep slowly with Greener Pastures.
+function grabFactor(s, ctx) {
+  let k = 1;
+  if (ctx.mods.safety && crowd(s, ctx) < FLOCK_CHARMS.straggler) k *= 0.5;
+  if (ctx.mods.pastures && s.stress < SHEARING.calmStress && !s.wasGrabbed) k *= FLOCK_CHARMS.pastures;
+  return k;
+}
+
 function pickTarget(w, ctx) {
   const bias = WOLF.stragglerBias * w.type.stragglerBias;
   let best = null;
   let bestScore = Infinity;
   for (const s of ctx.sheep) {
-    if (s.grabbedBy || s.type.fake) continue;
+    if (s.grabbedBy || s.type.fake || safe(s, ctx)) continue;
     const d = w.position.distanceTo(s.position);
     const straggle = s.position.distanceTo(ctx.center);
     const score = d - straggle * bias - s.type.lure + Math.random() * 2;
@@ -304,6 +322,13 @@ export function updateWolves(wolves, ctx, dt) {
         const sz = pz - sc.position.z;
         const sd = Math.hypot(sx, sz);
         if (sd < SCARECROW.radius * T.threatScale) {
+          // Snares charm: the first wolf each wave is held fast for a while instead.
+          if (ctx.mods.snares && !sc.snared && !T.boss) {
+            sc.snared = true;
+            stunWolf(w, ctx, FLOCK_CHARMS.snare);
+            ctx.onSnare?.(sc, w);
+            break;
+          }
           scare(w, ctx, sx, sz, sd || 1e-3, sc);
           break;
         }
@@ -474,9 +499,15 @@ export function updateWolves(wolves, ctx, dt) {
         const td = Math.hypot(tx, tz) || 1e-3;
         vx = (tx / td) * WOLF.chaseSpeed * speedScale;
         vz = (tz / td) * WOLF.chaseSpeed * speedScale;
+        if (td < WOLF.grabDistance * (T.scale / 1.2) && safe(s, ctx)) {
+          // Safety in Numbers: too many sheep around it; look for another.
+          w.state = 'APPROACH';
+          w.retarget = 0;
+          break;
+        }
         if (td < WOLF.grabDistance * (T.scale / 1.2)) {
           w.state = 'ATTACK';
-          w.stateTimer = WOLF.grabTime * T.grabTime * s.type.grabTime * ctx.mods.grab;
+          w.stateTimer = WOLF.grabTime * T.grabTime * s.type.grabTime * ctx.mods.grab * grabFactor(s, ctx);
           s.grabbedBy = w;
           s.wasGrabbed = true;
           ctx.onSheepGrabbed(s, w);

@@ -230,7 +230,7 @@ $('wave-table').outerHTML = table(['Wave', 'Length', 'Wolves', 'Pack (one draw)'
 
 // --- Charms & livestock ------------------------------------------------------
 
-const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick' };
+const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick', bark: 'Bark', wool: 'Wool', edge: 'Edge', collar: 'Collar' };
 const helperMods = modifiers(['helper']);
 const rw = SHOP.rarityWeight;
 $('upgrades-body').innerHTML = `

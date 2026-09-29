@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, BARK, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, COLORS, waveConfig } from './config.js';
+import { GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, BARK, FLOCK_CHARMS, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -231,6 +231,7 @@ export class Game {
         this.tip('howl');
       },
       onHowl: (w) => this.juice.howl(w),
+      onSnare: (sc, w) => this.juice.snare(sc, w),
       onFeint: (w) => this.juice.feint(w),
       onPupsSplit: (w) => this.juice.pupsSplit(w),
       onPupCombo: (w) => {
@@ -247,6 +248,13 @@ export class Game {
       onWolfCharge: (w) => this.onWolfCharge(w),
       onWolfScared: (w, threatening, by) => this.onWolfScared(w, threatening, by),
       onSheepGrabbed: (s, w) => {
+        // Sheepdog's Oath charm: the first grabs of the wave fail.
+        if (this.oathLeft > 0 && this.state === STATE.PLAYING) {
+          this.oathLeft--;
+          forceScare(w, this.ctx, this.dog);
+          this.juice.oath(s);
+          return;
+        }
         this.juice.sheepGrabbed(s);
         this.tip('grabbed');
         // Alarm Bell charm: a grab near the dog sets off a Big Bark.
@@ -320,6 +328,7 @@ export class Game {
     ui.onBuy = (id) => this.buy(id);
     ui.onFreeze = (id) => this.toggleFreeze(id);
     ui.onSell = (id) => this.sellCharm(id);
+    ui.onMoveCharm = (id, index) => this.moveCharm(id, index);
     ui.on('close-bestiary', () => this.closeOverlay());
     ui.on('achievements', () => this.openAchievements());
     ui.on('wardrobe', () => this.openWardrobe());
@@ -555,9 +564,15 @@ export class Game {
     this.frozen = this.frozen.filter((key) => this.canOfferCard(key));
     const kind = (k) => (k.startsWith('animal:') ? 'animal' : k.startsWith('train:') ? 'train' : 'charm');
     const frozen = (type) => this.frozen.filter((k) => kind(k) === type);
-    const charms = [...frozen('charm'), ...drawCards(this.charms, SHOP.charms - frozen('charm').length, frozen('charm'))];
+    const m = this.ctx.mods;
+    const charms = [...frozen('charm'), ...drawCards(this.charms, SHOP.charms - frozen('charm').length, frozen('charm'), m.lucky)];
     const training = frozen('train').length ? frozen('train') : [drawTraining(this.training, this.charms)].filter(Boolean).map((id) => `train:${id}`);
-    const animal = frozen('animal').length ? frozen('animal') : [drawAnimal((k) => this.canBuyAnimal(k))].filter(Boolean).map((k) => `animal:${k}`);
+    // Wool Market charm: two animals.
+    const animal = [...frozen('animal')];
+    for (let i = animal.length; i < (m.market ? 2 : 1); i++) {
+      const k = drawAnimal((kind) => this.canBuyAnimal(kind) && !animal.includes(`animal:${kind}`));
+      if (k) animal.push(`animal:${k}`);
+    }
     return [...charms, ...training, ...animal];
   }
 
@@ -601,7 +616,8 @@ export class Game {
       : key.startsWith('train:')
         ? trainingPrice(key.slice(6), this.training[key.slice(6)] ?? 0)
         : CHARM[key].price;
-    return Math.round(base * this.rules.prices);
+    const market = key.startsWith('animal:') && this.ctx.mods.market ? 0.5 : 1; // Wool Market charm
+    return Math.max(1, Math.round(base * this.rules.prices * this.ctx.mods.discount * market));
   }
 
   // Difficulty level picked on the menu (only unlocked ones).
@@ -612,7 +628,7 @@ export class Game {
   }
 
   openShop() {
-    this.shop = { cards: this.drawShopCards(), bought: new Set(), rerollCost: SHOP.reroll };
+    this.shop = { cards: this.drawShopCards(), bought: new Set(), rerollCost: this.ctx.mods.cheapReroll ? 1 : SHOP.reroll };
   }
 
   showShop() {
@@ -642,8 +658,16 @@ export class Game {
       }
       return { key, ...CHARM[key], price, bought, frozen: this.frozen.includes(key), full: this.charms.length >= this.collarSlots() };
     });
-    const collar = this.charms.map((id) => ({ ...CHARM[id], sell: this.sellPrice(id) }));
-    this.ui.renderShop({ cards, collar, slots: this.collarSlots(), rerollCost: this.shop.rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
+    const collar = this.charms.map((id, i) => {
+      const c = { ...CHARM[id], sell: this.sellPrice(id) };
+      // Mimic Bell says what it's copying.
+      if (id === 'mimic') {
+        const next = this.charms[i + 1];
+        c.text = `${c.text} ${next && next !== 'mimic' ? `Now copying: ${CHARM[next].name}.` : 'Nothing to its right yet.'}`;
+      }
+      return c;
+    });
+    this.ui.renderShop({ cards, collar, slots: this.collarSlots(), rerollCost: this.ctx.mods.noReroll ? null : this.shop.rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
   }
 
   // The end-of-wave screen: the wave's result, the dog's training and the shop.
@@ -681,6 +705,8 @@ export class Game {
       this.checkAchievements();
     } else {
       this.charms.push(key);
+      if (key === 'nestEgg') this.nestEggWaves = 0;
+      if (key === 'bellCall' && !this.ownedAnimals('bellwether')) this.pendingAnimals.push('bellwether');
       this.applyUpgrades();
       this.checkAchievements();
     }
@@ -691,11 +717,29 @@ export class Game {
 
   // Charms the collar can hold (Summer 6 takes one away).
   collarSlots() {
-    return SHOP.slots + this.rules.slots;
+    return SHOP.slots + this.rules.slots + this.ctx.mods.extraSlots;
+  }
+
+  // The summer's rules with this run's extras (Wolf Moon: one more wolf a wave).
+  waveRules() {
+    return { ...this.rules, extraWolves: this.rules.extraWolves + (this.ctx.mods.wolfMoon ?? 0) };
   }
 
   sellPrice(id) {
-    return Math.floor(CHARM[id].price * this.rules.prices * SHOP.sellBack);
+    const egg = id === 'nestEgg' ? FLOCK_CHARMS.nestEgg * this.nestEggWaves : 0; // Nest Egg grows every wave
+    return Math.floor(CHARM[id].price * this.rules.prices * SHOP.sellBack) + egg;
+  }
+
+  // Drag a charm along the collar (Mimic Bell copies whatever is to its right).
+  moveCharm(id, index) {
+    if (this.state !== STATE.WAVE_COMPLETE || !this.charms.includes(id)) return;
+    const rest = this.charms.filter((c) => c !== id);
+    rest.splice(Math.min(index, rest.length), 0, id);
+    this.charms = rest;
+    this.applyUpgrades();
+    this.sfx.click();
+    this.showShop();
+    this.saveRun();
   }
 
   // Take a charm off the collar for half its price, to make room for another.
@@ -710,9 +754,9 @@ export class Game {
   }
 
   reroll() {
-    if (this.wool < this.shop.rerollCost) return;
+    if (this.ctx.mods.noReroll || this.wool < this.shop.rerollCost) return; // Savings Account: no rerolls
     this.wool -= this.shop.rerollCost;
-    this.shop.rerollCost += SHOP.reroll;
+    if (!this.ctx.mods.cheapReroll) this.shop.rerollCost += SHOP.reroll; // Haggler: always 1
     this.shop.cards = this.drawShopCards();
     this.shop.bought.clear();
     this.sfx.click();
@@ -735,6 +779,7 @@ export class Game {
     this.line = 0;
     this.heartbeat = 0;
     this.veteran = 0; // Veteran charm stacks
+    this.nestEggWaves = 0; // Nest Egg: waves it has been on the collar
     this.lineStart = 0;
     for (const w of this.wolves) w.destroy();
     this.wolves.length = 0;
@@ -777,7 +822,7 @@ export class Game {
 
   nextWave() {
     this.wave++;
-    const cfg = (this.cfg = this.ctx.cfg = waveConfig(this.wave, this.rules));
+    const cfg = (this.cfg = this.ctx.cfg = waveConfig(this.wave, this.waveRules()));
     this.ctx.cohesionScale = 1;
 
     // Livestock bought in the shop comes first: it's paid for.
@@ -795,6 +840,7 @@ export class Game {
     for (const kind of ['ram', 'black', 'bellwether']) for (let i = count(kind); i < cfg[kind]; i++) kinds.push(kind);
     if (cfg.golden && !count('golden')) kinds.push('golden');
     for (let i = 0; i < this.ctx.mods.extraGolden; i++) kinds.push('golden'); // Golden Child charm
+    if (this.ctx.mods.rams && this.wave % 3 === 0) kinds.push('ram'); // Battering Rams charm
     for (let i = 0; i < cfg.sleepy; i++) kinds.push('sleepy');
     for (let i = 0; i < cfg.wanderers; i++) kinds.push('wanderer');
     const mods = this.ctx.mods;
@@ -820,8 +866,8 @@ export class Game {
     // The line: the flock may lose a share of its sheep this wave, but no more.
     this.lineStart = this.sheepCount();
     this.line = lineFor(this.wave, this.lineStart);
-    // On the Brink and Glass Cannon charms: the shepherd spares one fewer each (always at least one).
-    const fewer = (this.ctx.mods.brink ? 1 : 0) + (this.ctx.mods.glass ? 1 : 0);
+    // On the Brink and Glass Collar charms: the shepherd spares one fewer each (always at least one).
+    const fewer = this.ctx.mods.spareFewer;
     if (this.line && fewer) this.line = Math.min(this.lineStart - 1, this.line + fewer);
     this.boss = null;
     this.bossSpawned = false;
@@ -831,6 +877,8 @@ export class Game {
       s.stress = 0;
       s.wasGrabbed = false;
     }
+    this.oathLeft = this.ctx.mods.oath; // Sheepdog's Oath: grabs that fail this wave
+    for (const sc of this.scarecrows) sc.snared = false; // Snares reset every wave
     this.waveTime = 0;
     this.wolvesSpawned = 0;
     this.nextWolfAt = 2;
@@ -890,21 +938,29 @@ export class Game {
 
     // Shearing Day: every surviving sheep pays its wool, calm ones a little extra.
     const flock = this.sheep.filter((s) => !s.type.fake);
-    const shorn = Math.floor(flock.reduce((sum, s) => sum + s.type.wool, 0) * this.ctx.mods.shears);
+    const m = this.ctx.mods;
+    const lostNow = this.lineStart - this.sheepCount();
+    const woolOf = (s) => (m.rams && s.kind === 'ram' ? 0 : s.type.wool); // Battering Rams: rams give none
+    const double = m.double ? (lostNow === 0 ? 2 : 0.5) : 1; // Double or Nothing charm
+    const shorn = Math.floor(flock.reduce((sum, s) => sum + woolOf(s), 0) * m.shears * double);
     // Proud Shepherd charm: this wave's big combos add to the shearing.
     const proud = Math.round(shorn * this.ctx.mods.proud * Math.min(10, this.proudCombos));
     const sheared = shorn + proud;
-    const calm = Math.floor(flock.filter((s) => !s.wasGrabbed && s.stress < SHEARING.calmStress).length * SHEARING.calmBonus);
+    const calm = Math.floor(flock.filter((s) => !s.wasGrabbed && s.stress < SHEARING.calmStress).length * SHEARING.calmBonus * (m.pastures ? 2 : 1));
+    const fair = m.fair * (Math.floor(flock.length / 3) + (lostNow === 0 ? 5 : 0)); // County Fair charm
+    const fleeces = m.blood * Math.max(0, lostNow); // Blood Price charm
     const perfect = this.flockSize() === this.waveStartSheep ? SHEARING.perfect : 0;
-    const interest = Math.min(Math.floor(this.wool / SHEARING.interestPer), SHEARING.interestMax + this.ctx.mods.interest);
-    const reward = sheared + calm + perfect + interest;
+    const owed = Math.floor(this.wool / SHEARING.interestPer);
+    const interest = m.noInterestCap ? owed : Math.min(owed, SHEARING.interestMax + m.interest); // Savings Account: no cap
+    const reward = sheared + calm + perfect + interest + fair + fleeces;
+    if (m.nestEgg) this.nestEggWaves++;
     this.stats.woolEarned += reward;
     this.wool += reward;
 
     const run = this.achievements.run;
     run.wave = this.wave;
     if (perfect && this.wave >= 2) run.perfectWave = true;
-    if (interest > 0 && interest >= SHEARING.interestMax + this.ctx.mods.interest) run.maxInterest = true;
+    if (interest > 0 && interest >= SHEARING.interestMax + m.interest) run.maxInterest = true;
     this.achievements.best('bestWaveWool', reward);
     for (const s of flock) {
       if (s.kind !== 'golden') continue;
@@ -922,11 +978,13 @@ export class Game {
       survived: this.flockSize(),
       total: this.waveStartSheep,
       lines: [
-        [`Shearing: ${flock.length} sheep`, shorn],
+        [`Shearing: ${flock.length} sheep${double === 2 ? ' ×2' : double < 1 ? ' ×½' : ''}`, shorn],
         ['Proud Shepherd', proud],
         ['Calm sheep bonus', calm],
         ['Perfect flock', perfect],
         [`Interest (1 per ${SHEARING.interestPer} saved)`, interest],
+        ['County Fair', fair],
+        ['Fleeces left behind', fleeces],
       ],
       line: this.line ? { spare: this.lineStart - this.line, lost: this.lineStart - this.sheepCount() } : null,
       reward,
@@ -970,6 +1028,7 @@ export class Game {
       charms: this.charms,
       training: this.training,
       veteran: this.veteran,
+      nestEggWaves: this.nestEggWaves,
       stats: this.stats,
       run: this.achievements.run,
       shepherd: [r(this.shepherd.position.x), r(this.shepherd.position.z)],
@@ -1010,6 +1069,7 @@ export class Game {
     this.charms = data.charms;
     this.training = data.training ?? {};
     this.veteran = data.veteran ?? 0;
+    this.nestEggWaves = data.nestEggWaves ?? 0;
     this.frozen = data.frozen ?? [];
     this.stats = { ...newRunStats(), ...data.stats };
     Object.assign(this.achievements.run, data.run);
@@ -1043,7 +1103,7 @@ export class Game {
     });
     if (data.goat) this.goat = new Goat(this.world.scene).setPosition(data.goat[0], 0, data.goat[1]);
     flockCenter(this.sheep, this.center);
-    this.cfg = this.ctx.cfg = waveConfig(this.wave, this.rules);
+    this.cfg = this.ctx.cfg = waveConfig(this.wave, this.waveRules());
     this.ctx.cohesionScale = 1;
 
     if (data.at === 'wave') {
@@ -1363,14 +1423,14 @@ export class Game {
 
   // A Big Bark: every wolf around `from` (the dog, or the shepherd for Echo) flees, brutes included,
   // but nearby sheep get startled too. There's no manual one: charms set it off.
-  bigBark(from = this.dog, { echo = false } = {}) {
+  bigBark(from = this.dog, { echo = false, scale = 1 } = {}) {
     if (this.state !== STATE.PLAYING) return;
     const m = this.ctx.mods;
     this.barkCount++;
     const mega = m.pentUp && this.barkCount % m.pentUp === 0; // Pent Up charm
     if (from.barkAnim !== undefined) from.barkAnim = 1;
     if (from === this.dog) from.barkTimer = from.stats.barkCooldown; // the normal bark waits its turn
-    const full = BIG_BARK.radius * m.bigBarkRadius * (mega ? BARK.megaRange : 1);
+    const full = BIG_BARK.radius * m.bigBarkRadius * (mega ? BARK.megaRange : 1) * scale;
     const horn = m.horn; // Herding Horn charm: half the range for wolves, the flock comes to the dog
     const radius = horn ? full / 2 : full;
     let scared = 0;
@@ -1410,6 +1470,36 @@ export class Game {
     this.juice.bigBark(from, radius, scared, mega);
     this.tip('bigBark');
     if (m.echo && !echo) this.echoIn = BARK.echoDelay; // Echo charm
+    if (m.chorus && this.helper && from === this.dog) this.bigBark(this.helper, { echo: true, scale: 0.6 }); // Chorus charm
+  }
+
+  // Grumpy Old Man goes after wolves near the flock; Battering Rams butt wolves that come close.
+  updateFlockCharms(dt) {
+    if (this.state !== STATE.PLAYING) return;
+    const m = this.ctx.mods;
+    if (m.grumpy) {
+      let best = null;
+      let bd = 12;
+      for (const w of this.wolves) {
+        if (!isThreatening(w) || w.type.boss) continue;
+        const d = w.position.distanceTo(this.shepherd.position);
+        if (d < bd && w.position.distanceTo(this.center) < 14) {
+          bd = d;
+          best = w;
+        }
+      }
+      if (best) this.shepherd.walkTarget = { x: best.position.x, z: best.position.z };
+    }
+    if (m.rams) {
+      for (const s of this.sheep) {
+        if (s.kind !== 'ram' || s.grabbedBy) continue;
+        if ((s.buttCooldown = (s.buttCooldown ?? 0) - dt) > 0) continue;
+        const w = this.wolves.find((o) => isThreatening(o) && !o.type.boss && !(o.stun > 0) && o.position.distanceTo(s.position) < FLOCK_CHARMS.ramReach);
+        if (!w) continue;
+        s.buttCooldown = FLOCK_CHARMS.ramCooldown;
+        this.ctx.onGoatButt(s, w);
+      }
+    }
   }
 
   // Charm-driven Big Barks: Watchdog's timer, Last Light on the line, Echo's delayed answer.
@@ -1528,10 +1618,16 @@ export class Game {
     const twice = m.brink ? 2 : 1; // On the Brink charm
     let speed = this.lastStand ? 1 + (LAST_STAND.speed - 1) * twice : 1;
     let reach = this.lastStand ? 1 + (LAST_STAND.reach - 1) * twice : 1;
-    if (m.veteran) reach *= 1 + VETERAN.reach * this.veteran;
-    if (m.sentinel) reach *= this.dog.speed < SPECIAL.sentinel.still ? 1 + this.sentinel : SPECIAL.sentinel.moving;
+    if (m.veteran) reach *= 1 + VETERAN.reach * this.veteran * m.veteran;
+    if (m.sentinel) reach *= this.dog.speed < SPECIAL.sentinel.still ? 1 + this.sentinel * m.sentinel : SPECIAL.sentinel.moving;
+    if (m.tracker) speed *= this.dog.alert ? 1 + 0.3 * m.tracker : 0.9 ** m.tracker; // Tracker charm
+    if (m.strength) {
+      const k = 1 + Math.min(0.5, 0.005 * this.sheepCount() * m.strength); // Strength in Numbers charm
+      speed *= k;
+      reach *= k;
+    }
     if (m.hotStreak) {
-      const k = 1 + SPECIAL.hotStreak.perStep * Math.min(SPECIAL.hotStreak.maxSteps, Math.max(0, this.combo.count - 1));
+      const k = 1 + SPECIAL.hotStreak.perStep * m.hotStreak * Math.min(SPECIAL.hotStreak.maxSteps, Math.max(0, this.combo.count - 1));
       speed *= k;
       reach *= k;
     }
@@ -1635,6 +1731,7 @@ export class Game {
     this.updateLastStand(dt);
     this.updateSpecialties(dt);
     this.updateBarks(dt);
+    this.updateFlockCharms(dt);
     this.simulate(dt);
     if (this.state !== STATE.MENU) {
       if (this.state === STATE.PLAYING && !this.tips.seen.has('wolfComing') && this.wolves.some((w) => w.state === 'APPROACH')) this.tip('wolfComing');

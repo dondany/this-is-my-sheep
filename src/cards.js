@@ -4,7 +4,7 @@
 
 const DRAG_START = 6; // pixels the pointer has to move before a press becomes a drag
 
-const GROUP_GLYPH = { dog: '🐕', shepherd: '👨‍🌾', flock: '🐑', trick: '🎭', xp: '⭐' };
+const GROUP_GLYPH = { dog: '🐕', shepherd: '👨‍🌾', flock: '🐑', trick: '🎭', bark: '📢', wool: '🧶', edge: '❤️‍🔥', collar: '🧿' };
 
 // spec: { icon | image, name, rarity, group, pips, frozen, dim }
 export function makeCard(spec) {

@@ -521,6 +521,18 @@ export const BARK = {
   alarmRadius: 8, // Alarm Bell: grabs this close to the dog
 };
 
+// Flock charms: Safety in Numbers, Greener Pastures, Battering Rams, Snares, Nest Egg.
+export const FLOCK_CHARMS = {
+  crowdRadius: 3, // Safety in Numbers: "close around it"
+  crowd: 5, // this many sheep close by and wolves can't take it
+  straggler: 2, // fewer than this close by and it's taken twice as fast
+  pastures: 1.4, // Greener Pastures: × grab time for a calm sheep
+  ramReach: 2.5, // Battering Rams: a ram butts wolves this close
+  ramCooldown: 2.5,
+  snare: 5, // Snares: seconds a snared wolf is held
+  nestEgg: 3, // Nest Egg: sell value gained per wave
+};
+
 // The dog's rule-changing charms (Zoomies, Night Watch, Sentinel, Hot Streak, Alpha Dog).
 export const SPECIAL = {
   zoomies: { speed: 1.4, reach: 0.7, dashSpeed: 0.85, dashRadius: 1.3 }, // dash: over this share of top speed, within this distance

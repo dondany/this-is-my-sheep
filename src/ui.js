@@ -240,10 +240,11 @@ export class UI {
     const keys = new Set([...cards.map((c) => `shop:${c.key}`), ...collar.map((c) => `collar:${c.id}`)]);
     if (this.selected && !keys.has(this.selected)) this.selected = null;
     $('shop-wool').textContent = wool;
-    $('reroll-cost').textContent = rerollCost;
-    $('shop-reroll').disabled = wool < rerollCost;
+    // Savings Account charm: no rerolls (rerollCost is null).
+    $('shop-reroll').innerHTML = rerollCost == null ? '🎲 No rerolls' : `🎲 Reroll <span id="reroll-cost">${rerollCost}</span>`;
+    $('shop-reroll').disabled = rerollCost == null || wool < rerollCost;
     $('collar-count').textContent = `${collar.length} / ${slots}`;
-    const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick', xp: 'XP' };
+    const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick', bark: 'Bark', wool: 'Wool', edge: 'Edge', collar: 'Collar' };
     const rarityName = (r) => r[0].toUpperCase() + r.slice(1);
 
     // The collar: filled slots are cards you can drag off to sell.
@@ -256,12 +257,13 @@ export class UI {
           empty.innerHTML = '<div class="card card-empty"></div>';
           return empty;
         }
-        const info = { title: c.name, meta: `${rarityName(c.rarity)} · ${groupName[c.group]}`, text: c.text, catch: c.catch, foot: `Sells for 🧶 ${c.sell} · drag it off the collar to sell` };
+        const info = { title: c.name, meta: `${rarityName(c.rarity)} · ${groupName[c.group]}`, text: c.text, catch: c.catch, foot: `Sells for 🧶 ${c.sell} · drag it off the collar to sell, or along it to move it` };
         return this.cardSlot(`collar:${c.id}`, { icon: c.icon, name: c.name, rarity: c.rarity, group: c.group }, info, {
           small: true,
           actions: [[`Sell 🧶${c.sell}`, () => this.onSell?.(c.id)]],
-          zones: () => [{ name: 'sell', el: $('sell-zone') }],
-          onDrop: () => this.onSell?.(c.id),
+          // Drop on the sell zone to sell, or on another collar slot to move it there.
+          zones: () => [{ name: 'sell', el: $('sell-zone') }, ...[...$('collar-slots').children].map((el, j) => ({ name: `slot:${j}`, el }))],
+          onDrop: (name) => (name === 'sell' ? this.onSell?.(c.id) : name !== `slot:${i}` && this.onMoveCharm?.(c.id, Number(name.slice(5)))),
           onDragStart: () => {
             $('sell-price').textContent = c.sell;
             $('sell-zone').classList.remove('hidden');
