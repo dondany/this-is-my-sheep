@@ -25,8 +25,8 @@ Balatro blind). The margin is small on purpose: every lost sheep matters. Wave 1
 grab plays in slow motion so you can see it coming (`LAST_STAND` in `src/config.js`). Finishing a
 wave on the line earns *Held the Line*.
 
-**Few numbers.** The top bar shows just the flock (against the line), the wave, the dog's level
-and your wool. There's no score: the result of a run is how far you got ("7 waves survived", the summer and
+**Few numbers.** The top bar shows just the flock (against the line), the wave, your wool and the
+charms on the collar. There's no score: the result of a run is how far you got ("7 waves survived", the summer and
 the stars), and that's what the menu remembers as your best.
 
 Then choose **Menu** or **Keep grazing** for endless mode (like Balatro after the last ante):
@@ -158,70 +158,56 @@ blows away). It's the only wool you can earn during a wave, and it's a detour aw
 
 The end-of-wave screen breaks the total down. Tuning: `SHEARING` and `BOUNTY` in `src/config.js`.
 
-## Two ways to grow: dog levels and the shop
+## The shop: charms and training (Balatro style)
 
-The dog grows by **doing**: scaring wolves earns XP and levels. The farm grows by **buying**: wool
-from the flock pays for shop upgrades. Chasing wolves for XP pulls the dog away from the flock that
-makes the wool, so every wave is a little hunter-versus-guardian decision.
+Everything is bought with wool from the flock in the end-of-wave shop: **charms** are the jokers
+(the build, hung on the dog's collar) and **training cards** are the planet cards (used up on the
+spot, each raising one of the dog's stats by a level for the rest of the run). Every shop has two
+charms, one training card and one animal.
 
-### Dog levels (XP)
+### Training (the dog's levels)
 
-Each of the dog's own scares (Big Barks included) earns XP: 1 for a wolf or a pup, 2 for runners,
-rascals, howlers, sneaky wolves and tricksters, 3 for brutes and disguises, 5 for the alpha, 6 per
-Old Greymuzzle drive-off, 2 for a rescue. Combos multiply it (×1.5 at ×2, up to ×3) and it's doubled
-on the line. Level *n* needs 10 × n^1.5 XP (10, 28, 52, 80, 112…), about one level a wave. The HUD
-shows "Lv 4" and a bar; "LEVEL 4!" pops over the dog when it happens.
+A training card goes onto the dog (drag it onto "Your dog" in the sidebar, or click it and Buy).
+It doesn't take a collar slot. The next level costs 5 + 3 per level already trained (5, 8, 11…).
+The sidebar lists the dog's levels, like Balatro's hand levels.
 
-Every level is a perk, picked at the end of the wave from three cards before the shop opens (several
-levels mean several picks). Each card rolls a rarity: common (1 point, 70%), rare (2 points, 24%)
-or legendary (3 points, 6%).
-
-| Perk | Per point | Max points |
-| --- | --- | --- |
-| ⚡ Swift Paws | Dog runs and turns 8% faster | 8 |
-| 🎯 Dog's Reach | Reach +0.6 (the ring: wolves inside it get scared, sheep react from proportionally further away). 2.5 at the start. Offered twice as often | 10 |
-| 😱 Scary Bark | Scared wolves run 15% longer | 6 |
-| 🦴 Brave Heart | Brutes and the boss give up 12% sooner | 6 |
-| 🌬️ Deep Lungs | Big Bark refills 15% faster on its own | 6 |
-| 💥 Booming Bark | Big Bark reaches 10% further | 6 |
-| 👃 Nose for Wolves | Sneaky wolves show up 25% sooner; disguises sniffed out faster | 6 |
-| 🎾 Fetch! | Bounty tufts last 25% longer and are easier to grab | 6 |
-| 🐾 Pup Training *(needs Second Dog)* | Second dog +5% of your dog's speed | 8 |
-| 🔊 Pup's Bark *(needs Second Dog)* | Second dog's reach +4% | 8 |
-
-**Specialties.** At levels 5 and 10 the level-up offers three specialties instead of perks: a
-rule change for the dog, with a catch (shown next to the level on the HUD, e.g. "Lv 6 🌙").
-
-| Specialty | Effect | Catch |
-| --- | --- | --- |
-| 🏃 Zoomies | +40% speed; dashing through a wolf at full speed scares it, brutes included | −30% reach |
-| 🌙 Night Watch | Reach ×1.8 | −30% speed |
-| 🗿 Sentinel | Standing still, reach grows to ×2 over 2 s | −20% reach while moving |
-| 🔥 Hot Streak | Every combo step gives +6% speed and reach until the chain breaks (up to +30%) | Combo window 30% shorter |
-| 🐺 Alpha Dog | Plain wolves and pups flee on sight, from 1.8× the dog's reach | Brutes and the boss hold out 50% longer |
+| Training | Stat | Per level | Top level |
+| --- | --- | --- | --- |
+| ⚡ Sprints | Speed | The dog runs and turns 8% faster | 8 |
+| 🎯 Reach | Reach | +0.5 (the ring: wolves inside it get scared, sheep react from proportionally further away); 2.5 at the start. Offered twice as often | 10 |
+| 😱 Stare Down | Scare | Scared wolves stay away 15% longer | 6 |
+| 🦴 Brave Heart | Grit | Brutes and the boss give up 12% sooner | 6 |
+| 👃 Nose Work | Nose | Sneaky wolves show up 25% sooner; disguises sniffed out faster | 4 |
+| 🐾 Pup Sprints *(needs Second Dog)* | Pup speed | Second dog +5% of your dog's speed | 8 |
+| 🔊 Pup's Bark *(needs Second Dog)* | Pup reach | Second dog's reach +4% | 8 |
 
 ### Charms (wool)
 
 Wool buys **charms** on the end-of-wave screen, hung on the dog's collar: up to **5** at once, one of
-each. The shop shows three random cards (two charms and one animal); buy any you can afford, or
+each. The shop shows four random cards (two charms, a training card and an animal); buy any you can afford, or
 reroll them (2 wool, +2 per extra reroll that wave). With a full collar, sell a charm for half its
 price to make room. During a wave the collar's charms show at the end of the top bar. Uncommon
 charms (blue border) come up 60% as often as common ones, rare ones (gold) 35%.
 
 **The shop screen** (Balatro style): the collar across the top with your wool, the wave's result
-on the left (sheep home, the line, the wool it made, the dog's level), and the tray in the middle:
-level-up picks first, then the shop with 🎲 Reroll and ▶ Next wave. Cards only show an icon and a
+on the left (sheep home, the line, the wool it made, the dog's training), and the tray in the middle:
+the shop with 🎲 Reroll and ▶ Next wave. Cards only show an icon and a
 name; hover (or tap) one for the tooltip with its effect, catch and price.
 
-- **Drag and drop:** drag a charm onto the collar to buy it, an animal onto your flock (the sheep
-  count on the left), a perk onto the dog's level; drag a charm off the collar onto the red sell zone
-  to sell it.
+- **Drag and drop:** drag a charm onto the collar to buy it, a training card onto your dog, an
+  animal onto your flock (the sheep count on the left); drag a charm off the collar onto the red sell
+  zone to sell it.
 - **Click / tap:** selects a card, pins its tooltip and shows its buttons in place of the price:
-  Buy, ❄️ Freeze, Sell or Take it. Click the background to put it back.
+  Buy, ❄️ Freeze or Sell. Click the background to put it back.
 
 | Charm | Group | Rarity | Price | Effect |
 | --- | --- | --- | --- | --- |
-| 🐕 Second Dog | Dog | rare | 35 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock. Starts slow: 55% of your dog's speed, reach 2.75, and it catches its breath for 1 s after each scare. Train it with pup perks. Sold: it goes home |
+| 🏃 Zoomies | Dog | rare | 20 | +40% speed; dashing through a wolf at full speed scares it, brutes included. Catch: −30% reach |
+| 🌙 Night Watch | Dog | rare | 20 | Reach ×1.8. Catch: −30% speed |
+| 🗿 Sentinel | Dog | uncommon | 14 | Standing still, reach grows to ×2 over 2 s. Catch: −20% reach while moving |
+| 🔥 Hot Streak | Dog | uncommon | 14 | Every combo step gives +6% speed and reach until the chain breaks (up to +30%). Catch: combo window 30% shorter |
+| 🐺 Alpha Dog | Dog | rare | 22 | Plain wolves and pups flee on sight, from 1.8× the dog's reach. Catch: brutes and the boss hold out 50% longer |
+| 🐕 Second Dog | Dog | rare | 35 | A brown helper dog patrols around the shepherd and runs at wolves threatening the flock. Starts slow: 55% of your dog's speed, reach 2.75, and it catches its breath for 1 s after each scare. Train it with pup training. Sold: it goes home |
 | 🦯 Shepherd's Crook | Shepherd | common | 10 | The shepherd swats wolves within 4 units of him ("BONK!") |
 | 🎶 Calming Song | Shepherd | common | 8 | Sheep panic 35% less around wolves |
 | 🪄 Herding Instinct | Shepherd | common | 8 | Flock cohesion +40%, and sheep can stand 20% closer to each other |
@@ -241,21 +227,10 @@ name; hover (or tap) one for the tooltip with its effect, catch and price.
 | ✨ Golden Child | rare | 22 | A golden fleece joins every wave | Every wolf wants them |
 | 🔋 Overcharge | uncommon | 14 | The Big Bark meter holds two barks ("×2" on the button) | It only fills from scares |
 | 📯 Herding Horn | common | 10 | The Big Bark calls every sheep in its range to the dog instead of startling them | Wolves only flee from half the range |
-| 💥 Chain Reaction | rare | 20 | A fleeing wolf scares every wolf it runs past ("DOMINO!", not the boss); each extends the combo and earns XP | Scared wolves come back 30% sooner |
+| 💥 Chain Reaction | rare | 20 | A fleeing wolf scares every wolf it runs past ("DOMINO!", not the boss); each extends the combo | Scared wolves come back 30% sooner |
 | ❤️‍🔥 On the Brink | uncommon | 12 | Last Sheep Standing starts one sheep above the line and is twice as strong | The shepherd spares one sheep fewer |
 | 📈 Veteran | uncommon | 14 | Every wave finished without a loss gives +5% reach for good | Losing 3+ sheep in a wave resets it (so does selling it) |
 | 🏕️ Staying Put | common | 8 | The shepherd never moves the flock to new grass | Wolves stalk 30% less |
-
-**XP charms** level the dog faster:
-
-| Charm | Rarity | Price | Effect |
-| --- | --- | --- | --- |
-| 📚 Wolf Scholar | uncommon | 12 | Combos of ×3 and more give 50% more XP |
-| 🐾 Study Buddy | common | 8 | The second dog's scares give your dog XP too (only offered with the Second Dog) |
-| 🧑‍🏫 Old Mentor | common | 8 | Rescues give triple XP |
-| 🎓 Sheepskin Diploma | uncommon | 12 | At the end of each wave, every 2 unspent wool gives 1 XP |
-| ⚖️ Glass Cannon | rare | 18 | Double XP. Catch: the shepherd spares one sheep fewer |
-| 🌕 Moonlighter | uncommon | 10 | Triple XP on the line (instead of double) |
 
 ### Freezing cards
 
@@ -380,7 +355,7 @@ http://localhost:8000/guide.html.
 | `src/cosmetics.js` | Wardrobe items, how accessories are built, and the saved choices |
 | `src/tips.js` | First-time tips and which ones the player has seen |
 | `src/achievements.js` | The 37 achievements, lifetime counters and unlock checks |
-| `src/upgrades.js` | Dog perks (level-ups), charms (shop), livestock; card draws and the multipliers they add up to |
+| `src/upgrades.js` | Training (the dog's levels), charms, livestock; card draws and the multipliers they add up to |
 | `src/cards.js` | Shop cards: the card element, its tooltip, drag and drop onto drop zones |
 | `src/helper.js` | AI for the Second Dog upgrade |
 

@@ -39,10 +39,6 @@
         <div class="hud-label">Wave <span id="hud-wave" class="hud-value">01</span></div>
         <div class="meter"><div id="hud-timer-bar" class="meter-fill timer"></div></div>
       </div>
-      <div id="hud-level-box" class="hud-level" title="The dog's level: scaring wolves earns XP, and every level is a perk picked at the end of the wave">
-        <div id="hud-level" class="hud-value">Lv 1</div>
-        <div class="meter"><div id="hud-xp-bar" class="meter-fill xp"></div></div>
-      </div>
       <div class="hud-wool" title="Wool: sheared from the flock after each wave, spent on charms and livestock">
         <span class="hud-icon">🧶</span>
         <span id="hud-wool" class="hud-value">0</span>
@@ -118,9 +114,9 @@
         </div>
         <p id="wave-line" class="side-line"></p>
         <ul id="wave-breakdown" class="side-breakdown"></ul>
-        <div class="side-level">
-          <span id="side-level">🐕 Lv 1</span>
-          <div class="meter"><div id="side-xp" class="meter-fill xp"></div></div>
+        <div id="side-dog" class="side-dog" title="Drag a training card here to train your dog">
+          <span class="side-dog-title">🐕 Your dog</span>
+          <div id="side-training" class="side-training"></div>
         </div>
         <div class="side-buttons">
           <button class="icon-btn" data-action="bestiary" aria-label="Bestiary" title="Bestiary">📖</button>
@@ -128,15 +124,12 @@
         </div>
       </aside>
       <div id="shop-tray" class="shop-tray">
-        <div id="levelup" class="tray-section hidden">
-          <h3 id="levelup-title" class="tray-title">Level 2! Choose a perk</h3>
-          <div id="levelup-cards" class="card-row"></div>
-        </div>
         <div id="shop" class="tray-section">
           <h3 class="tray-title">Shop</h3>
           <div class="card-row">
             <div id="shop-charms" class="card-row"></div>
             <div class="tray-divider"></div>
+            <div id="shop-training" class="card-row"></div>
             <div id="shop-animal" class="card-row"></div>
           </div>
           <div class="tray-actions">

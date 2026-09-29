@@ -523,28 +523,7 @@ export const LAST_STAND = {
   slowmo: 0.6, // real seconds of slow motion when a wolf grabs a sheep on the line
 };
 
-// Dog levels: scaring wolves earns XP, more for tougher wolves, multiplied by the combo and doubled
-// on the line. Only the dog's own scares count (Big Barks included). Each level is a perk, picked
-// at the end of the wave.
-export const XP = {
-  wolf: { normal: 1, pup: 1, runner: 2, rascal: 2, howler: 2, sneaky: 2, trickster: 2, brute: 3, disguised: 3, alpha: 5, greymuzzle: 0 },
-  bossDrive: 6, // each time Old Greymuzzle is driven off
-  rescue: 2, // a grabbed sheep let go
-  comboStep: 0.5, // ×1.5 at a ×2 combo, ×2 at ×3…
-  comboMax: 3,
-  onTheLine: 2,
-  // XP from `level` to the next: base × level^curve (10, 28, 52, 80, 112…). XP income grows a lot
-  // over a run (more wolves, longer combos), so this lands about one level per wave.
-  base: 10,
-  curve: 1.5,
-};
-
-// XP needed to go from `level` to the next one.
-export function xpToNext(level) {
-  return Math.round(XP.base * level ** XP.curve);
-}
-
-// Specialties, picked at dog levels 5 and 10 (see SPECIALTIES in src/upgrades.js).
+// The dog's rule-changing charms (Zoomies, Night Watch, Sentinel, Hot Streak, Alpha Dog).
 export const SPECIAL = {
   zoomies: { speed: 1.4, reach: 0.7, dashSpeed: 0.85, dashRadius: 1.3 }, // dash: over this share of top speed, within this distance
   nightWatch: { speed: 0.7, reach: 1.8 },

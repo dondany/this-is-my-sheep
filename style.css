@@ -116,32 +116,6 @@ body {
   transition: none;
 }
 
-/* The dog's level and XP towards the next one; glows while a level-up is waiting for its pick. */
-.hud-level {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 58px;
-}
-
-.hud-level .meter {
-  width: 58px;
-}
-
-.meter-fill.xp {
-  background: #7d62b8;
-}
-
-.hud-level.pending #hud-level {
-  color: #7d62b8;
-  animation: level-pending 0.8s ease-in-out infinite alternate;
-}
-
-@keyframes level-pending {
-  to {
-    transform: scale(1.12);
-  }
-}
 
 .hud-buttons {
   position: absolute;
@@ -1632,22 +1606,42 @@ body.shopping #hint {
   border-top: 2px dashed rgba(74, 52, 38, 0.3);
 }
 
-.side-level {
+.side-dog {
   padding: 8px 10px;
-  font-weight: 700;
   background: #efe8f8;
   border: 3px dashed transparent;
   border-radius: 14px;
   transition: transform 0.15s;
 }
 
-.side-level.drop-hot {
+.side-dog.drop-hot {
   transform: scale(1.04);
   border-color: #7d62b8;
 }
 
-.side-level .meter {
+.side-dog-title {
+  font-weight: 700;
+}
+
+.side-training {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
   margin-top: 6px;
+}
+
+.side-training small {
+  color: var(--ink-soft);
+}
+
+.train-chip {
+  padding: 1px 7px;
+  font-size: 14px;
+  font-weight: 700;
+  background: #fffaf0;
+  border: 2px solid #7d62b8;
+  border-radius: 10px;
 }
 
 .side-buttons {
@@ -1916,8 +1910,8 @@ body.shopping #hint {
   background: linear-gradient(160deg, #fff4d8, #f7d98a);
 }
 
-.card.rarity-special {
-  border-color: #6a4fa8;
+.card.rarity-training {
+  border-color: #7d62b8;
   background: #f1ebfb;
 }
 

@@ -2934,3 +2934,35 @@ toasts and tips over it.
     Dust at its feet, a tiny shake (0.02, 120 ms) and a low synthesized
     thud (`sfx.stomp()`).
 -   Pure feel: the hops don't scare or move the sheep.
+
+------------------------------------------------------------------------
+
+# 100. Wool Only: Training Cards Replace XP (implemented)
+
+Direction change after the two-track experiment (sections 93-97): wool is
+the only currency, and the shop mirrors Balatro. **Charms are the
+jokers** (the build, on the collar) and **training cards are the planet
+cards** (used up on purchase, each permanently raising one dog stat by a
+level).
+
+-   Removed: XP, dog levels, level-up picks, rarity rolls, the HUD's
+    "Lv" badge and XP bar, specialties as level rewards, and the six XP
+    charms (Wolf Scholar, Study Buddy, Old Mentor, Sheepskin Diploma,
+    Glass Cannon, Moonlighter). Save format v4.
+-   Training (`TRAINING` in `src/upgrades.js`): Sprints (speed +8% a
+    level, top 8), Reach (+0.5, top 10, offered twice as often), Stare
+    Down (scare time +15%, 6), Brave Heart (brutes/boss give up 12%
+    sooner, 6), Nose Work (+25%, 4), Pup Sprints and Pup's Bark (need
+    the Second Dog). Big Bark range and refill and Fetch! are gone from
+    the dog's stats (the Big Bark and wolf tufts are reworked next).
+    Price 5 + 3 per level already trained (`TRAINING_PRICE`).
+-   The shop: two charms, one training card, one animal (`SHOP.charms`,
+    `drawTraining()`); training cards can be frozen and rerolled like the
+    rest. Drag one onto "Your dog" in the sidebar, which lists the dog's
+    levels like Balatro's hand levels (`dogCard()`,
+    `ui.setDogTraining()`).
+-   The five specialties are now charms (group Dog): Zoomies (rare 20),
+    Night Watch (rare 20), Sentinel (uncommon 14), Hot Streak (uncommon
+    14), Alpha Dog (rare 22). Same effects as section 96.
+-   The run summary lists training; the win screen shows how many
+    training levels the dog took.

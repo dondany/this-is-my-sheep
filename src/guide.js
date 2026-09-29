@@ -4,9 +4,9 @@
 import {
   spareFor, LAST_STAND, DOG, BIG_BARK, BUMP, ROAM, SHEEP, SHEEP_TYPES, WOLF, WOLF_TYPES, FIRST_WAVE, GOAL, ENDLESS, BOSS, SUMMERS,
   SHEARING, BOUNTY, GOAT, LAMB, BLACK, BELL, SLEEPY, GOLDEN, DISGUISE, RAM_CALM, RASCAL, PUPS, HOWLER,
-  TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, XP, xpToNext, waveConfig,
+  TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, waveConfig,
 } from './config.js';
-import { CHARMS, CHARM, SHOP, LIVESTOCK, PERKS, PERK, RARITY, SPECIALTIES, SPECIALTY_LEVELS, animalPrice, modifiers, perkText } from './upgrades.js';
+import { CHARMS, CHARM, SHOP, LIVESTOCK, TRAINING, TRAIN, TRAINING_PRICE, animalPrice, modifiers, trainingText, trainingPrice } from './upgrades.js';
 import { ACHIEVEMENTS, ACHIEVEMENT } from './achievements.js';
 import { WARDROBE, SLOTS, rewardFor } from './cosmetics.js';
 import { ENTRIES, Bestiary } from './bestiary.js';
@@ -40,7 +40,7 @@ $('dog-stats').innerHTML = `
   <h3>The dog</h3>
   ${chips([
     ['Top speed', `${DOG.maxSpeed} u/s`],
-    ['Reach (the ring)', `${startReach} at the start, +${PERK.loud.per} per Dog's Reach point, up to ${startReach + PERK.loud.per * PERK.loud.max}`],
+    ['Reach (the ring)', `${startReach} at the start, +${TRAIN.loud.per} per Reach training level, up to ${startReach + TRAIN.loud.per * TRAIN.loud.max}`],
     ['Big Bark', `every wolf within ${BIG_BARK.radius}, brutes included · refills in ${BIG_BARK.recharge} s on its own, and each scare adds ${Math.round(BIG_BARK.perScare * 100)}% × the combo · startles sheep within ${BIG_BARK.startleRadius}`],
     ['Running through the flock', `sheep it passes at over ${BUMP.minSpeed} u/s bounce aside`],
     ['Parking among the sheep', `they grow uneasy and keep up to ${SHEEP.pressureMax}× further away after ${SHEEP.pressureTime} s`],
@@ -97,7 +97,7 @@ $('economy-body').innerHTML = `
   ${table(['Wolf', 'Wool'], [...Object.entries(BOUNTY.wool).map(([k, v]) => [esc(ENTRIES.find((e) => e.id === k)?.name ?? k), String(v)]), ['Old Greymuzzle (when gone for good)', String(BOSS.tuft)]])}
   <h3>The shop</h3>
   <ul>
-    <li>${SHOP.cards} cards after every wave: ${SHOP.cards - 1} upgrades and 1 animal. Rare upgrades come up about ${Math.round(SHOP.rareWeight * 100)}% as often.</li>
+    <li>Every shop: ${SHOP.charms} charms, 1 training card and 1 animal. Uncommon charms come up ${Math.round(SHOP.rarityWeight.uncommon * 100)}% and rare ones ${Math.round(SHOP.rarityWeight.rare * 100)}% as often as common ones.</li>
     <li>Reroll: ${SHOP.reroll} wool, +${SHOP.reroll} for each further reroll that wave.</li>
     <li>Freeze up to ${SHOP.maxFrozen} cards (❄️) to keep them for the next wave.</li>
     <li>Upgrade level <em>n</em> costs its base price × (<em>n</em> + 1).</li>
@@ -233,7 +233,7 @@ $('wave-table').outerHTML = table(['Wave', 'Length', 'Wolves', 'Pack (one draw)'
 
 // --- Charms & livestock ------------------------------------------------------
 
-const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick', xp: 'XP' };
+const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick' };
 const helperMods = modifiers(['helper']);
 const rw = SHOP.rarityWeight;
 $('upgrades-body').innerHTML = `
@@ -249,38 +249,19 @@ $('upgrades-body').innerHTML = `
   ])}`;
 
 const cap = (t) => t[0].toUpperCase() + t.slice(1);
-const xpNeeded = Array.from({ length: 15 }, (_, i) => xpToNext(i + 1));
 $('levels-body').innerHTML = `
-  <p>The dog levels up by scaring wolves. Each level is a perk, picked at the end of the wave from three cards (the shop waits until you've picked). The HUD shows the level and a bar towards the next one.</p>
-  <h3>XP</h3>
-  ${chips([
-    ...Object.entries(XP.wolf)
-      .filter(([, v]) => v > 0)
-      .map(([k, v]) => [cap(nameOf(k)), `${v} XP`]),
-    ['Old Greymuzzle', `${XP.bossDrive} XP per drive-off`],
-    ['Rescue', `${XP.rescue} XP`],
-    ['Combo', `×${1 + XP.comboStep} at ×2, +${XP.comboStep} per step, up to ×${XP.comboMax}`],
-    ['On the line', `×${XP.onTheLine}`],
-  ])}
-  <p>Only the dog's own scares count (Big Barks included), not the second dog's, the shepherd's or a scarecrow's. XP to the next level: ${XP.base} × level<sup>${XP.curve}</sup>.</p>
-  ${table(['Level', ...xpNeeded.map((_, i) => String(i + 1))], [['XP to next', ...xpNeeded.map(String)]])}
-  <h3>Perks</h3>
-  <p>Each card is ${RARITY.map((r) => `${r.name.toLowerCase()} (${r.points} point${r.points > 1 ? 's' : ''}, ${r.weight}%)`).join(', ')}. A perk can't go past its max; maxed perks aren't offered. Dog's Reach comes up twice as often.</p>
+  <p>Training cards are the dog's upgrades, like Balatro's planet cards: one in every shop, used up when bought (drag it onto the dog), each raising one of the dog's stats by a level for the rest of the run. They don't take a collar slot. The next level costs ${TRAINING_PRICE.base} + ${TRAINING_PRICE.step} per level already trained; Reach comes up twice as often.</p>
   ${table(
-    ['', 'Perk', 'Per point', 'Max points', 'At max'],
-    PERKS.map((p) => [
-      p.icon,
-      `<strong>${esc(p.name)}</strong>${p.requires ? ` <small>(needs ${esc(CHARM[p.requires].name)})</small>` : ''}`,
-      esc(perkText(p.id, 1)),
-      String(p.max),
-      esc(perkText(p.id, p.max)),
+    ['', 'Training', 'Stat', 'Per level', 'Top level', 'At the top', 'Prices'],
+    TRAINING.map((t) => [
+      t.icon,
+      `<strong>${esc(t.name)}</strong>${t.requires ? ` <small>(needs ${esc(CHARM[t.requires].name)})</small>` : ''}`,
+      t.stat,
+      esc(trainingText(t.id, 1)),
+      String(t.max),
+      esc(trainingText(t.id, t.max)),
+      [...Array(t.max).keys()].map((l) => trainingPrice(t.id, l)).join(' · '),
     ])
-  )}
-  <h3>Specialties</h3>
-  <p>At levels ${SPECIALTY_LEVELS.join(' and ')} the level-up offers three specialties instead of perks: a rule change for the dog, with a catch. Each can be picked once; they show next to the level on the HUD.</p>
-  ${table(
-    ['', 'Specialty', 'Effect', 'Catch'],
-    SPECIALTIES.map((s) => [s.icon, `<strong>${esc(s.name)}</strong>`, esc(s.text), esc(s.catch)])
   )}`;
 
 $('livestock-body').innerHTML = `

@@ -1,78 +1,47 @@
-// Two ways to grow during a run. The dog levels up by scaring wolves (XP): each level is a perk,
-// picked at the end of the wave. Wool buys charms in the shop, hung on the dog's collar (up to 5).
-// `modifiers()` turns both into the multipliers the rest of the game reads (ctx.mods).
+// Everything bought with wool in the end-of-wave shop, Balatro style. Charms are the jokers: hung on
+// the dog's collar (up to 5), they make the build. Training cards are the planet cards: used up on
+// the spot, each one raises one of the dog's stats by a level for the rest of the run. Livestock
+// joins the flock. `modifiers()` turns charms and training into the multipliers the rest of the
+// game reads (ctx.mods).
 
 import { SPECIAL } from './config.js';
 
-// --- Dog perks ------------------------------------------------------------------
-// Each pick adds 1, 2 or 3 points (common / rare / legendary); `per` is the effect of one point and
-// `max` the most points a perk can hold. `requires` keeps a perk out of the draw until that charm
-// is on the collar.
+// --- Training (the dog's levels) ------------------------------------------------------
+// `per` is what one level adds and `max` the highest level. Each level costs more than the last.
+// `requires` keeps a card out of the shop until that charm is on the collar.
 
 const pct = (v) => `${Math.round(v * 100)}%`;
-export const PERKS = [
-  { id: 'swift', icon: '⚡', name: 'Swift Paws', per: 0.08, max: 8, text: (v) => `The dog runs and turns ${pct(v)} faster.` },
-  { id: 'loud', icon: '🎯', name: "Dog's Reach", per: 0.6, max: 10, weight: 2, text: (v) => `Reach +${v}: wolves get scared and sheep herded from further away.` },
-  { id: 'scary', icon: '😱', name: 'Scary Bark', per: 0.15, max: 6, text: (v) => `Scared wolves run ${pct(v)} longer before coming back.` },
-  { id: 'brave', icon: '🦴', name: 'Brave Heart', per: 0.12, max: 6, text: (v) => `Brutes and the boss give up ${pct(v)} sooner.` },
-  { id: 'lungs', icon: '🌬️', name: 'Deep Lungs', per: 0.15, max: 6, text: (v) => `The Big Bark refills ${pct(v)} faster on its own.` },
-  { id: 'booming', icon: '💥', name: 'Booming Bark', per: 0.1, max: 6, text: (v) => `The Big Bark reaches ${pct(v)} further.` },
-  { id: 'nose', icon: '👃', name: 'Nose for Wolves', per: 0.25, max: 6, text: (v) => `Sneaky wolves show up ${pct(v)} sooner and disguises are sniffed out faster.` },
-  { id: 'fetch', icon: '🎾', name: 'Fetch!', per: 0.25, max: 6, text: (v) => `Bounty tufts last ${pct(v)} longer and are easier to grab.` },
-  { id: 'pupSpeed', icon: '🐾', name: 'Pup Training', per: 0.05, max: 8, requires: 'helper', text: (v) => `The second dog runs ${pct(v)} faster (of your dog's speed).` },
-  { id: 'pupBark', icon: '🔊', name: "Pup's Bark", per: 0.04, max: 8, requires: 'helper', text: (v) => `The second dog's reach +${pct(v)}.` },
+export const TRAINING = [
+  { id: 'swift', icon: '⚡', name: 'Sprints', stat: 'Speed', per: 0.08, max: 8, text: (v) => `The dog runs and turns ${pct(v)} faster.` },
+  { id: 'loud', icon: '🎯', name: 'Reach', stat: 'Reach', per: 0.5, max: 10, weight: 2, text: (v) => `Reach +${v}: wolves get scared and sheep herded from further away.` },
+  { id: 'scary', icon: '😱', name: 'Stare Down', stat: 'Scare', per: 0.15, max: 6, text: (v) => `Scared wolves stay away ${pct(v)} longer.` },
+  { id: 'brave', icon: '🦴', name: 'Brave Heart', stat: 'Grit', per: 0.12, max: 6, text: (v) => `Brutes and the boss give up ${pct(v)} sooner.` },
+  { id: 'nose', icon: '👃', name: 'Nose Work', stat: 'Nose', per: 0.25, max: 4, text: (v) => `Sneaky wolves show up ${pct(v)} sooner and disguises are sniffed out faster.` },
+  { id: 'pupSpeed', icon: '🐾', name: 'Pup Sprints', stat: 'Pup speed', per: 0.05, max: 8, requires: 'helper', text: (v) => `The second dog runs ${pct(v)} faster (of your dog's speed).` },
+  { id: 'pupBark', icon: '🔊', name: "Pup's Bark", stat: 'Pup reach', per: 0.04, max: 8, requires: 'helper', text: (v) => `The second dog's reach +${pct(v)}.` },
 ];
 
-export const PERK = Object.fromEntries(PERKS.map((p) => [p.id, p]));
+export const TRAIN = Object.fromEntries(TRAINING.map((t) => [t.id, t]));
 
-export const RARITY = [
-  { id: 'common', name: 'Common', points: 1, weight: 70 },
-  { id: 'rare', name: 'Rare', points: 2, weight: 24 },
-  { id: 'legendary', name: 'Legendary', points: 3, weight: 6 },
-];
+// The price of the next level: `base` + `step` per level already trained.
+export const TRAINING_PRICE = { base: 5, step: 3 };
 
-// The effect of `points` of a perk, as shown on its card.
-export function perkText(id, points) {
-  const p = PERK[id];
-  return p.text(Math.round(p.per * points * 100) / 100);
+export function trainingPrice(id, level) {
+  return TRAINING_PRICE.base + TRAINING_PRICE.step * level;
 }
 
-// Three different perks to choose from on a level-up, each with a rarity roll. Maxed perks (and
-// ones whose requirement isn't owned) are left out; a roll never goes past a perk's max.
-export function drawPerks(perks, charms, n = 3) {
-  const pool = PERKS.filter((p) => (perks[p.id] ?? 0) < p.max && (!p.requires || charms.includes(p.requires)));
-  const offer = [];
-  while (offer.length < n && pool.length) {
-    const i = pickWeighted(pool.map((p) => p.weight ?? 1));
-    const p = pool.splice(i, 1)[0];
-    const rarity = RARITY[pickWeighted(RARITY.map((r) => r.weight))];
-    const points = Math.min(rarity.points, p.max - (perks[p.id] ?? 0));
-    offer.push({ id: p.id, rarity: RARITY.find((r) => r.points === points)?.id ?? 'common', points });
-  }
-  return offer;
+// The effect of `levels` levels of a training, as shown on its card.
+export function trainingText(id, levels = 1) {
+  const t = TRAIN[id];
+  return t.text(Math.round(t.per * levels * 100) / 100);
 }
 
-// --- Specialties -----------------------------------------------------------------------
-// At the levels in SPECIALTY_LEVELS the level-up offers three of these instead of perks: a rule
-// change for the dog, with a catch. The numbers are in SPECIAL (src/config.js).
-
-export const SPECIALTY_LEVELS = [5, 10];
-export const SPECIALTIES = [
-  { id: 'zoomies', icon: '🏃', name: 'Zoomies', text: '+40% speed. Dashing through a wolf at full speed scares it, brutes included.', catch: '-30% reach.' },
-  { id: 'nightWatch', icon: '🌙', name: 'Night Watch', text: 'Reach ×1.8.', catch: '-30% speed.' },
-  { id: 'sentinel', icon: '🗿', name: 'Sentinel', text: "Standing still, the dog's reach grows to ×2 over 2 s.", catch: '-20% reach while moving.' },
-  { id: 'hotStreak', icon: '🔥', name: 'Hot Streak', text: 'Every combo step gives +6% speed and reach until the chain breaks (up to +30%).', catch: 'The combo window is 30% shorter.' },
-  { id: 'alphaDog', icon: '🐺', name: 'Alpha Dog', text: "Plain wolves and pups flee on sight, from 1.8× the dog's reach.", catch: 'Brutes and the boss hold out 50% longer.' },
-];
-
-export const SPECIALTY = Object.fromEntries(SPECIALTIES.map((s) => [s.id, s]));
-
-// Three specialties the dog doesn't have yet.
-export function drawSpecialties(owned, n = 3) {
-  const pool = SPECIALTIES.filter((s) => !owned.includes(s.id));
-  const offer = [];
-  while (offer.length < n && pool.length) offer.push(pool.splice((Math.random() * pool.length) | 0, 1)[0].id);
-  return offer;
+// One training card the dog can still take (not maxed, requirement on the collar), Reach twice as
+// often; null if none.
+export function drawTraining(levels, charms, exclude = []) {
+  const pool = TRAINING.filter((t) => (levels[t.id] ?? 0) < t.max && (!t.requires || charms.includes(t.requires)) && !exclude.includes(t.id));
+  if (!pool.length) return null;
+  return pool[pickWeighted(pool.map((t) => t.weight ?? 1))].id;
 }
 
 function pickWeighted(weights) {
@@ -87,8 +56,13 @@ function pickWeighted(weights) {
 // one for half its price to make room. `rarity` sets how often it's offered.
 
 export const CHARMS = [
-  // --- Dog
-  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', rarity: 'rare', price: 35, text: 'A young dog joins you and guards the flock on its own. Slow and easily winded at first: train it with pup perks when your dog levels up.' },
+  // --- Dog: the Second Dog and the rule changes for your own dog
+  { id: 'zoomies', group: 'dog', icon: '🏃', name: 'Zoomies', rarity: 'rare', price: 20, text: '+40% speed. Dashing through a wolf at full speed scares it, brutes included.', catch: '-30% reach.' },
+  { id: 'nightWatch', group: 'dog', icon: '🌙', name: 'Night Watch', rarity: 'rare', price: 20, text: 'Reach ×1.8.', catch: '-30% speed.' },
+  { id: 'sentinel', group: 'dog', icon: '🗿', name: 'Sentinel', rarity: 'uncommon', price: 14, text: "Standing still, the dog's reach grows to ×2 over 2 s.", catch: '-20% reach while moving.' },
+  { id: 'hotStreak', group: 'dog', icon: '🔥', name: 'Hot Streak', rarity: 'uncommon', price: 14, text: 'Every combo step gives +6% speed and reach until the chain breaks (up to +30%).', catch: 'The combo window is 30% shorter.' },
+  { id: 'alphaDog', group: 'dog', icon: '🐺', name: 'Alpha Dog', rarity: 'rare', price: 22, text: "Plain wolves and pups flee on sight, from 1.8× the dog's reach.", catch: 'Brutes and the boss hold out 50% longer.' },
+  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', rarity: 'rare', price: 35, text: 'A young dog joins you and guards the flock on its own. Slow and easily winded at first: Pup Sprints and Pup\'s Bark training make it better.' },
   // --- Shepherd
   { id: 'crook', group: 'shepherd', icon: '🦯', name: "Shepherd's Crook", rarity: 'common', price: 10, text: 'The shepherd swats wolves that come within 4 units of him.' },
   { id: 'calm', group: 'shepherd', icon: '🎶', name: 'Calming Song', rarity: 'common', price: 8, text: 'Sheep panic 35% less around wolves.' },
@@ -109,20 +83,13 @@ export const CHARMS = [
   { id: 'chain', group: 'trick', icon: '💥', name: 'Chain Reaction', rarity: 'rare', price: 20, text: 'A fleeing wolf scares every wolf it runs past (not the boss). Each one extends the combo.', catch: 'Scared wolves come back 30% sooner.' },
   { id: 'brink', group: 'trick', icon: '❤️‍🔥', name: 'On the Brink', rarity: 'uncommon', price: 12, text: 'Last Sheep Standing starts one sheep above the line and is twice as strong.', catch: 'The shepherd spares one sheep fewer.' },
   { id: 'veteran', group: 'trick', icon: '📈', name: 'Veteran', rarity: 'uncommon', price: 14, text: 'Every wave you finish without losing a sheep gives the dog +5% reach, for good.', catch: 'Losing 3 or more sheep in a wave resets it.' },
-  // --- XP: charms that level the dog faster
-  { id: 'scholar', group: 'xp', icon: '📚', name: 'Wolf Scholar', rarity: 'uncommon', price: 12, text: 'Combos of ×3 and more give 50% more XP.' },
-  { id: 'buddy', group: 'xp', icon: '🐾', name: 'Study Buddy', rarity: 'common', price: 8, requires: 'helper', text: "The second dog's scares give your dog XP too." },
-  { id: 'mentor', group: 'xp', icon: '🧑‍🏫', name: 'Old Mentor', rarity: 'common', price: 8, text: 'Rescuing a grabbed sheep gives triple XP.' },
-  { id: 'diploma', group: 'xp', icon: '🎓', name: 'Sheepskin Diploma', rarity: 'uncommon', price: 12, text: 'At the end of each wave, every 2 unspent wool gives 1 XP.' },
-  { id: 'glass', group: 'xp', icon: '⚖️', name: 'Glass Cannon', rarity: 'rare', price: 18, text: 'Double XP.', catch: 'The shepherd spares one sheep fewer.' },
-  { id: 'moonlighter', group: 'xp', icon: '🌕', name: 'Moonlighter', rarity: 'uncommon', price: 10, text: 'Triple XP on the line (instead of double).' },
   { id: 'stayPut', group: 'trick', icon: '🏕️', name: 'Staying Put', rarity: 'common', price: 8, text: 'The shepherd never moves the flock to new grass.', catch: 'Wolves learn the spot: they stalk 30% less.' },
 ];
 
 export const CHARM = Object.fromEntries(CHARMS.map((c) => [c.id, c]));
 
 export const SHOP = {
-  cards: 3, // two charms and one livestock card
+  charms: 2, // charm cards in each shop (plus one training card and one animal)
   slots: 5, // charms on the collar at once
   sellBack: 0.5, // a sold charm returns this share of its price
   reroll: 2, // first reroll of a wave; each further reroll costs this much more
@@ -130,32 +97,31 @@ export const SHOP = {
   maxFrozen: 2, // cards you can freeze to keep them for the next wave's shop
 };
 
-export function modifiers(charms = [], perks = {}, specialties = []) {
+export function modifiers(charms = [], training = {}) {
   const has = (id) => charms.includes(id);
-  const spec = (id) => specialties.includes(id);
-  const p = (id) => (perks[id] ?? 0) * PERK[id].per; // a perk's total effect
+  const t = (id) => (training[id] ?? 0) * TRAIN[id].per; // a training's total effect
   return {
-    // Dog perks
-    dogSpeed: (1 + p('swift')) * (spec('zoomies') ? SPECIAL.zoomies.speed : 1) * (spec('nightWatch') ? SPECIAL.nightWatch.speed : 1),
-    barkRange: p('loud'), // added to DOG.threatRadius
-    flee: (1 + p('scary')) * (has('chain') ? 0.7 : 1),
-    courage: (1 - Math.min(0.75, p('brave'))) * (spec('alphaDog') ? SPECIAL.alphaDog.courage : 1),
-    bigBarkCooldown: 1 / (1 + p('lungs')), // × the Big Bark's refill time
-    bigBarkRadius: 1 + p('booming'),
-    reveal: 1 + p('nose'), // sneaky wolves' reveal distance
-    sniff: 1 / (1 + 2 * p('nose')), // time to expose a disguise
-    tuftLife: 1 + p('fetch'),
-    tuftRadius: 1 + 0.6 * p('fetch'),
-    helperSpeed: 0.55 + p('pupSpeed'), // fraction of the player's dog
-    helperThreat: 0.55 + p('pupBark'), // × HELPER.threatRadius
-    // Specialties
-    reachScale: (spec('zoomies') ? SPECIAL.zoomies.reach : 1) * (spec('nightWatch') ? SPECIAL.nightWatch.reach : 1),
-    zoomies: spec('zoomies'),
-    sentinel: spec('sentinel'),
-    hotStreak: spec('hotStreak'),
-    comboWindow: spec('hotStreak') ? SPECIAL.hotStreak.window : 1,
-    alphaDog: spec('alphaDog'),
-    // Charms
+    // Training
+    dogSpeed: (1 + t('swift')) * (has('zoomies') ? SPECIAL.zoomies.speed : 1) * (has('nightWatch') ? SPECIAL.nightWatch.speed : 1),
+    barkRange: t('loud'), // added to DOG.threatRadius
+    flee: (1 + t('scary')) * (has('chain') ? 0.7 : 1),
+    courage: (1 - Math.min(0.75, t('brave'))) * (has('alphaDog') ? SPECIAL.alphaDog.courage : 1),
+    reveal: 1 + t('nose'), // sneaky wolves' reveal distance
+    sniff: 1 / (1 + 2 * t('nose')), // time to expose a disguise
+    helperSpeed: 0.55 + t('pupSpeed'), // fraction of the player's dog
+    helperThreat: 0.55 + t('pupBark'), // × HELPER.threatRadius
+    bigBarkCooldown: 1, // × the Big Bark's refill time
+    bigBarkRadius: 1,
+    tuftLife: 1,
+    tuftRadius: 1,
+    // Charms: your dog
+    reachScale: (has('zoomies') ? SPECIAL.zoomies.reach : 1) * (has('nightWatch') ? SPECIAL.nightWatch.reach : 1),
+    zoomies: has('zoomies'),
+    sentinel: has('sentinel'),
+    hotStreak: has('hotStreak'),
+    comboWindow: has('hotStreak') ? SPECIAL.hotStreak.window : 1,
+    alphaDog: has('alphaDog'),
+    // Charms: helpers, the shepherd, the flock
     helper: has('helper'),
     crook: has('crook') ? 4 : 0, // shepherd's swat radius (0 = none)
     panic: has('calm') ? 0.65 : 1,
@@ -167,6 +133,8 @@ export function modifiers(charms = [], perks = {}, specialties = []) {
     extraSheep: has('more') ? 2 : 0,
     lambs: has('lambing') ? 2 : 0,
     shears: (has('shears') ? 1.3 : 1) * (has('bounty') ? 0.5 : 1),
+    interest: has('piggy') ? 3 : 0, // extra interest cap
+    // Charms: tricks
     woolPerScare: has('bounty') ? 5 : 0, // the most a single scare pays (its combo count)
     extraGolden: has('goldenChild') ? 1 : 0,
     barkMax: has('overcharge') ? 2 : 1, // Big Barks the meter holds
@@ -177,20 +145,12 @@ export function modifiers(charms = [], perks = {}, specialties = []) {
     veteran: has('veteran'),
     stayPut: has('stayPut'),
     stalk: has('stayPut') ? 0.7 : 1, // × wolves' stalking time
-    xp: has('glass') ? 2 : 1, // × all XP
-    comboXp: has('scholar') ? 1.5 : 1, // × XP from scares in a ×3+ combo
-    helperXp: has('buddy'),
-    rescueXp: has('mentor') ? 3 : 1,
-    diploma: has('diploma') ? 0.5 : 0, // XP per unspent wool at the end of a wave
-    lineXp: has('moonlighter') ? 3 : 0, // XP multiplier on the line (0 = the usual)
-    glass: has('glass'),
-    interest: has('piggy') ? 3 : 0, // extra interest cap
   };
 }
 
 // Up to `n` different charms not on the collar yet (and not in `exclude`), rarer ones less often.
 // `requires` keeps a charm out until another one is on the collar.
-export function drawCards(owned, n = SHOP.cards, exclude = []) {
+export function drawCards(owned, n = SHOP.charms, exclude = []) {
   const pool = CHARMS.filter((c) => !owned.includes(c.id) && !exclude.includes(c.id) && (!c.requires || owned.includes(c.requires)));
   const cards = [];
   while (cards.length < n && pool.length) {

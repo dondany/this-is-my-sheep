@@ -20,7 +20,7 @@ export class UI {
     this.meters = [];
     this.tip = new CardTip($('card-tip'));
     this.cardInfo = new Map(); // card key → its tooltip
-    this.selected = null; // the selected card's key ('shop:crook', 'collar:piggy', 'perk:1')
+    this.selected = null; // the selected card's key ('shop:crook', 'shop:train:swift', 'collar:piggy')
     this.el = {
       hud: $('hud'),
       sheep: $('hud-sheep'),
@@ -59,7 +59,6 @@ export class UI {
     }
     if (!shopping) {
       this.selected = null;
-      this.levelData = null;
       this.shopData = null;
       this.tip.hide();
     }
@@ -78,12 +77,7 @@ export class UI {
 
   // The flock against the line: "12 / 8" (just "12" before the line starts). The bar shows how many
   // of the sheep the shepherd can spare are left, and turns red on the line.
-  setHud({ sheep, line = 0, spare = 1, wave, timeLeft, wool, level = 1, badges = '', xp = 0, pending = 0 }) {
-    this.set('level', `${level}|${badges}|${pending ? '+' : ''}`, (v) => {
-      $('hud-level').textContent = `Lv ${level}${badges ? ' ' + badges : ''}`;
-      $('hud-level-box').classList.toggle('pending', pending > 0);
-    });
-    this.set('xp', Math.round(xp * 100) / 100, (v) => ($('hud-xp-bar').style.transform = `scaleX(${v})`));
+  setHud({ sheep, line = 0, spare = 1, wave, timeLeft, wool }) {
     this.set('sheep', line ? `${sheep} / ${line}` : String(sheep), (v) => (this.el.sheep.textContent = v));
     this.set('sheepBar', line ? Math.max(0, Math.min(1, (sheep - line) / spare)) : 1, (v) => (this.el.sheepBar.style.transform = `scaleX(${v})`));
     this.set('short', line > 0 && sheep <= line, (short) => {
@@ -211,43 +205,23 @@ export class UI {
       ...(bounty ? [row('Bounty tufts', `+${bounty}`)] : []),
       row('Wool', `🧶 +${reward + (bounty ?? 0)}`, 'total')
     );
-    if (dog) {
-      $('side-level').textContent = `🐕 Lv ${dog.level}${dog.badges ? ' ' + dog.badges : ''}`;
-      $('side-xp').style.transform = `scaleX(${dog.xp})`;
-    }
+    this.setDogTraining(dog);
     this.show('wave');
   }
 
-  // Level-up picks in the tray (like opening a booster pack): one of three cards. null hides them
-  // and brings the shop back.
-  showLevelUp(offer) {
-    this.levelData = offer;
-    $('levelup').classList.toggle('hidden', !offer);
-    $('shop').classList.toggle('hidden', !!offer);
-    if (!offer) return;
-    if (!this.selected?.startsWith('perk:')) this.selected = null;
-    $('levelup-title').textContent = `🐕 Level ${offer.level}! ${offer.special ? 'Choose a specialty' : 'Choose a perk'}${offer.left > 1 ? ` · ${offer.left - 1} more after this` : ''}`;
-    const rarityName = { common: 'Common', rare: 'Rare', legendary: 'Legendary', special: 'Specialty' };
-    $('levelup-cards').replaceChildren(
-      ...offer.cards.map((c, i) => {
-        const key = `perk:${i}`;
-        const info = {
-          title: c.name,
-          meta: c.special ? 'Specialty · once per run' : `${rarityName[c.rarity]} · +${c.points} point${c.points > 1 ? 's' : ''}`,
-          text: c.text,
-          catch: c.catch,
-          foot: c.special ? '' : `Dog has ${c.owned} of ${c.max} points`,
-        };
-        const pips = c.special ? '' : '◆'.repeat(c.points);
-        return this.cardSlot(key, { icon: c.icon, name: c.name, rarity: c.rarity, pips }, info, {
-          big: true,
-          actions: [['Take it', () => this.onPick?.(i)]],
-          zones: () => [{ name: 'dog', el: document.querySelector('.side-level') }],
-          onDrop: () => this.onPick?.(i),
-        });
-      })
+  // The dog's training levels in the sidebar, like Balatro's hand levels.
+  setDogTraining(dog) {
+    $('side-training').replaceChildren(
+      ...(dog?.length
+        ? dog.map((t) => {
+            const chip = document.createElement('span');
+            chip.className = 'train-chip';
+            chip.textContent = `${t.icon} ${t.level}`;
+            chip.title = `${t.stat} level ${t.level}: ${t.text}`;
+            return chip;
+          })
+        : [Object.assign(document.createElement('small'), { textContent: 'Untrained' })])
     );
-    this.pinSelected();
   }
 
   // The charms on the dog's collar, shown small in the top bar during a wave.
@@ -292,7 +266,7 @@ export class UI {
     this.shopData = data;
     const { cards, collar, slots, rerollCost, wool } = data;
     const keys = new Set([...cards.map((c) => `shop:${c.key}`), ...collar.map((c) => `collar:${c.id}`)]);
-    if (this.selected && !this.selected.startsWith('perk:') && !keys.has(this.selected)) this.selected = null;
+    if (this.selected && !keys.has(this.selected)) this.selected = null;
     $('shop-wool').textContent = wool;
     $('reroll-cost').textContent = rerollCost;
     $('shop-reroll').disabled = wool < rerollCost;
@@ -335,12 +309,15 @@ export class UI {
       }
       const affordable = wool >= c.price;
       const blocked = !affordable || (!c.livestock && c.full);
+      const target = c.livestock ? $('side-flock') : c.training ? $('side-dog') : $('collar'); // where it's dropped to buy
       const info = c.livestock
         ? { title: c.name, meta: `Livestock${c.frozen ? ' · ❄️ frozen' : ''}`, text: c.text, foot: `${c.pays ? c.pays + ' · ' : ''}Drag onto your flock to buy` }
-        : { title: c.name, meta: `${rarityName(c.rarity)} · ${groupName[c.group]}${c.frozen ? ' · ❄️ frozen' : ''}`, text: c.text, catch: c.catch, foot: c.full ? 'The collar is full: sell a charm first' : 'Drag onto the collar to buy' };
+        : c.training
+          ? { title: c.name, meta: `Training · ${c.stat} ${c.level} → ${c.level + 1}${c.frozen ? ' · ❄️ frozen' : ''}`, text: c.text, foot: `At level ${c.level + 1}: ${c.total} · Drag onto your dog to train` }
+          : { title: c.name, meta: `${rarityName(c.rarity)} · ${groupName[c.group]}${c.frozen ? ' · ❄️ frozen' : ''}`, text: c.text, catch: c.catch, foot: c.full ? 'The collar is full: sell a charm first' : 'Drag onto the collar to buy' };
       return this.cardSlot(
         `shop:${c.key}`,
-        { icon: c.icon, image: c.image, name: c.name, rarity: c.livestock ? 'livestock' : c.rarity, group: c.group, frozen: c.frozen },
+        { icon: c.icon, image: c.image, name: c.name, rarity: c.livestock ? 'livestock' : c.training ? 'training' : c.rarity, group: c.group, pips: c.training ? `Lv ${c.level} → ${c.level + 1}` : '', frozen: c.frozen },
         info,
         {
           price: c.price,
@@ -349,12 +326,13 @@ export class UI {
             [`Buy 🧶${c.price}`, () => this.onBuy?.(c.key), blocked],
             [c.frozen ? 'Unfreeze' : '❄️ Freeze', () => this.onFreeze?.(c.key)],
           ],
-          zones: () => [{ name: c.livestock ? 'flock' : 'collar', el: c.livestock ? $('side-flock') : $('collar') }],
-          onDrop: () => (blocked ? (c.full && affordable ? this.denyCollar() : this.shake($(c.livestock ? 'side-flock' : 'collar'))) : this.onBuy?.(c.key)),
+          zones: () => [{ name: 'target', el: target }],
+          onDrop: () => (blocked ? (c.full && affordable ? this.denyCollar() : this.shake(target)) : this.onBuy?.(c.key)),
         }
       );
     };
-    $('shop-charms').replaceChildren(...cards.filter((c) => !c.livestock).map(shopCard));
+    $('shop-charms').replaceChildren(...cards.filter((c) => !c.livestock && !c.training).map(shopCard));
+    $('shop-training').replaceChildren(...cards.filter((c) => c.training).map(shopCard));
     $('shop-animal').replaceChildren(...cards.filter((c) => c.livestock).map(shopCard));
     this.pinSelected();
   }
@@ -413,7 +391,6 @@ export class UI {
 
   select(key) {
     this.selected = this.selected === key ? null : key;
-    if (this.levelData) this.showLevelUp(this.levelData);
     if (this.shopData) this.renderShop(this.shopData);
   }
 
@@ -437,7 +414,7 @@ export class UI {
     const lines = [];
     const lostTo = Object.entries(s.lostTo).sort((a, b) => b[1] - a[1]);
     if (lostTo.length) lines.push(['Lost to', lostTo.map(([name, n]) => `${name} ×${n}`).join(' · ')]);
-    if (s.perks?.length) lines.push([`Dog level ${s.level}`, s.perks.map((u) => `${u.icon} ${u.name}${u.level > 1 ? ' ' + u.level : ''}`).join(' · ')]);
+    if (s.training?.length) lines.push(['Training', s.training.map((t) => `${t.icon} ${t.name} ${t.level}`).join(' · ')]);
     if (s.charms?.length) lines.push(['Charms', s.charms.map((c) => `${c.icon} ${c.name}`).join(' · ')]);
     if (s.animals.length) lines.push(['Bought', s.animals.join(' · ')]);
     if (s.tufts) lines.push(['Bounty tufts', String(s.tufts)]);
@@ -475,14 +452,14 @@ export class UI {
     document.querySelector('[data-action=summer-up]').disabled = summer >= unlocked;
   }
 
-  showVictory({ stars, flock, summer, unlocked, wool, level, summary }) {
+  showVictory({ stars, flock, summer, unlocked, wool, trained, summary }) {
     this.renderSummary('victory-summary', summary);
     document.querySelector('#screen-victory h2').textContent = summer > 1 ? `Summer ${summer} won!` : "Summer's End!";
     $('victory-unlock').classList.toggle('hidden', !unlocked);
     if (unlocked) $('victory-unlock').textContent = `🔓 Summer ${unlocked.summer} unlocked: ${unlocked.text}`;
     $('victory-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
     $('victory-flock').textContent = flock === 1 ? '🐑 1 sheep made it home' : `🐑 ${flock} sheep made it home`;
-    $('victory-stats').textContent = `🧶 ${wool} wool left · 🐕 level ${level}`;
+    $('victory-stats').textContent = `🧶 ${wool} wool left · 🐕 ${trained} training`;
     this.show('victory');
   }
 
