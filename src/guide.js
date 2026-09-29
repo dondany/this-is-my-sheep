@@ -247,13 +247,12 @@ $('upgrades-body').innerHTML = `
 
 const cap = (t) => t[0].toUpperCase() + t.slice(1);
 $('levels-body').innerHTML = `
-  <p>Training cards are the dog's upgrades, like Balatro's planet cards: one in every shop, used up when bought (drag it onto the dog), each raising one of the dog's stats by a level for the rest of the run. They don't take a collar slot. The next level costs ${TRAINING_PRICE.base} + ${TRAINING_PRICE.step} per level already trained; Reach comes up twice as often.</p>
+  <p>The dog's stats are upgraded directly in the shop's "Your dog" panel (no cards): pay wool to raise one a level, any number per shop. Every stat has 5 levels; the next level costs ${TRAINING_PRICE.base} × ${TRAINING_PRICE.growth}<sup>level</sup> (the pup's stats ×1.5), so a run can't max everything.</p>
   ${table(
-    ['', 'Training', 'Stat', 'Per level', 'Top level', 'At the top', 'Prices'],
+    ['', 'Stat', 'Per level', 'Top level', 'At the top', 'Prices'],
     TRAINING.map((t) => [
       t.icon,
       `<strong>${esc(t.name)}</strong>${t.requires ? ` <small>(needs ${esc(CHARM[t.requires].name)})</small>` : ''}`,
-      t.stat,
       esc(trainingText(t.id, 1)),
       String(t.max),
       esc(trainingText(t.id, t.max)),

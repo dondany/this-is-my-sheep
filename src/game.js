@@ -14,7 +14,7 @@ import { Bestiary, ENTRY, entryId } from './bestiary.js';
 import { Achievements } from './achievements.js';
 import { Tips } from './tips.js';
 import { Wardrobe, rewardFor } from './cosmetics.js';
-import { CHARM, SHOP, ANIMAL, TRAIN, modifiers, drawCards, drawAnimal, animalPrice, drawTraining, trainingPrice, trainingText } from './upgrades.js';
+import { CHARM, SHOP, ANIMAL, TRAIN, TRAINING, modifiers, drawCards, drawAnimal, animalPrice, trainingPrice, trainingText, trainingValue } from './upgrades.js';
 
 export const STATE = {
   MENU: 'MENU',
@@ -331,6 +331,7 @@ export class Game {
     ui.onFreeze = (id) => this.toggleFreeze(id);
     ui.onSell = (id) => this.sellCharm(id);
     ui.onMoveCharm = (id, index) => this.moveCharm(id, index);
+    ui.onUpgradeDog = (id) => this.upgradeDog(id);
     ui.on('close-bestiary', () => this.closeOverlay());
     ui.on('achievements', () => this.openAchievements());
     ui.on('wardrobe', () => this.openWardrobe());
@@ -563,28 +564,24 @@ export class Game {
   // drawn at random around them.
   drawShopCards() {
     this.frozen = this.frozen.filter((key) => this.canOfferCard(key));
-    const kind = (k) => (k.startsWith('animal:') ? 'animal' : k.startsWith('train:') ? 'train' : 'charm');
+    const kind = (k) => (k.startsWith('animal:') ? 'animal' : 'charm');
     const frozen = (type) => this.frozen.filter((k) => kind(k) === type);
     const m = this.ctx.mods;
     const charms = [...frozen('charm'), ...drawCards(this.charms, SHOP.charms - frozen('charm').length, frozen('charm'), m.lucky)];
-    const training = frozen('train').length ? frozen('train') : [drawTraining(this.training, this.charms)].filter(Boolean).map((id) => `train:${id}`);
     // Wool Market charm: two animals.
     const animal = [...frozen('animal')];
     for (let i = animal.length; i < (m.market ? 2 : 1); i++) {
       const k = drawAnimal((kind) => this.canBuyAnimal(kind) && !animal.includes(`animal:${kind}`));
       if (k) animal.push(`animal:${k}`);
     }
-    return [...charms, ...training, ...animal];
+    return [...charms, ...animal];
   }
 
   // Whether a card (e.g. a frozen one) can still be offered: a charm not on the collar yet, an animal
   // still available.
   canOfferCard(key) {
     if (key.startsWith('animal:')) return this.canBuyAnimal(key.slice(7));
-    if (key.startsWith('train:')) {
-      const t = TRAIN[key.slice(6)];
-      return !!t && (this.training[t.id] ?? 0) < t.max && (!t.requires || this.charms.includes(t.requires));
-    }
+    if (key.startsWith('train:')) return false; // training cards (from older saves) are gone
     const c = CHARM[key];
     return !!c && !this.charms.includes(key) && (!c.requires || this.charms.includes(c.requires));
   }
@@ -614,9 +611,7 @@ export class Game {
   cardPrice(key) {
     const base = key.startsWith('animal:')
       ? animalPrice(key.slice(7), this.ownedAnimals(key.slice(7)))
-      : key.startsWith('train:')
-        ? trainingPrice(key.slice(6), this.training[key.slice(6)] ?? 0)
-        : CHARM[key].price;
+      : CHARM[key].price;
     const market = key.startsWith('animal:') && this.ctx.mods.market ? 0.5 : 1; // Wool Market charm
     return Math.max(1, Math.round(base * this.rules.prices * this.ctx.mods.discount * market));
   }
@@ -652,11 +647,6 @@ export class Game {
           bought,
         };
       }
-      if (key.startsWith('train:')) {
-        const t = TRAIN[key.slice(6)];
-        const level = this.training[t.id] ?? 0;
-        return { key, training: true, icon: t.icon, name: t.name, stat: t.stat, level, max: t.max, text: trainingText(t.id), total: trainingText(t.id, level + 1), price, bought, frozen: this.frozen.includes(key) };
-      }
       return { key, ...CHARM[key], price, bought, frozen: this.frozen.includes(key), full: this.charms.length >= this.collarSlots() };
     });
     const collar = this.charms.map((id, i) => {
@@ -668,7 +658,7 @@ export class Game {
       }
       return c;
     });
-    this.ui.renderShop({ cards, collar, slots: this.collarSlots(), rerollCost: this.ctx.mods.noReroll ? null : this.shop.rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
+    this.ui.renderShop({ cards, collar, dog: this.dogUpgrades(), slots: this.collarSlots(), rerollCost: this.ctx.mods.noReroll ? null : this.shop.rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
   }
 
   // The end-of-wave or game-over panel, whichever is due. If it fails, the wave screen still comes
@@ -691,16 +681,40 @@ export class Game {
   showWavePanel() {
     this.panelShown = true;
     if (this.victoryPanel) return this.ui.showVictory(this.victoryPanel);
-    this.ui.showWaveComplete({ ...this.pendingPanel, dog: this.dogCard() });
+    this.ui.showWaveComplete(this.pendingPanel);
     this.showShop();
     this.tip('shop');
   }
 
-  // The dog's training levels, for the sidebar (like Balatro's hand levels).
-  dogCard() {
-    return Object.values(TRAIN)
-      .filter((t) => this.training[t.id])
-      .map((t) => ({ icon: t.icon, stat: t.stat, level: this.training[t.id], text: trainingText(t.id, this.training[t.id]) }));
+  // The dog's stats for the shop's sidebar: level, top level and the price of the next one.
+  dogUpgrades() {
+    return TRAINING.filter((t) => !t.requires || this.charms.includes(t.requires)).map((t) => {
+      const level = this.training[t.id] ?? 0;
+      return { id: t.id, icon: t.icon, name: t.name, level, max: t.max, price: level < t.max ? this.dogPrice(t.id) : null, text: trainingText(t.id, 1), now: trainingValue(t.id, level), next: level < t.max ? trainingValue(t.id, level + 1) : null };
+    });
+  }
+
+  dogPrice(id) {
+    const base = trainingPrice(id, this.training[id] ?? 0);
+    return Math.max(1, Math.round(base * this.rules.prices * this.ctx.mods.discount));
+  }
+
+  // Pay wool to raise one of the dog's stats by a level (any number of times per shop).
+  upgradeDog(id) {
+    const t = TRAIN[id];
+    const level = this.training[id] ?? 0;
+    if (this.state !== STATE.WAVE_COMPLETE || !t || level >= t.max || (t.requires && !this.charms.includes(t.requires))) return;
+    const price = this.dogPrice(id);
+    if (this.wool < price) return this.ui.denyDog(id);
+    this.wool -= price;
+    this.stats.woolSpent += price;
+    this.training[id] = level + 1;
+    this.applyUpgrades();
+    if (this.training.loud >= TRAIN.loud.max) this.achievements.run.loudMax = true;
+    this.juice.trained();
+    this.safely(() => this.checkAchievements(), 'achievements');
+    this.showShop();
+    this.saveRun();
   }
 
   buy(key) {
@@ -713,15 +727,7 @@ export class Game {
     this.shop.bought.add(key);
     this.frozen = this.frozen.filter((k) => k !== key);
     if (key.startsWith('animal:')) this.pendingAnimals.push(key.slice(7));
-    else if (key.startsWith('train:')) {
-      const id = key.slice(6);
-      this.training[id] = (this.training[id] ?? 0) + 1;
-      this.applyUpgrades();
-      if (this.training.loud >= TRAIN.loud.max) this.achievements.run.loudMax = true;
-      this.juice.trained();
-      this.ui.setDogTraining(this.dogCard());
-      this.checkAchievements();
-    } else {
+    else {
       this.charms.push(key);
       if (key === 'nestEgg') this.nestEggWaves = 0;
       if (key === 'bellCall' && !this.ownedAnimals('bellwether')) this.pendingAnimals.push('bellwether');
@@ -1678,7 +1684,7 @@ export class Game {
     const b = this.dogBase;
     if (!b) return;
     const m = this.ctx.mods;
-    const twice = m.brink ? 2.5 : 1; // On the Brink charm: 2.5 times the second wind
+    const twice = m.brink ? 2 : 1; // On the Brink charm: twice the second wind
     let speed = this.lastStand ? 1 + (LAST_STAND.speed - 1) * twice : 1;
     let reach = this.lastStand ? 1 + (LAST_STAND.reach - 1) * twice : 1;
     if (m.veteran) reach *= 1 + VETERAN.reach * this.veteran * m.veteran;

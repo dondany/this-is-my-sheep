@@ -3134,3 +3134,31 @@ out.
 -   Tested by injecting errors in achievements, the effects, the panel
     and the game loop: the shop still appears each time, the banner shows
     what broke.
+
+------------------------------------------------------------------------
+
+# 106. The Dog's Stats: Upgraded Directly, Not Drawn as Cards (implemented)
+
+Playtest: "I don't like how the collar and the dog's progress are mixed
+together." Training cards (section 100) sat in the shop next to the
+charms and came up at random. Now the two are split mechanically:
+charms stay cards on the collar; the dog's stats are a panel.
+
+-   Shop: two charms and one animal (training cards are gone; frozen
+    ones from old saves are dropped).
+-   "🐕 Your dog" is its own column right of the shop: one row per stat
+    (Speed, Reach, Scare, Grit, Nose, and Pup speed / Pup reach with the
+    Second Dog), level dots and a "+ 🧶price" button; any number of
+    levels per shop (`upgradeDog()`, `dogUpgrades()`, `dogPrice()`).
+    Hover or tap a stat: its effect, "Now +0.5 · next level +1.0".
+-   Being able to choose made the dog much stronger: at 4 + 2 per level
+    the bots maxed every stat (33 levels) and won 14 of 16. Every stat
+    now has **5 levels** with prices doubling from 15 (15, 30, 60, 120,
+    240; `TRAINING_PRICE`), the pup's ×1.5, and modest steps (Speed 8%,
+    Reach +0.5, Scare 15%, Grit 12%, Nose 25%). Runs end with 7-14
+    levels.
+-   With the Second Dog's stats bought freely Crew won 4 of 4 (pup
+    prices ×1.5 fixed it); Edge too (On the Brink back to ×2); Fortress
+    was weak (Thick Fleece +90%, Sheepdog's Oath saves 3 grabs).
+-   Bots after the changes: Fortress 3/5, Crew 3/5, Edge 3/5, Hunter
+    5/9, Barker 4/9, Rancher 3/9, no plan 1/4.

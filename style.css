@@ -1521,42 +1521,110 @@ body.shopping #hint {
   border-top: 2px dashed rgba(74, 52, 38, 0.3);
 }
 
-.side-dog {
-  padding: 8px 10px;
-  background: #efe8f8;
-  border: 3px dashed transparent;
-  border-radius: 14px;
-  transition: transform 0.15s;
+/* The dog's own column, right of the shop: its stats, upgraded with wool a level at a time. */
+.shop-dog {
+  flex: none;
+  width: 240px;
+  padding: 14px 12px 12px;
+  background: #f3eefb;
+  border: 4px solid var(--ink);
+  border-radius: 22px;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.25);
 }
 
-.side-dog.drop-hot {
-  transform: scale(1.04);
-  border-color: #7d62b8;
+.shop-dog h2 {
+  margin: 0;
+  font-size: 22px;
+  text-align: center;
 }
 
-.side-dog-title {
-  font-weight: 700;
-}
-
-.side-training {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px;
-  margin-top: 6px;
-}
-
-.side-training small {
+.shop-dog-hint {
+  margin: 2px 0 8px;
+  font-size: 12px;
+  text-align: center;
   color: var(--ink-soft);
 }
 
-.train-chip {
-  padding: 1px 7px;
-  font-size: 14px;
-  font-weight: 700;
-  background: #fffaf0;
-  border: 2px solid #7d62b8;
+/* One row per stat: icon, name over its level dots, and the + button for the next level. */
+.dog-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dog-stat {
+  display: grid;
+  grid-template-columns: 26px 1fr 62px;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px;
   border-radius: 10px;
+}
+
+.dog-stat:hover {
+  background: rgba(255, 250, 240, 0.7);
+}
+
+.dog-stat.deny {
+  animation: shake-no 0.3s;
+}
+
+.dog-stat-icon {
+  font-size: 18px;
+  text-align: center;
+}
+
+.dog-stat-body {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  cursor: help;
+}
+
+.dog-stat-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dog-stat-dots {
+  font-size: 9px;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.dog-stat-dots b {
+  font-weight: normal;
+  color: #7d62b8;
+}
+
+.dog-stat-dots i {
+  font-style: normal;
+  color: rgba(74, 52, 38, 0.35);
+}
+
+.dog-stat-buy {
+  padding: 3px 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #fffaf0;
+  background: #7d62b8;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  box-shadow: 0 2px 0 rgba(74, 52, 38, 0.3);
+  cursor: pointer;
+}
+
+.dog-stat-buy.short {
+  color: rgba(255, 250, 240, 0.7);
+  background: #b8aacf;
+}
+
+.dog-stat-buy:disabled {
+  color: var(--ink-soft);
+  background: #e2dcea;
+  cursor: default;
 }
 
 .side-buttons {
@@ -1828,11 +1896,6 @@ body.shopping #hint {
   background: linear-gradient(160deg, #fff4d8, #f7d98a);
 }
 
-.card.rarity-training {
-  border-color: #7d62b8;
-  background: #f1ebfb;
-}
-
 .card.rarity-livestock {
   border-color: #5f8a32;
   background: #f3f8e6;
@@ -1997,7 +2060,8 @@ body.shopping #hint {
     justify-content: center;
     align-items: center;
   }
-  .shop-tray {
+  .shop-tray,
+  .shop-dog {
     width: min(640px, 100%);
     flex: none;
   }

@@ -1,47 +1,46 @@
-// Everything bought with wool in the end-of-wave shop, Balatro style. Charms are the jokers: hung on
-// the dog's collar (up to 5), they make the build. Training cards are the planet cards: used up on
-// the spot, each one raises one of the dog's stats by a level for the rest of the run. Livestock
-// joins the flock. `modifiers()` turns charms and training into the multipliers the rest of the
-// game reads (ctx.mods).
+// Everything bought with wool at the end of a wave. Charms are the jokers: cards in the shop, hung on
+// the dog's collar (up to 5), they make the build. The dog's stats are upgraded directly in the shop's
+// sidebar, a level at a time, each level costing more. Livestock joins the flock. `modifiers()` turns
+// charms and the dog's levels into the multipliers the rest of the game reads (ctx.mods).
 
 import { SPECIAL, BARK } from './config.js';
 
-// --- Training (the dog's levels) ------------------------------------------------------
+// --- The dog's stats ---------------------------------------------------------------------
 // `per` is what one level adds and `max` the highest level. Each level costs more than the last.
-// `requires` keeps a card out of the shop until that charm is on the collar.
+// `requires` hides a stat until that charm is on the collar (the pup's stats need the Second Dog).
 
 const pct = (v) => `${Math.round(v * 100)}%`;
 export const TRAINING = [
-  { id: 'swift', icon: '⚡', name: 'Sprints', stat: 'Speed', per: 0.1, max: 8, text: (v) => `The dog runs and turns ${pct(v)} faster.` },
-  { id: 'loud', icon: '🎯', name: 'Reach', stat: 'Reach', per: 0.6, max: 10, weight: 2, text: (v) => `Reach +${v}: wolves get scared and sheep herded from further away.` },
-  { id: 'scary', icon: '😱', name: 'Stare Down', stat: 'Scare', per: 0.2, max: 6, text: (v) => `Scared wolves stay away ${pct(v)} longer.` },
-  { id: 'brave', icon: '🦴', name: 'Brave Heart', stat: 'Grit', per: 0.15, max: 5, text: (v) => `Brutes and the boss give up ${pct(v)} sooner.` },
-  { id: 'nose', icon: '👃', name: 'Nose Work', stat: 'Nose', per: 0.25, max: 4, text: (v) => `Sneaky wolves show up ${pct(v)} sooner and disguises are sniffed out faster.` },
-  { id: 'pupSpeed', icon: '🐾', name: 'Pup Sprints', stat: 'Pup speed', per: 0.05, max: 8, requires: 'helper', text: (v) => `The second dog runs ${pct(v)} faster (of your dog's speed).` },
-  { id: 'pupBark', icon: '🔊', name: "Pup's Bark", stat: 'Pup reach', per: 0.04, max: 8, requires: 'helper', text: (v) => `The second dog's reach +${pct(v)}.` },
+  { id: 'swift', icon: '⚡', name: 'Speed', stat: 'Speed', unit: '%', per: 0.08, max: 5, text: (v) => `The dog runs and turns ${pct(v)} faster.` },
+  { id: 'loud', icon: '🎯', name: 'Reach', stat: 'Reach', unit: '', per: 0.5, max: 5, text: (v) => `Reach +${v}: wolves get scared and sheep herded from further away.` },
+  { id: 'scary', icon: '😱', name: 'Scare', stat: 'Scare', unit: '%', per: 0.15, max: 5, text: (v) => `Scared wolves stay away ${pct(v)} longer.` },
+  { id: 'brave', icon: '🦴', name: 'Grit', stat: 'Grit', unit: '%', per: 0.12, max: 5, text: (v) => `Brutes and the boss give up ${pct(v)} sooner.` },
+  { id: 'nose', icon: '👃', name: 'Nose', stat: 'Nose', unit: '%', per: 0.25, max: 5, text: (v) => `Sneaky wolves show up ${pct(v)} sooner and disguises are sniffed out faster.` },
+  { id: 'pupSpeed', icon: '🐾', name: 'Pup speed', stat: 'Pup speed', unit: '%', per: 0.08, max: 5, requires: 'helper', priceScale: 1.5, text: (v) => `The second dog runs ${pct(v)} faster (of your dog's speed).` },
+  { id: 'pupBark', icon: '🔊', name: 'Pup reach', stat: 'Pup reach', unit: '%', per: 0.08, max: 5, requires: 'helper', priceScale: 1.5, text: (v) => `The second dog's reach +${pct(v)}.` },
 ];
 
 export const TRAIN = Object.fromEntries(TRAINING.map((t) => [t.id, t]));
 
-// The price of the next level: `base` + `step` per level already trained.
-export const TRAINING_PRICE = { base: 4, step: 2 };
+// The price of the next level: `base`, doubling with every level already bought (15, 30, 60, 120,
+// 240), so maxing everything is out of reach and each level is a choice.
+export const TRAINING_PRICE = { base: 15, growth: 2 };
 
 export function trainingPrice(id, level) {
-  return TRAINING_PRICE.base + TRAINING_PRICE.step * level;
+  return Math.round(TRAINING_PRICE.base * TRAINING_PRICE.growth ** level * (TRAIN[id].priceScale ?? 1)); // the pup's stats cost more
 }
 
-// The effect of `levels` levels of a training, as shown on its card.
+// A stat's bonus at `levels` levels, short: "+20%" or "+1.2".
+export function trainingValue(id, levels) {
+  const t = TRAIN[id];
+  const v = t.per * levels;
+  return t.unit === '%' ? `+${Math.round(v * 100)}%` : `+${Math.round(v * 10) / 10}`;
+}
+
+// The effect of `levels` levels of a training, as a sentence.
 export function trainingText(id, levels = 1) {
   const t = TRAIN[id];
   return t.text(Math.round(t.per * levels * 100) / 100);
-}
-
-// One training card the dog can still take (not maxed, requirement on the collar), Reach twice as
-// often; null if none.
-export function drawTraining(levels, charms, exclude = []) {
-  const pool = TRAINING.filter((t) => (levels[t.id] ?? 0) < t.max && (!t.requires || charms.includes(t.requires)) && !exclude.includes(t.id));
-  if (!pool.length) return null;
-  return pool[pickWeighted(pool.map((t) => t.weight ?? 1))].id;
 }
 
 function pickWeighted(weights) {
@@ -63,7 +62,7 @@ export const CHARMS = [
   { id: 'hotStreak', group: 'dog', icon: '🔥', name: 'Hot Streak', rarity: 'uncommon', price: 14, text: 'Every combo step gives +6% speed and reach until the chain breaks (up to +30%).', catch: 'The combo window is 30% shorter.' },
   { id: 'alphaDog', group: 'dog', icon: '🐺', name: 'Alpha Dog', rarity: 'rare', price: 22, text: "Plain wolves and pups flee on sight, from 1.8× the dog's reach.", catch: 'Brutes and the boss hold out 50% longer.' },
   { id: 'tracker', group: 'dog', icon: '🐾', name: 'Tracker', rarity: 'common', price: 8, text: 'The dog runs 20% faster while a wolf is going for the flock.', catch: '10% slower the rest of the time.' },
-  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', rarity: 'rare', price: 40, text: 'A young dog joins you and guards the flock on its own. Slow and easily winded at first: Pup Sprints and Pup\'s Bark training make it better.' },
+  { id: 'helper', group: 'dog', icon: '🐕', name: 'Second Dog', rarity: 'rare', price: 40, text: 'A young dog joins you and guards the flock on its own. Slow and easily winded at first: upgrade its speed and reach in the shop.' },
   { id: 'chorus', group: 'dog', icon: '🎵', name: 'Chorus', rarity: 'uncommon', price: 12, requires: 'helper', text: 'The second dog lets out a Big Bark of its own (60% of the range) whenever yours does.' },
   // --- Shepherd
   { id: 'crook', group: 'shepherd', icon: '🦯', name: "Shepherd's Crook", rarity: 'common', price: 10, text: 'The shepherd swats wolves that come within 3.5 units of him.' },
@@ -74,14 +73,14 @@ export const CHARMS = [
   { id: 'grumpy', group: 'shepherd', icon: '👴', name: 'Grumpy Old Man', rarity: 'uncommon', price: 14, text: 'The shepherd goes after wolves near the flock himself and swats them with his crook.', catch: 'The flock trails after him.' },
   { id: 'snares', group: 'shepherd', icon: '🪤', name: 'Snares', rarity: 'uncommon', price: 12, requires: 'scarecrow', text: 'Each scarecrow holds the first wolf that comes near it every wave for 5 s.' },
   // --- Flock
-  { id: 'fleece', group: 'flock', icon: '🧶', name: 'Thick Fleece', rarity: 'uncommon', price: 14, text: 'Wolves need 75% longer to take a sheep.' },
+  { id: 'fleece', group: 'flock', icon: '🧶', name: 'Thick Fleece', rarity: 'uncommon', price: 14, text: 'Wolves need 90% longer to take a sheep.' },
   { id: 'more', group: 'flock', icon: '🐑', name: 'Bigger Flock', rarity: 'common', price: 8, text: '+3 sheep join every wave.' },
   { id: 'lambing', group: 'flock', icon: '🍼', name: 'Lambing Season', rarity: 'common', price: 8, text: '+3 lambs every wave (they pay double).' },
   { id: 'shears', group: 'flock', icon: '✂️', name: 'Sharp Shears', rarity: 'uncommon', price: 12, text: '+30% wool from shearing.' },
   { id: 'piggy', group: 'flock', icon: '🐷', name: 'Piggy Bank', rarity: 'common', price: 8, text: 'Interest on unspent wool can go 3 higher.' },
   { id: 'rams', group: 'flock', icon: '🐏', name: 'Battering Rams', rarity: 'uncommon', price: 14, text: 'Rams head-butt wolves that come near them, like the goat. A ram joins every 3 waves.', catch: 'Rams give no wool.' },
   { id: 'safety', group: 'flock', icon: '🛡️', name: 'Safety in Numbers', rarity: 'uncommon', price: 14, text: "Wolves can't take a sheep that has 4 or more others close around it.", catch: 'Stragglers (fewer than 2 close by) are taken twice as fast.' },
-  { id: 'oath', group: 'flock', icon: '🤞', name: "Sheepdog's Oath", rarity: 'rare', price: 22, text: 'The first two times a wolf grabs a sheep each wave, it lets go and runs.' },
+  { id: 'oath', group: 'flock', icon: '🤞', name: "Sheepdog's Oath", rarity: 'rare', price: 22, text: 'The first three times a wolf grabs a sheep each wave, it lets go and runs.' },
   { id: 'bellCall', group: 'flock', icon: '🔔', name: "Bellwether's Call", rarity: 'uncommon', price: 12, text: 'A bellwether joins the flock (if there isn\'t one), and its bell rings twice as often and reaches 50% further.' },
   { id: 'pastures', group: 'flock', icon: '🌻', name: 'Greener Pastures', rarity: 'uncommon', price: 12, text: 'Calm sheep take wolves 60% longer to grab, and the calm bonus at shearing is doubled.' },
   { id: 'strength', group: 'flock', icon: '💪', name: 'Strength in Numbers', rarity: 'rare', price: 22, text: 'The dog gets +1% speed and reach for every sheep in the flock (up to +50%).' },
@@ -116,7 +115,7 @@ export const CHARMS = [
   { id: 'lastLight', group: 'bark', icon: '🕯️', name: 'Last Light', rarity: 'uncommon', price: 12, text: 'On the line, a Big Bark every 4 s.' },
   { id: 'horn', group: 'bark', icon: '📯', name: 'Herding Horn', rarity: 'common', price: 10, text: 'The Big Bark calls every sheep in its range to the dog instead of startling them.', catch: 'Wolves only flee from half the range.' },
   { id: 'chain', group: 'trick', icon: '💥', name: 'Chain Reaction', rarity: 'rare', price: 20, text: 'A fleeing wolf scares every wolf it runs past (not the boss). Each one extends the combo.', catch: 'Scared wolves come back 30% sooner.' },
-  { id: 'brink', group: 'trick', icon: '❤️‍🔥', name: 'On the Brink', rarity: 'uncommon', price: 12, text: 'Last Sheep Standing starts one sheep above the line and is 2.5 times as strong.', catch: 'The shepherd spares one sheep fewer.' },
+  { id: 'brink', group: 'trick', icon: '❤️‍🔥', name: 'On the Brink', rarity: 'uncommon', price: 12, text: 'Last Sheep Standing starts one sheep above the line and is twice as strong.', catch: 'The shepherd spares one sheep fewer.' },
   { id: 'veteran', group: 'trick', icon: '📈', name: 'Veteran', rarity: 'uncommon', price: 14, text: 'Every wave you finish without losing a sheep gives the dog +5% reach, for good.', catch: 'Losing 3 or more sheep in a wave resets it.' },
   { id: 'stayPut', group: 'trick', icon: '🏕️', name: 'Staying Put', rarity: 'common', price: 8, text: 'The shepherd never moves the flock to new grass.', catch: 'Wolves learn the spot: they stalk 30% less.' },
 ];
@@ -124,7 +123,7 @@ export const CHARMS = [
 export const CHARM = Object.fromEntries(CHARMS.map((c) => [c.id, c]));
 
 export const SHOP = {
-  charms: 2, // charm cards in each shop (plus one training card and one animal)
+  charms: 2, // charm cards in each shop (plus one animal)
   slots: 5, // charms on the collar at once
   sellBack: 0.5, // a sold charm returns this share of its price
   reroll: 2, // first reroll of a wave; each further reroll costs this much more
@@ -190,13 +189,13 @@ export function modifiers(charms = [], training = {}) {
     panic: pow('calm', 0.65) * pow('blood', 1.25),
     cohesion: 1 + 0.4 * n('herding'),
     spacing: pow('herding', 0.8), // × SHEEP.minDistance
-    grab: 1 + 0.75 * n('fleece'),
+    grab: 1 + 0.9 * n('fleece'),
     extraSheep: 3 * n('more'),
     lambs: 3 * n('lambing'),
     extraGolden: n('goldenChild'),
     rams: has('rams'),
     safety: has('safety'),
-    oath: 2 * n('oath'), // grabs that fail each wave
+    oath: 3 * n('oath'), // grabs that fail each wave
     bellRate: 1 + n('bellCall'), // × how often the bellwether rings
     bellRadius: 1 + 0.5 * n('bellCall'),
     pastures: has('pastures'),

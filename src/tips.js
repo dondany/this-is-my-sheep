@@ -10,7 +10,7 @@ export const TIPS = {
   bigBark: '📢 A Big Bark! Every wolf nearby flees, brutes included. There\'s no button for it: bark charms on the collar decide when your dog lets one out.',
   line: "📋 From now on the shepherd can spare only a few sheep each wave: three, plus a quarter of the flock. The number after the slash is the line (🐑 12 / 9): drop below it and the summer's over.",
   lastStand: "❤️‍🔥 You're on the line: one more lost sheep ends the summer. Your dog has found a second wind: faster, with a bigger reach. Hold on!",
-  shop: "🧶 Drag a charm onto the collar to buy it (5 at most; drag one off to sell it), a training card onto your dog, an animal onto your flock. Click a card for its details, or to ❄️ freeze it for the next wave.",
+  shop: "🧶 Drag a charm onto the collar to buy it (5 at most; drag one off to sell it), an animal onto your flock. Upgrade your dog's stats with the + buttons in the Your dog panel. Click a card for its details, or to ❄️ freeze it for the next wave.",
   stray: '❓ A sheep has wandered off. Get behind it and walk it back to the flock.',
   orphan: '🍼 A lamb lost its mother and ran off. Get behind it and walk it home.',
   brute: "💪 Brutes don't scare easily. Stay next to it until its meter fills.",

@@ -156,45 +156,46 @@ gives (Sharp Shears, Proud Shepherd, Golden Child…).
 
 The end-of-wave screen breaks the total down. Tuning: `SHEARING` in `src/config.js`.
 
-## The shop: charms and training (Balatro style)
+## The shop: charms and the dog (Balatro style)
 
-Everything is bought with wool from the flock in the end-of-wave shop: **charms** are the jokers
-(the build, hung on the dog's collar) and **training cards** are the planet cards (used up on the
-spot, each raising one of the dog's stats by a level for the rest of the run). Every shop has two
-charms, one training card and one animal.
+Everything is bought with wool from the flock at the end of a wave, in two separate ways:
+**charms** are the jokers (cards in the shop, hung on the dog's collar: the build), and the
+**dog's stats** are upgraded directly in the "Your dog" panel (no cards, no luck). Every shop
+has two charms and one animal.
 
-### Training (the dog's levels)
+### The dog's stats
 
-A training card goes onto the dog (drag it onto "Your dog" in the sidebar, or click it and Buy).
-It doesn't take a collar slot. The next level costs 4 + 2 per level already trained (4, 6, 8…).
-The sidebar lists the dog's levels, like Balatro's hand levels.
+The "Your dog" panel, right of the shop, lists the dog's stats: each with its level in dots
+(●●○○○) and a **+ 🧶price** button that raises it one level. Any number of levels can be bought in
+one shop. Every stat has 5 levels, and each level costs twice the last (15, 30, 60, 120, 240), so
+a run can't max everything: each level is a choice. Hover (or tap) a stat for its effect, the
+current bonus and the next one. Haggler's discount applies; Summer 5+ adds 25%.
 
-| Training | Stat | Per level | Top level |
-| --- | --- | --- | --- |
-| ⚡ Sprints | Speed | The dog runs and turns 10% faster | 8 |
-| 🎯 Reach | Reach | +0.6 (the ring: wolves inside it get scared, sheep react from proportionally further away); 2.5 at the start. Offered twice as often | 10 |
-| 😱 Stare Down | Scare | Scared wolves stay away 20% longer | 6 |
-| 🦴 Brave Heart | Grit | Brutes and the boss give up 15% sooner | 5 |
-| 👃 Nose Work | Nose | Sneaky wolves show up 25% sooner; disguises sniffed out faster | 4 |
-| 🐾 Pup Sprints *(needs Second Dog)* | Pup speed | Second dog +5% of your dog's speed | 8 |
-| 🔊 Pup's Bark *(needs Second Dog)* | Pup reach | Second dog's reach +4% | 8 |
+| Stat | Each level | At level 5 |
+| --- | --- | --- |
+| ⚡ Speed | The dog runs and turns 8% faster | +40% |
+| 🎯 Reach | +0.5 (the ring: wolves inside it get scared, sheep react from proportionally further away); 2.5 at the start | +2.5 |
+| 😱 Scare | Scared wolves stay away 15% longer | +75% |
+| 🦴 Grit | Brutes and the boss give up 12% sooner | 60% sooner |
+| 👃 Nose | Sneaky wolves show up 25% sooner; disguises sniffed out faster | +125% |
+| 🐾 Pup speed *(with the Second Dog; prices ×1.5)* | Second dog +8% of your dog's speed | 55% → 95% |
+| 🔊 Pup reach *(with the Second Dog; prices ×1.5)* | Second dog's reach +8% | 55% → 95% |
 
 ### Charms (wool)
 
 Wool buys **charms** on the end-of-wave screen, hung on the dog's collar: up to **5** at once, one of
-each. The shop shows four random cards (two charms, a training card and an animal); buy any you can afford, or
+each. The shop shows three random cards (two charms and an animal); buy any you can afford, or
 reroll them (2 wool, +2 per extra reroll that wave). With a full collar, sell a charm for half its
 price to make room. During a wave the collar's charms show at the end of the top bar. Uncommon
 charms (blue border) come up 60% as often as common ones, rare ones (gold) 35%, the legendary
 Mimic Bell 6%.
 
 **The shop screen** (Balatro style): the collar across the top with your wool, the wave's result
-on the left (sheep home, the line, the wool it made, the dog's training), and the tray in the middle:
-the shop with 🎲 Reroll and ▶ Next wave. Cards only show an icon and a
+on the left (sheep home, the line, the wool it made), the tray in the middle (the shop with 🎲
+Reroll and ▶ Next wave), and "Your dog" on the right. Cards only show an icon and a
 name; hover (or tap) one for the tooltip with its effect, catch and price.
 
-- **Drag and drop:** drag a charm onto the collar to buy it, a training card onto your dog, an
-  animal onto your flock (the sheep count on the left); drag a charm off the collar onto the red sell
+- **Drag and drop:** drag a charm onto the collar to buy it, an animal onto your flock (the sheep count on the left); drag a charm off the collar onto the red sell
   zone to sell it, or along the collar to reorder (Mimic Bell copies the charm to its right).
 - **Click / tap:** selects a card, pins its tooltip and shows its buttons in place of the price:
   Buy, ❄️ Freeze or Sell. Click the background to put it back.
@@ -214,7 +215,7 @@ never wolves.
 | 🔥 Hot Streak | uncommon | 14 | Every combo step gives +6% speed and reach until the chain breaks (up to +30%). | The combo window is 30% shorter. |
 | 🐺 Alpha Dog | rare | 22 | Plain wolves and pups flee on sight, from 1.8× the dog's reach. | Brutes and the boss hold out 50% longer. |
 | 🐾 Tracker | common | 8 | The dog runs 20% faster while a wolf is going for the flock. | 10% slower the rest of the time. |
-| 🐕 Second Dog | rare | 40 | A young dog joins you and guards the flock on its own. Slow and easily winded at first: Pup Sprints and Pup's Bark training make it better. |  |
+| 🐕 Second Dog | rare | 40 | A young dog joins you and guards the flock on its own. Slow and easily winded at first: upgrade its speed and reach in the Your dog panel. |  |
 | 🎵 Chorus | uncommon | 12 | The second dog lets out a Big Bark of its own (60% of the range) whenever yours does. (needs Second Dog) |  |
 
 **📢 Bark**
@@ -345,7 +346,7 @@ shop (or the win screen). Losing deletes the save.
 
 The win and game-over screens sum up the run: wolves scared, sheep saved (and close calls), sheep
 lost and what took them ("Lost to: Runner ×3 · Brute ×2…"), best combo, Big Barks, wool earned
-and spent, the dog's training, the charms on the collar and the animals you bought.
+and spent, the dog's stats, the charms on the collar and the animals you bought.
 
 ### First-time tips
 
@@ -422,7 +423,7 @@ http://localhost:8000/guide.html.
 | `src/cosmetics.js` | Wardrobe items, how accessories are built, and the saved choices |
 | `src/tips.js` | First-time tips and which ones the player has seen |
 | `src/achievements.js` | The 37 achievements, lifetime counters and unlock checks |
-| `src/upgrades.js` | Training (the dog's levels), charms, livestock; card draws and the multipliers they add up to |
+| `src/upgrades.js` | The dog's stats (and their prices), charms, livestock; card draws and the multipliers they add up to |
 | `src/cards.js` | Shop cards: the card element, its tooltip, drag and drop onto drop zones |
 | `src/helper.js` | AI for the Second Dog upgrade |
 

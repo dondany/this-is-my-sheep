@@ -109,10 +109,6 @@
         </div>
         <p id="wave-line" class="side-line"></p>
         <ul id="wave-breakdown" class="side-breakdown"></ul>
-        <div id="side-dog" class="side-dog" title="Drag a training card here to train your dog">
-          <span class="side-dog-title">🐕 Your dog</span>
-          <div id="side-training" class="side-training"></div>
-        </div>
         <div class="side-buttons">
           <button class="icon-btn" data-action="bestiary" aria-label="Bestiary" title="Bestiary">📖</button>
           <button class="icon-btn" data-action="achievements" aria-label="Achievements" title="Achievements">🏆</button>
@@ -124,7 +120,6 @@
           <div class="card-row">
             <div id="shop-charms" class="card-row"></div>
             <div class="tray-divider"></div>
-            <div id="shop-training" class="card-row"></div>
             <div id="shop-animal" class="card-row"></div>
           </div>
           <div class="tray-actions">
@@ -135,6 +130,11 @@
         <p id="tray-hint" class="tray-hint"></p>
         <div id="sell-zone" class="sell-zone hidden">Drop here to sell for 🧶 <b id="sell-price">0</b></div>
       </div>
+      <aside id="side-dog" class="shop-dog">
+        <h2>🐕 Your dog</h2>
+        <p class="shop-dog-hint">Pay wool to raise a stat one level.</p>
+        <div id="dog-stats" class="dog-stats"></div>
+      </aside>
     </div>
   </section>
 
