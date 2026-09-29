@@ -594,6 +594,19 @@ export class UI {
     setTimeout(() => el.remove(), 3700);
   }
 
+  // Something broke: a small red banner with the message, so it can be screenshotted and reported.
+  showError(message) {
+    let el = $('error-banner');
+    if (!el) {
+      el = document.createElement('button');
+      el.id = 'error-banner';
+      el.className = 'error-banner';
+      el.addEventListener('click', () => el.remove());
+      document.body.appendChild(el);
+    }
+    el.textContent = `⚠️ Something went wrong: ${message}. A screenshot of this helps fix it. (Tap to hide.)`;
+  }
+
   // First-time tips: one at a time, each for a few seconds (click to dismiss), queued if several
   // come up together.
   showTip(text) {

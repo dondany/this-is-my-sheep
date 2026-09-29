@@ -293,6 +293,8 @@ export class Game {
 
     this.last = performance.now();
     renderer.setAnimationLoop(() => this.frame());
+    window.addEventListener('error', (e) => this.reportError(e.error ?? e.message, 'window'));
+    window.addEventListener('unhandledrejection', (e) => this.reportError(e.reason, 'promise'));
   }
 
   bindUI() {
@@ -449,8 +451,7 @@ export class Game {
     // The end-of-wave / game-over panel may have come due while the overlay was open.
     const panelDue = this.panelTimer <= 0;
     this.ui.show({ [STATE.MENU]: 'menu', [STATE.PAUSED]: 'pause' }[this.state] ?? null);
-    if (panelDue && this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-    if (panelDue && this.state === STATE.GAME_OVER) this.ui.showGameOver({ reason: this.gameOverReason, spare: this.lineStart - this.line, lost: this.lineStart - this.sheepCount(), wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, newBest: this.newBest, summary: this.runSummary() });
+    if (panelDue && (this.state === STATE.WAVE_COMPLETE || this.state === STATE.GAME_OVER)) this.showEndPanel();
   }
 
   // Unlock anything on the field that hasn't been seen before (sneaky wolves once they show up,
@@ -670,8 +671,25 @@ export class Game {
     this.ui.renderShop({ cards, collar, slots: this.collarSlots(), rerollCost: this.ctx.mods.noReroll ? null : this.shop.rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
   }
 
+  // The end-of-wave or game-over panel, whichever is due. If it fails, the wave screen still comes
+  // up so the game can go on.
+  showEndPanel() {
+    try {
+      if (this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
+      else {
+        this.panelShown = true;
+        this.ui.showGameOver({ reason: this.gameOverReason, spare: this.lineStart - this.line, lost: this.lineStart - this.sheepCount(), wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, newBest: this.newBest, summary: this.runSummary() });
+      }
+    } catch (e) {
+      this.reportError(e, 'panel');
+      this.panelShown = true;
+      this.ui.show(this.state === STATE.WAVE_COMPLETE ? 'wave' : 'over');
+    }
+  }
+
   // The end-of-wave screen: the wave's result, the dog's training and the shop.
   showWavePanel() {
+    this.panelShown = true;
     if (this.victoryPanel) return this.ui.showVictory(this.victoryPanel);
     this.ui.showWaveComplete({ ...this.pendingPanel, dog: this.dogCard() });
     this.showShop();
@@ -915,9 +933,22 @@ export class Game {
     this.saveRun();
   }
 
+  // The end of a wave. Nothing here may leave the game stuck: the wool, the panel and the shop are
+  // settled first, the effects after, each guarded, and ensureWavePanel() fills in anything missing.
   completeWave() {
     this.setState(STATE.WAVE_COMPLETE);
-    for (const s of this.sheep.filter((s) => s.type.fake)) this.revealDisguise(s, 'leave');
+    this.pendingPanel = null;
+    this.panelShown = false;
+    try {
+      this.finishWave();
+    } catch (e) {
+      this.reportError(e, 'completeWave');
+    }
+    this.ensureWavePanel();
+  }
+
+  finishWave() {
+    for (const s of this.sheep.filter((s) => s.type.fake)) this.safely(() => this.revealDisguise(s, 'leave'), 'revealDisguise');
     for (const w of this.wolves) {
       if (w.target?.grabbedBy === w) w.target.grabbedBy = null;
       w.target = null;
@@ -931,7 +962,7 @@ export class Game {
       const lost = this.lineStart - this.sheepCount();
       if (lost === 0) {
         this.veteran++;
-        this.juice.veteran(this.dog, this.veteran);
+        this.safely(() => this.juice.veteran(this.dog, this.veteran));
       } else if (lost >= VETERAN.resetAt) this.veteran = 0;
       this.applyDogStats();
     }
@@ -967,11 +998,7 @@ export class Game {
       s.wavesSurvived = (s.wavesSurvived ?? 0) + 1;
       this.achievements.best('goldenStreak', s.wavesSurvived);
     }
-    this.checkAchievements();
-    this.juice.waveComplete(this.center);
-    this.juice.shearing(flock, this.shepherd, reward);
-    this.shepherd.play('clap', 2);
-    if (this.wave === GOAL.finalWave && !this.endless) this.victory();
+    if (this.wave === GOAL.finalWave && !this.endless) this.safely(() => this.victory(), 'victory');
     this.panelTimer = this.victoryPanel ? 2.6 : 1.8;
     this.pendingPanel = {
       wave: this.wave,
@@ -991,6 +1018,40 @@ export class Game {
     };
     this.openShop();
     this.saveRun();
+    // The show: none of it matters to the game's state.
+    this.safely(() => this.checkAchievements(), 'achievements');
+    this.safely(() => this.juice.waveComplete(this.center), 'juice');
+    this.safely(() => this.juice.shearing(flock, this.shepherd, reward), 'juice');
+    this.safely(() => this.shepherd.play('clap', 2), 'shepherd');
+  }
+
+  // Fill in whatever the end of a wave needs if something went wrong on the way.
+  ensureWavePanel() {
+    if (!this.pendingPanel) this.pendingPanel = { wave: this.wave, survived: this.flockSize(), total: this.waveStartSheep, lines: [], line: null, reward: 0 };
+    if (!this.shop) this.safely(() => this.openShop(), 'openShop');
+    if (!(this.panelTimer > 0)) this.panelTimer = 1.8;
+    this.safely(() => this.saveRun(), 'saveRun');
+  }
+
+  // Run something that isn't allowed to break the game: report the error and carry on.
+  safely(fn, where = '') {
+    try {
+      return fn();
+    } catch (e) {
+      this.reportError(e, where);
+    }
+  }
+
+  // Errors get a small banner on screen (so they can be screenshotted on a tablet), once each.
+  reportError(e, where = '') {
+    console.error(where, e);
+    const at = String(e?.stack ?? '').split('\n').find((l) => l.includes('.js')) ?? '';
+    const file = at.match(/([\w-]+\.js):(\d+)/);
+    const msg = `${e?.message ?? e}${where ? ` [${where}]` : ''}${file ? ` (${file[1]}:${file[2]})` : ''}`;
+    this.errorsSeen = this.errorsSeen ?? new Set();
+    if (this.errorsSeen.has(msg)) return;
+    this.errorsSeen.add(msg);
+    this.ui.showError(msg);
   }
 
   // reason: 'wolves' (the flock is gone) or 'line' (more sheep lost than the shepherd could spare)
@@ -1003,9 +1064,10 @@ export class Game {
     try {
       localStorage.setItem(BEST_KEY, String(this.best));
     } catch {}
-    this.sfx.gameOver();
-    this.checkAchievements();
+    this.safely(() => this.sfx.gameOver());
+    this.safely(() => this.checkAchievements(), 'achievements');
     this.panelTimer = 1.5;
+    this.panelShown = false;
     this.pendingPanel = null;
   }
 
@@ -1681,9 +1743,9 @@ export class Game {
         dt *= FEEL.slowmoScale;
       }
       this.time += dt;
-      this.update(dt);
+      this.safely(() => this.update(dt), 'update');
     }
-    this.world.renderer.render(this.world.scene, this.world.camera);
+    this.safely(() => this.world.renderer.render(this.world.scene, this.world.camera), 'render');
   }
 
   update(dt) {
@@ -1726,10 +1788,11 @@ export class Game {
       case STATE.GAME_OVER:
         if (this.panelTimer > 0) {
           this.panelTimer -= dt;
-          if (this.panelTimer <= 0 && !this.overlay) {
-            if (this.state === STATE.WAVE_COMPLETE) this.showWavePanel();
-            else this.ui.showGameOver({ reason: this.gameOverReason, spare: this.lineStart - this.line, lost: this.lineStart - this.sheepCount(), wave: this.wave, endless: this.endless ? this.wave - GOAL.finalWave : 0, best: this.best, newBest: this.newBest, summary: this.runSummary() });
-          }
+          if (this.panelTimer <= 0 && !this.overlay) this.showEndPanel();
+        } else if (!this.panelShown && !this.overlay && (this.panelRetry = (this.panelRetry ?? 0) - dt) <= 0) {
+          // Watchdog: the panel should be up by now but isn't (an error got in the way). Try again.
+          this.panelRetry = 1;
+          this.showEndPanel();
         }
         break;
     }
@@ -1741,11 +1804,11 @@ export class Game {
     this.simulate(dt);
     if (this.state !== STATE.MENU) {
       if (this.state === STATE.PLAYING && !this.tips.seen.has('wolfComing') && this.wolves.some((w) => w.state === 'APPROACH')) this.tip('wolfComing');
-      this.discover();
+      this.safely(() => this.discover(), 'discover');
       this.achievements.best('maxFlock', this.flockSize());
       if ((this.achievementCheck -= dt) <= 0) {
         this.achievementCheck = 0.5;
-        this.checkAchievements();
+        this.safely(() => this.checkAchievements(), 'achievements');
       }
     }
     this.updateCamera(dt);

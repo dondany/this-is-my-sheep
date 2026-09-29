@@ -39,7 +39,10 @@ body {
 
 #hud {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   pointer-events: none;
 }
 
@@ -146,7 +149,10 @@ body {
 
 .screen {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -333,7 +339,10 @@ h2 {
 #float-layer,
 #indicator-layer {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   pointer-events: none;
   overflow: hidden;
 }
@@ -394,7 +403,10 @@ h2 {
 
 .indicator .arrow {
   position: absolute;
-  inset: -12px;
+  top: -12px;
+  right: -12px;
+  bottom: -12px;
+  left: -12px;
 }
 
 .indicator .arrow::after {
@@ -484,7 +496,10 @@ h2 {
 
 #last-stand {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.5s;
@@ -511,7 +526,10 @@ body[data-effects='off'] #last-stand.on {
 
 #flash {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   pointer-events: none;
   opacity: 0;
 }
@@ -1630,7 +1648,10 @@ body.shopping #hint {
 
 .sell-zone {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2045,4 +2066,24 @@ body.shopping #hint {
   75% {
     transform: translateX(6px);
   }
+}
+
+/* Error banner: shown if something breaks, so it can be reported. */
+.error-banner {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  z-index: 100;
+  width: min(560px, calc(100% - 24px));
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  color: #fffaf0;
+  background: var(--danger);
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  transform: translateX(-50%);
+  cursor: pointer;
 }

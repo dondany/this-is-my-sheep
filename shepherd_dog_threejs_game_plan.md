@@ -3103,3 +3103,34 @@ What it took, in order:
     (8 of 12): On the Brink ×2.5, Last Light every 4 s.
 -   The bot scripts live outside the repo (headless Chrome driven over
     CDP); each number above is 4-15 runs, so read them as ±15%.
+
+------------------------------------------------------------------------
+
+# 105. The End of a Wave Can't Get Stuck (implemented)
+
+Report from an iPad: the wave finished, the shop never showed, and
+nothing responded. It couldn't be reproduced (Chrome with iPad
+emulation, both orientations, worked), so the fix is structural: any
+error at the end of a wave used to leave the game in WAVE_COMPLETE with
+no panel scheduled, and Pause only works mid-wave, so there was no way
+out.
+
+-   `completeWave()` sets up the essentials first (wool, the panel, the
+    shop, the save) in `finishWave()`; achievements, juice and the
+    shepherd's clap come after, each through `safely()`. If anything
+    still throws, `ensureWavePanel()` fills in a minimal panel, a shop
+    and the timer.
+-   `showEndPanel()` shows the end-of-wave or game-over panel with a
+    fallback to the bare screen; a watchdog in `update()` retries once a
+    second if the panel is due but not up (`panelShown`).
+-   `frame()` runs `update()` and the render through `safely()`, so one
+    bad frame doesn't stop the game; the achievement check and discovery
+    in `update()` are guarded too.
+-   `reportError()`: uncaught errors, rejected promises and caught ones
+    show a red banner with the message and file:line (once per message,
+    tap to hide), so a tablet player can screenshot it.
+-   Safari before 14.1 ignores the `inset` shorthand: every `inset: 0`
+    is now explicit top/right/bottom/left.
+-   Tested by injecting errors in achievements, the effects, the panel
+    and the game loop: the shop still appears each time, the banner shows
+    what broke.
