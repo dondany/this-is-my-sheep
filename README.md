@@ -97,7 +97,7 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🦊 | **Trickster** (orange, fox-like) | 7 | Feints: once the dog is running at it, it switches to the sheep furthest from the dog ("HEH!"). Fragile: scared from further away. |
 | 🐺 | **Alpha** (big, pale mane, ring on the ground) | 8, one per wave | While it's around, the other wolves stalk half as long; when it attacks it howls and every prowling wolf attacks with it. Scare it and every wolf inside its ring (10 units) flees too. |
 | 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early. |
-| 👑 | **Old Greymuzzle** (boss: huge, grey muzzle, mane and scars) | 15, and every 5 endless waves | Arrives a quarter of the way into the final wave with a low howl. Needs the dog next to it for 3 s (fear meter) and leads the pack like an alpha. Must be driven off 3 times (+1 per return in endless): after each of the first ones it comes back with two fresh wolves; the last time it leaves for good and drops a 10-wool tuft. The wave can't end until it's gone (overtime). Walks slow and heavy: every footfall thuds, puffs dust, shakes the screen a little and makes sheep within 12 units jump (higher the closer). |
+| 👑 | **Old Greymuzzle** (boss: huge, grey muzzle, mane and scars) | 15, and every 5 endless waves | Arrives a quarter of the way into the final wave with a low howl. Needs the dog next to it for 3 s (fear meter) and leads the pack like an alpha. Must be driven off 3 times (+1 per return in endless): after each of the first ones it comes back with two fresh wolves; the last time it leaves for good. The wave can't end until it's gone (overtime). Walks slow and heavy: every footfall thuds, puffs dust, shakes the screen a little and makes sheep within 12 units jump (higher the closer). |
 
 Wolves arrive in pairs from opposite sides of the meadow: 3 in wave 1 and one more every other wave
 (6 in wave 8, 10 in the final wave). Fewer wolves, but meaner: a growing share of the pack (35% early,
@@ -151,11 +151,10 @@ shepherd shears every surviving sheep:
 | Perfect flock (nobody lost) | +2 |
 | Interest: wool you didn't spend | +1 per 5, up to +3 |
 
-**Bounty tufts:** the first time a brute (3), alpha (3) or trickster (2) is scared off it drops
-a glowing tuft of fur worth that much wool. Run the dog over it within 8 s (it blinks before it
-blows away). It's the only wool you can earn during a wave, and it's a detour away from the flock.
+**Wool only comes from the flock.** Wolves drop nothing; charms can only multiply what the flock
+gives (Sharp Shears, Proud Shepherd, Golden Child…).
 
-The end-of-wave screen breaks the total down. Tuning: `SHEARING` and `BOUNTY` in `src/config.js`.
+The end-of-wave screen breaks the total down. Tuning: `SHEARING` in `src/config.js`.
 
 ## The shop: charms and training (Balatro style)
 
@@ -238,7 +237,7 @@ included; sheep within 6 get startled) only happens when a bark charm sets it of
 
 | Charm | Rarity | Price | Effect | Catch |
 | --- | --- | --- | --- | --- |
-| 💰 Bounty Hunter | uncommon | 14 | Every wolf scared pays wool: 1, or the combo count in a combo (up to 5) | Shearing pays half |
+| 🏆 Proud Shepherd | uncommon | 14 | Every combo that reaches ×3 adds 8% to that wave's shearing (up to +80%) | |
 | ✨ Golden Child | rare | 22 | A golden fleece joins every wave | Every wolf wants them |
 | 📯 Herding Horn | common | 10 | Big Barks call every sheep in their range to the dog instead of startling them | Wolves only flee from half the range |
 | 💥 Chain Reaction | rare | 20 | A fleeing wolf scares every wolf it runs past ("DOMINO!", not the boss); each extends the combo | Scared wolves come back 30% sooner |
@@ -292,12 +291,12 @@ shop (or the win screen). Losing deletes the save.
 
 The win and game-over screens sum up the run: wolves scared, sheep saved (and close calls), sheep
 lost and what took them ("Lost to: Runner ×3 · Brute ×2…"), best combo, Big Barks, wool earned
-and spent, bounty tufts, the upgrades you owned and the animals you bought.
+and spent, the dog's training, the charms on the collar and the animals you bought.
 
 ### First-time tips
 
 The first time something happens in a game (a wolf closes in, a sheep is grabbed, the first shop,
-a tuft drops, a brute resists, a stampede winds up, the boss arrives…) a short tip slides in at the
+a brute resists, a stampede winds up, the boss arrives…) a short tip slides in at the
 bottom right. Each tip shows once per player (saved in `localStorage`); "Show the first-time
 tips again" on the menu resets them. The texts are in `src/tips.js`.
 

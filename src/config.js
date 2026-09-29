@@ -64,7 +64,6 @@ export const COLORS = {
   trunk: 0x8a5a3b,
   leaves: [0x7fae5a, 0x6f9f4f, 0x8dba62, 0x9cbf5f],
   rock: 0xa39a8c,
-  tuft: 0x7fa853,
   flowers: [0xfff7e6, 0xf2c14e, 0xe8a0b4, 0xf4e8d0],
 
   dust: 0xd9c29a,
@@ -99,14 +98,6 @@ export const SHEARING = {
   perfect: 2, // bonus when no sheep was lost
   interestPer: 5, // +1 wool for every this much left unspent at the end of a wave...
   interestMax: 3, // ...up to this much
-};
-
-// Big wolves drop a tuft of fur the first time they're scared off: run the dog over it for wool.
-export const BOUNTY = {
-  wool: { brute: 3, alpha: 3, trickster: 2 },
-  life: 8, // seconds before it blows away
-  blink: 2.5, // blinks for this long before it goes
-  pickupRadius: 1.6,
 };
 
 // During a wave the shepherd leads the flock to new grazing spots now and then, so the flock
@@ -562,7 +553,6 @@ export const BOSS = {
   arriveAt: 0.25, // fraction of the wave's duration
   driveOffs: 3, // +1 each time it comes back in endless
   reinforcements: 2, // fresh wolves that come back with it after each drive-off
-  tuft: 10, // wool in the tuft it drops when it's gone for good
   endlessEvery: 5,
   stompRadius: 12, // sheep this close jump at each of its footfalls (higher the closer)
 };

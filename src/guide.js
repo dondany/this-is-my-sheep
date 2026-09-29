@@ -3,7 +3,7 @@
 
 import {
   spareFor, LAST_STAND, DOG, BIG_BARK, BUMP, ROAM, SHEEP, SHEEP_TYPES, WOLF, WOLF_TYPES, FIRST_WAVE, GOAL, ENDLESS, BOSS, SUMMERS,
-  SHEARING, BOUNTY, GOAT, LAMB, BLACK, BELL, SLEEPY, GOLDEN, DISGUISE, RAM_CALM, RASCAL, PUPS, HOWLER,
+  SHEARING, GOAT, LAMB, BLACK, BELL, SLEEPY, GOLDEN, DISGUISE, RAM_CALM, RASCAL, PUPS, HOWLER,
   TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, waveConfig,
 } from './config.js';
 import { CHARMS, CHARM, SHOP, LIVESTOCK, TRAINING, TRAIN, TRAINING_PRICE, animalPrice, modifiers, trainingText, trainingPrice } from './upgrades.js';
@@ -62,7 +62,7 @@ $('goal-body').innerHTML = `
   <h3>Last Sheep Standing</h3>
   <p>On the line, one more loss ends the run, so the dog finds a second wind: ${pct(LAST_STAND.speed)} speed and ${pct(LAST_STAND.reach)} reach. The screen edge pulses red with a heartbeat, and every grab plays in slow motion (${LAST_STAND.slowmo} s). It ends with the wave; finishing a wave on the line earns <em>Held the Line</em>.</p>
   <h3>The boss</h3>
-  <p>Old Greymuzzle arrives ${Math.round(BOSS.arriveAt * 100)}% of the way into the final wave. Like a brute, the dog has to stay next to him until his fear meter fills; like an alpha, he leads the pack. He has to be driven off <strong>${BOSS.driveOffs} times</strong>, coming back with ${BOSS.reinforcements} fresh wolves after each of the first ones, and drops a ${BOSS.tuft}-wool tuft when he's gone for good. The wave can't end until he is (overtime). He walks slow and heavy: every footfall thuds and makes sheep within ${BOSS.stompRadius} jump, higher the closer.</p>
+  <p>Old Greymuzzle arrives ${Math.round(BOSS.arriveAt * 100)}% of the way into the final wave. Like a brute, the dog has to stay next to him until his fear meter fills; like an alpha, he leads the pack. He has to be driven off <strong>${BOSS.driveOffs} times</strong>, coming back with ${BOSS.reinforcements} fresh wolves after each of the first ones. The wave can't end until he is (overtime). He walks slow and heavy: every footfall thuds and makes sheep within ${BOSS.stompRadius} jump, higher the closer.</p>
   <h3>Endless mode</h3>
   <p>After winning, <em>Keep grazing</em> plays on:</p>
   <ul>
@@ -92,9 +92,6 @@ $('economy-body').innerHTML = `
     ['Perfect flock (nobody lost)', `+${SHEARING.perfect}`],
     ['Interest on unspent wool', `+1 per ${SHEARING.interestPer}, up to +${SHEARING.interestMax} (Piggy Bank raises the cap)`],
   ])}
-  <h3>Bounty tufts (during a wave)</h3>
-  <p>The first time these wolves are scared off they drop a tuft of fur; run the dog over it within ${BOUNTY.life} s.</p>
-  ${table(['Wolf', 'Wool'], [...Object.entries(BOUNTY.wool).map(([k, v]) => [esc(ENTRIES.find((e) => e.id === k)?.name ?? k), String(v)]), ['Old Greymuzzle (when gone for good)', String(BOSS.tuft)]])}
   <h3>The shop</h3>
   <ul>
     <li>Every shop: ${SHOP.charms} charms, 1 training card and 1 animal. Uncommon charms come up ${Math.round(SHOP.rarityWeight.uncommon * 100)}% and rare ones ${Math.round(SHOP.rarityWeight.rare * 100)}% as often as common ones.</li>

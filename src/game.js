@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, BARK, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, BOUNTY, COLORS, waveConfig } from './config.js';
+import { GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, BARK, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
-import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Tuft, angleTo } from './entities.js';
+import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
 import { updateFlock, updateGoat, flockCenter } from './flock.js';
 import { updateWolves, toWander, isThreatening, stunWolf, forceScare } from './wolves.js';
@@ -82,7 +82,7 @@ const between = ([min, max]) => min + Math.random() * (max - min);
 
 // What happened this run, for the summary on the win and game-over screens.
 function newRunStats() {
-  return { scared: 0, saved: 0, closeCalls: 0, lost: 0, lostTo: {}, bestCombo: 0, bigBarks: 0, tufts: 0, woolEarned: 0, woolSpent: 0, animals: [] };
+  return { scared: 0, saved: 0, closeCalls: 0, lost: 0, lostTo: {}, bestCombo: 0, bigBarks: 0, woolEarned: 0, woolSpent: 0, animals: [] };
 }
 const tmp = new THREE.Vector3();
 
@@ -138,9 +138,8 @@ export class Game {
     this.frozen = []; // shop cards kept for the next wave's shop
     this.helper = null; // Second Dog upgrade
     this.scarecrows = [];
-    this.tufts = []; // bounty tufts waiting to be picked up
     this.pendingAnimals = []; // livestock bought in the shop, joining next wave
-    this.waveBounty = 0;
+    this.proudCombos = 0; // Proud Shepherd: combos that reached ×3 this wave
     this.whistleTimer = 0;
     this.roamTimer = 0;
     this.hitstop = 0;
@@ -767,8 +766,6 @@ export class Game {
     this.lastLightTimer = 0;
     this.barkCount = 0; // Big Barks this run (Pent Up)
     this.echoIn = 0; // Echo: seconds until the shepherd's echo (0 = none waiting)
-    for (const t of this.tufts) t.destroy();
-    this.tufts.length = 0;
     this.helper?.destroy();
     this.helper = null;
     this.ctx.guards.length = 1; // just the player's dog
@@ -829,7 +826,7 @@ export class Game {
     this.boss = null;
     this.bossSpawned = false;
     this.bossOvertime = false;
-    this.waveBounty = 0;
+    this.proudCombos = 0; // Proud Shepherd: combos that reached ×3 this wave
     for (const s of this.sheep) {
       s.stress = 0;
       s.wasGrabbed = false;
@@ -893,7 +890,10 @@ export class Game {
 
     // Shearing Day: every surviving sheep pays its wool, calm ones a little extra.
     const flock = this.sheep.filter((s) => !s.type.fake);
-    const sheared = Math.floor(flock.reduce((sum, s) => sum + s.type.wool, 0) * this.ctx.mods.shears);
+    const shorn = Math.floor(flock.reduce((sum, s) => sum + s.type.wool, 0) * this.ctx.mods.shears);
+    // Proud Shepherd charm: this wave's big combos add to the shearing.
+    const proud = Math.round(shorn * this.ctx.mods.proud * Math.min(10, this.proudCombos));
+    const sheared = shorn + proud;
     const calm = Math.floor(flock.filter((s) => !s.wasGrabbed && s.stress < SHEARING.calmStress).length * SHEARING.calmBonus);
     const perfect = this.flockSize() === this.waveStartSheep ? SHEARING.perfect : 0;
     const interest = Math.min(Math.floor(this.wool / SHEARING.interestPer), SHEARING.interestMax + this.ctx.mods.interest);
@@ -905,7 +905,7 @@ export class Game {
     run.wave = this.wave;
     if (perfect && this.wave >= 2) run.perfectWave = true;
     if (interest > 0 && interest >= SHEARING.interestMax + this.ctx.mods.interest) run.maxInterest = true;
-    this.achievements.best('bestWaveWool', reward + this.waveBounty);
+    this.achievements.best('bestWaveWool', reward);
     for (const s of flock) {
       if (s.kind !== 'golden') continue;
       s.wavesSurvived = (s.wavesSurvived ?? 0) + 1;
@@ -922,13 +922,13 @@ export class Game {
       survived: this.flockSize(),
       total: this.waveStartSheep,
       lines: [
-        [`Shearing: ${flock.length} sheep`, sheared],
+        [`Shearing: ${flock.length} sheep`, shorn],
+        ['Proud Shepherd', proud],
         ['Calm sheep bonus', calm],
         ['Perfect flock', perfect],
         [`Interest (1 per ${SHEARING.interestPer} saved)`, interest],
       ],
       line: this.line ? { spare: this.lineStart - this.line, lost: this.lineStart - this.sheepCount() } : null,
-      bounty: this.waveBounty,
       reward,
     };
     this.openShop();
@@ -1255,10 +1255,6 @@ export class Game {
     if (left > 0) {
       // It comes back with fresh wolves.
       for (let i = 0; i < BOSS.reinforcements; i++) this.spawnWolf('normal');
-    } else {
-      const t = new Tuft(this.world.scene, COLORS.greymuzzleLight, BOSS.tuft, BOUNTY.life * this.ctx.mods.tuftLife * 1.5).setPosition(boss.position.x, 0, boss.position.z);
-      this.tufts.push(t);
-      this.juice.tuftDropped(t);
     }
   }
 
@@ -1330,7 +1326,7 @@ export class Game {
       this.juice.crook(this.shepherd);
     } else if (by?.bark?.()) this.juice.bark(by);
     if (by === this.helper) this.helper.rest = HELPER.rest; // catches its breath before the next chase
-    // A scare that stopped a real threat: counts for combos, tufts and achievements.
+    // A scare that stopped a real threat: counts for combos and achievements.
     const counted = threatening && this.state === STATE.PLAYING;
     if (counted) {
       this.achievements.add('scares');
@@ -1338,15 +1334,6 @@ export class Game {
       if (wolf.kind === 'brute') this.achievements.add('brutes');
       if (wolf.kind === 'howler') this.achievements.add('howlers');
       this.addCombo(wolf);
-      this.dropBounty(wolf);
-      // Bounty Hunter charm: every scare pays, more in a combo.
-      const mods = this.ctx.mods;
-      if (mods.woolPerScare) {
-        const pay = Math.min(mods.woolPerScare, this.combo.count);
-        this.addWool(pay);
-        this.stats.woolEarned += pay;
-        this.juice.bountyPaid(wolf, pay);
-      }
       // Combo Bark charm: every few combo steps set off a Big Bark (its own scares don't count).
       const every = this.ctx.mods.comboBark;
       if (every && !this.barking && this.combo.count % every === 0) this.bigBark();
@@ -1446,38 +1433,6 @@ export class Game {
     }
   }
 
-  // The first time a big wolf is scared off it leaves a tuft of fur behind.
-  dropBounty(wolf) {
-    const value = BOUNTY.wool[wolf.kind]; // the boss drops its own big tuft when it's gone for good
-    if (!value || wolf.bountyDropped) return;
-    wolf.bountyDropped = true;
-    const color = { brute: COLORS.brute, alpha: COLORS.alphaMane, trickster: COLORS.fox }[wolf.kind];
-    const t = new Tuft(this.world.scene, color, value, BOUNTY.life * this.ctx.mods.tuftLife).setPosition(wolf.position.x, 0, wolf.position.z);
-    this.tufts.push(t);
-    this.juice.tuftDropped(t);
-    this.tip('tuft');
-  }
-
-  updateTufts(dt) {
-    for (let i = this.tufts.length - 1; i >= 0; i--) {
-      const t = this.tufts[i];
-      t.animate(dt, this.time, BOUNTY.blink);
-      const picked = t.position.distanceTo(this.dog.position) < BOUNTY.pickupRadius * this.ctx.mods.tuftRadius;
-      if (picked) {
-        this.addWool(t.value);
-        this.waveBounty += t.value;
-        this.achievements.add('tufts');
-        this.stats.tufts++;
-        this.stats.woolEarned += t.value;
-        this.juice.tuftCollected(t);
-      } else if (t.life <= 0) this.juice.tuftLost(t);
-      if (picked || t.life <= 0) {
-        t.destroy();
-        this.tufts.splice(i, 1);
-      }
-    }
-  }
-
   // Whole-game freeze-frame, kept for big moments and rate-limited so busy waves don't stutter.
   freeze(seconds) {
     const now = performance.now();
@@ -1507,6 +1462,10 @@ export class Game {
     c.timer = FEEL.comboWindow * this.ctx.mods.comboWindow;
     this.achievements.best('bestCombo', c.count);
     this.stats.bestCombo = Math.max(this.stats.bestCombo, c.count);
+    if (c.count === 3) {
+      this.achievements.add('bigCombos');
+      this.proudCombos++;
+    }
     if (c.count < 2) return;
     this.juice.combo(this.dog, c.count);
   }
@@ -1750,7 +1709,6 @@ export class Game {
     }
     if (this.helper) updateHelper(this.helper, this.ctx, dt, time);
     for (const sc of this.scarecrows) sc.animate(dt, time);
-    this.updateTufts(dt);
 
     updateWolves(wolves, this.ctx, dt);
     for (let i = wolves.length - 1; i >= 0; i--) {

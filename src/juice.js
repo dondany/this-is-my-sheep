@@ -167,21 +167,6 @@ export class Juice {
     this.floatText(`🧶 +${reward}`, { follow: shepherd, offsetY: 4.5, cls: 'big', duration: 2.2 });
   }
 
-  tuftDropped(tuft) {
-    this.floatText(`🧶 ${tuft.value}`, { follow: tuft, offsetY: 1.6, cls: 'good', duration: 1.2 });
-    this.particles.sparkle(tmp.copy(tuft.position).setY(0.6), 8, [0xffe08a, 0xffffff]);
-  }
-
-  tuftCollected(tuft) {
-    this.floatText(`+${tuft.value} 🧶`, { position: tuft.position, offsetY: 1.8, cls: 'big', duration: 1.1, size: 30 });
-    this.particles.sparkle(tmp.copy(tuft.position).setY(0.8), 14, [0xffe08a, 0xfff3b0, 0xffffff]);
-    this.sfx.coin();
-  }
-
-  tuftLost(tuft) {
-    this.particles.puff(tmp.copy(tuft.position).setY(0.6), 6);
-  }
-
   bossStep(boss) {
     this.particles.dust(tmp.copy(boss.position).setY(0.15), 5, 1.4);
     this.shake(0.02, 120);
@@ -216,10 +201,6 @@ export class Juice {
   // A training card: a little rising chime (the dog is behind the shop screen).
   trained() {
     this.sfx.trained();
-  }
-
-  bountyPaid(wolf, wool) {
-    this.floatText(`+${wool} 🧶`, { follow: wolf, offsetY: 3.6, cls: 'good', duration: 1 });
   }
 
   veteran(dog, stacks) {

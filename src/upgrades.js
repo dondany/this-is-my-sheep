@@ -76,7 +76,7 @@ export const CHARMS = [
   { id: 'shears', group: 'flock', icon: '✂️', name: 'Sharp Shears', rarity: 'uncommon', price: 12, text: '+30% wool from shearing.' },
   { id: 'piggy', group: 'flock', icon: '🐷', name: 'Piggy Bank', rarity: 'common', price: 8, text: 'Interest on unspent wool can go 3 higher.' },
   // --- Tricks: charms that change the rules, each with a catch
-  { id: 'bounty', group: 'trick', icon: '💰', name: 'Bounty Hunter', rarity: 'uncommon', price: 14, text: 'Every wolf scared pays wool: 1, or the combo count in a combo (up to 5).', catch: 'Shearing pays half.' },
+  { id: 'proud', group: 'trick', icon: '🏆', name: 'Proud Shepherd', rarity: 'uncommon', price: 14, text: 'Every combo that reaches ×3 makes the shepherd prouder: +8% wool from that wave\'s shearing (up to +80%).' },
   { id: 'goldenChild', group: 'trick', icon: '✨', name: 'Golden Child', rarity: 'rare', price: 22, text: 'A golden fleece (10 wool a wave) joins every wave.', catch: 'Every wolf wants them.' },
   // --- Bark: charms that make the dog let out Big Barks (there's no manual one)
   { id: 'watchdog', group: 'bark', icon: '📢', name: 'Watchdog', rarity: 'common', price: 8, text: 'The dog lets out a Big Bark every 15 s: every wolf nearby flees, brutes included.' },
@@ -130,8 +130,6 @@ export function modifiers(charms = [], training = {}) {
     thunder: has('thunder'),
     pentUp: has('pentUp') ? 4 : 0, // every this many Big Barks is a Mega Bark
     lastLight: has('lastLight') ? BARK.lastLight : 0, // seconds between Big Barks on the line
-    tuftLife: 1,
-    tuftRadius: 1,
     // Charms: your dog
     reachScale: (has('zoomies') ? SPECIAL.zoomies.reach : 1) * (has('nightWatch') ? SPECIAL.nightWatch.reach : 1),
     zoomies: has('zoomies'),
@@ -150,10 +148,10 @@ export function modifiers(charms = [], training = {}) {
     grab: has('fleece') ? 1.6 : 1,
     extraSheep: has('more') ? 2 : 0,
     lambs: has('lambing') ? 2 : 0,
-    shears: (has('shears') ? 1.3 : 1) * (has('bounty') ? 0.5 : 1),
+    shears: has('shears') ? 1.3 : 1,
     interest: has('piggy') ? 3 : 0, // extra interest cap
     // Charms: tricks
-    woolPerScare: has('bounty') ? 5 : 0, // the most a single scare pays (its combo count)
+    proud: has('proud') ? 0.08 : 0, // extra shearing per ×3 combo this wave (up to 10 of them)
     extraGolden: has('goldenChild') ? 1 : 0,
     horn: has('horn'),
     chain: has('chain') ? 2.5 : 0, // how close a fleeing wolf must pass to scare another

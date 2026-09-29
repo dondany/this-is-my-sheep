@@ -2996,3 +2996,22 @@ build decides what fires and when; the dog's movement stays the skill.
     Big Bark every 4 s). Herding Horn joins the group.
 -   The first Big Bark of a player's first run shows a tip explaining
     that charms set them off.
+
+------------------------------------------------------------------------
+
+# 102. Wool Only Comes From the Flock (implemented)
+
+Design rule from the playtester: "the wool can come only from the flock";
+combos matter only through charms.
+
+-   Removed: bounty tufts (brutes, alphas and tricksters dropped wool on
+    their first scare; the boss dropped 10 when gone for good), the
+    `Tuft` entity, `BOUNTY`, the Fetch! upgrade (already gone with
+    training), the tuft tip and the bounty line on the end-of-wave
+    screen.
+-   Bounty Hunter (wool per scare) becomes 🏆 Proud Shepherd (uncommon
+    14): every combo that reaches ×3 this wave adds 8% to the wave's
+    shearing, up to +80% (`proudCombos`; "Proud Shepherd +n" in the
+    breakdown). The wool still comes from the flock; combos multiply it.
+-   Achievement Bounty Hunter (collect 20 tufts) becomes ⛓️ Chain Gang
+    (land 10 combos of ×3 or more in total). Still 37.

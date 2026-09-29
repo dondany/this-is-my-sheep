@@ -160,7 +160,7 @@ export class UI {
   // buttons. Charms are bought by dragging them onto the collar, animals onto the flock, and sold
   // by dragging them off the collar.
 
-  showWaveComplete({ wave, survived, lines, bounty, reward, line, dog }) {
+  showWaveComplete({ wave, survived, lines, reward, line, dog }) {
     $('wave-title').textContent = `Wave ${wave} ✓`;
     $('wave-sheep').textContent = survived;
     $('wave-line').textContent = line ? `Lost ${line.lost} · could spare ${line.spare} ✓` : '';
@@ -175,8 +175,7 @@ export class UI {
     };
     $('wave-breakdown').replaceChildren(
       ...lines.filter(([, amount]) => amount > 0).map(([label, amount]) => row(short(label), `+${amount}`)),
-      ...(bounty ? [row('Bounty tufts', `+${bounty}`)] : []),
-      row('Wool', `🧶 +${reward + (bounty ?? 0)}`, 'total')
+      row('Wool', `🧶 +${reward}`, 'total')
     );
     this.setDogTraining(dog);
     this.show('wave');
@@ -390,7 +389,6 @@ export class UI {
     if (s.training?.length) lines.push(['Training', s.training.map((t) => `${t.icon} ${t.name} ${t.level}`).join(' · ')]);
     if (s.charms?.length) lines.push(['Charms', s.charms.map((c) => `${c.icon} ${c.name}`).join(' · ')]);
     if (s.animals.length) lines.push(['Bought', s.animals.join(' · ')]);
-    if (s.tufts) lines.push(['Bounty tufts', String(s.tufts)]);
     const el = $(id);
     el.innerHTML = '<div class="summary-tiles"></div><dl class="summary-lines"></dl>';
     el.firstChild.append(
