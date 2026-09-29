@@ -3176,7 +3176,7 @@ shown as a sheen on the card and a line in the tooltip, kept for the run
 -   ✨ Gilded (6%, +30%): +2 wool at every shearing; sells for full price.
 -   🌈 Polished (2%, +80%): counts twice in `effectiveCharms()`, +5%
     speed and reach.
--   🍀 Blessed (2%, +50%): once, crossing the line is forgiven (line set
+-   🕊️ Blessed (2%, +50%): once, crossing the line is forgiven (line set
     to the flock); the augment wears off. Lucky Bone does the same and
     breaks.
 -   Lucky Collar doubles the chances; copies (Mimic Bell, Pack Mentality)

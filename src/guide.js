@@ -40,7 +40,7 @@ $('dog-stats').innerHTML = `
   <h3>The dog</h3>
   ${chips([
     ['Top speed', `${DOG.maxSpeed} u/s`],
-    ['Reach (the ring)', `${startReach} at the start, +${TRAIN.loud.per} per Reach training level, up to ${startReach + TRAIN.loud.per * TRAIN.loud.max}`],
+    ['Reach (the ring)', `${startReach} at the start, +${TRAIN.loud.per} per Reach level (the Your dog panel), up to ${startReach + TRAIN.loud.per * TRAIN.loud.max}`],
     ['Big Bark', `only from bark charms (no button): every wolf within ${BIG_BARK.radius}, brutes included · startles sheep within ${BIG_BARK.startleRadius}`],
     ['Running through the flock', `sheep it passes at over ${BUMP.minSpeed} u/s bounce aside`],
     ['Parking among the sheep', `they grow uneasy and keep up to ${SHEEP.pressureMax}× further away after ${SHEEP.pressureTime} s`],
@@ -62,11 +62,11 @@ $('goal-body').innerHTML = `
   <h3>Last Sheep Standing</h3>
   <p>On the line, one more loss ends the run, so the dog finds a second wind: ${pct(LAST_STAND.speed)} speed and ${pct(LAST_STAND.reach)} reach. The screen edge pulses red with a heartbeat, and every grab plays in slow motion (${LAST_STAND.slowmo} s). It ends with the wave; finishing a wave on the line earns <em>Held the Line</em>.</p>
   <h3>The boss</h3>
-  <p>Old Greymuzzle arrives ${Math.round(BOSS.arriveAt * 100)}% of the way into the final wave. Like a brute, the dog has to stay next to him until his fear meter fills; like an alpha, he leads the pack. He has to be driven off <strong>${BOSS.driveOffs} times</strong>, coming back with ${BOSS.reinforcements} fresh wolves after each of the first ones. The wave can't end until he is (overtime). He walks slow and heavy: every footfall thuds and makes sheep within ${BOSS.stompRadius} jump, higher the closer.</p>
+  <p>Old Greymuzzle arrives ${Math.round(BOSS.arriveAt * 100)}% of the way into the final wave. Like a brute, the dog has to stay next to him until his fear meter fills; like an alpha, he leads the pack. He has to be driven off <strong>${BOSS.driveOffs} times</strong>, coming back with ${BOSS.reinforcements} fresh ${BOSS.reinforcements === 1 ? 'wolf' : 'wolves'} after each of the first ones. The wave can't end until he is (overtime). He walks slow and heavy: every footfall thuds and makes sheep within ${BOSS.stompRadius} jump, higher the closer.</p>
   <h3>Endless mode</h3>
   <p>After winning, <em>Keep grazing</em> plays on:</p>
   <ul>
-    <li>+${ENDLESS.extraWolves} wolf every wave (up to ${ENDLESS.maxWolves}), the extra slots all special wolves, and a second alpha.</li>
+    <li>+${ENDLESS.extraWolves} wolf every wave (up to ${ENDLESS.maxWolves}), most of them special wolves, and a second alpha.</li>
     <li>Flock cap ${ENDLESS.flockCap} (from ${SHEEP.cap}); newcomers that don't fit are sold at market for ${ENDLESS.marketWool} wool each.</li>
     <li>Old Greymuzzle returns every ${BOSS.endlessEvery} endless waves, with one more drive-off each time.</li>
   </ul>
@@ -92,12 +92,13 @@ $('economy-body').innerHTML = `
     ['Perfect flock (nobody lost)', `+${SHEARING.perfect}`],
     ['Interest on unspent wool', `+1 per ${SHEARING.interestPer}, up to +${SHEARING.interestMax} (Piggy Bank raises the cap)`],
   ])}
+  <p>Charms add to this: Sharp Shears, Wolf Moon and Proud Shepherd multiply the shearing; County Fair, Market Day, Blood Price and every Gilded charm add wool; Shepherd's Favor, Early Supper and Double or Nothing trade it for something else (see Charms).</p>
   <h3>The shop</h3>
   <ul>
-    <li>Every shop: ${SHOP.charms} charms, 1 training card and 1 animal. Uncommon charms come up ${Math.round(SHOP.rarityWeight.uncommon * 100)}% and rare ones ${Math.round(SHOP.rarityWeight.rare * 100)}% as often as common ones.</li>
-    <li>Reroll: ${SHOP.reroll} wool, +${SHOP.reroll} for each further reroll that wave.</li>
+    <li>Every shop: ${SHOP.charms} charms and 1 animal (Wool Market: 2). Uncommon charms come up ${Math.round(SHOP.rarityWeight.uncommon * 100)}%, rare ones ${Math.round(SHOP.rarityWeight.rare * 100)}% and the legendary one ${Math.round(SHOP.rarityWeight.legendary * 100)}% as often as common ones; any charm card can come with an augment.</li>
+    <li>Reroll: ${SHOP.reroll} wool, +${SHOP.reroll} for each further reroll that wave (Haggler: always 1; Loaded Dice: the first is free).</li>
     <li>Freeze up to ${SHOP.maxFrozen} cards (❄️) to keep them for the next wave.</li>
-    <li>Upgrade level <em>n</em> costs its base price × (<em>n</em> + 1).</li>
+    <li>The dog's stats are upgraded separately, in the "Your dog" panel next to the shop (see The dog's stats).</li>
   </ul>
   <h3>No score</h3>
   <p>There's no separate score: the result of a run is how far you got (the wave, the summer and the stars). Scares, rescues and combos are still celebrated, just without numbers.</p>`;

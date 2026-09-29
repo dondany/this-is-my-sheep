@@ -107,7 +107,7 @@ export const CHARMS = [
   { id: 'snack', group: 'dog', icon: '🍿', name: 'Snack Pack', rarity: 'common', price: 6, text: '+40% speed, 8% less every wave; gone after 5 waves.' },
   { id: 'fizzy', group: 'flock', icon: '🥤', name: 'Fizzy Water', rarity: 'common', price: 8, text: 'Wolves need twice as long to take a sheep, for the next 3 waves. Then it\'s gone.' },
   // --- Growing: better the more you do it
-  { id: 'trophy', group: 'dog', icon: '🏆', name: 'Trophy Wall', rarity: 'uncommon', price: 12, text: '+1% reach for every 10 wolves scared this run (up to +40%).' },
+  { id: 'trophy', group: 'dog', icon: '🎖️', name: 'Trophy Wall', rarity: 'uncommon', price: 12, text: '+1% reach for every 10 wolves scared this run (up to +40%).' },
   { id: 'campfire', group: 'dog', icon: '🔥', name: 'Campfire', rarity: 'uncommon', price: 12, text: '+8% speed for every charm you sell (up to +48%). Burns out after the boss.' },
   { id: 'nightOwl', group: 'dog', icon: '🦉', name: 'Night Owl', rarity: 'common', price: 8, text: '+25% reach in the second half of every wave.' },
   // --- More for the bark and the shepherd
@@ -149,7 +149,7 @@ export const AUGMENTS = {
   ghostly: { icon: '🌫️', name: 'Ghostly', chance: 0.03, price: 0.5, text: 'Takes no collar slot.' },
   gilded: { icon: '✨', name: 'Gilded', chance: 0.06, price: 0.3, text: '+2 wool at every shearing, and sells for its full price.' },
   polished: { icon: '🌈', name: 'Polished', chance: 0.02, price: 0.8, text: 'Counts twice (like a Mimic Bell copy), plus 5% speed and reach.' },
-  blessed: { icon: '🍀', name: 'Blessed', chance: 0.02, price: 0.5, text: 'Once, when the flock drops below the line, the shepherd lets it go. Then the blessing wears off.' },
+  blessed: { icon: '🕊️', name: 'Blessed', chance: 0.02, price: 0.5, text: 'Once, when the flock drops below the line, the shepherd lets it go. Then the blessing wears off.' },
 };
 
 // Maybe an augment for a charm card (Lucky Collar doubles the chances per copy).

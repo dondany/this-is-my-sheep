@@ -47,7 +47,7 @@ export const ACHIEVEMENTS = [
   { id: 'interest', group: 'Economy', icon: '🐷', name: 'Nest Egg', text: 'Collect the maximum interest on your savings.', done: (l, r) => r.maxInterest },
   { id: 'bigCombos', group: 'Wolves', icon: '⛓️', name: 'Chain Gang', text: 'Land 10 combos of ×3 or more in total.', done: (l) => l.bigCombos >= 10 },
   { id: 'goat', group: 'Economy', icon: '🐐', name: 'Good Goat', text: 'Have the goat head-butt 10 wolves in total.', done: (l) => l.goatButts >= 10 },
-  { id: 'loudMax', group: 'Economy', icon: '🎯', name: 'Long Reach', text: "Train the dog's Reach to the top level.", done: (l, r) => r.loudMax },
+  { id: 'loudMax', group: 'Economy', icon: '🎯', name: 'Long Reach', text: "Upgrade the dog's Reach to the top level.", done: (l, r) => r.loudMax },
   // --- Collection
   { id: 'naturalist', group: 'Collection', icon: '📖', name: 'Naturalist', text: 'Discover every animal in the bestiary.', done: (l) => l.discovered >= ENTRIES.length },
 ];

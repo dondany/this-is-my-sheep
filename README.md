@@ -221,7 +221,7 @@ never wolves.
 | 🎵 Chorus | uncommon | 12 | The second dog lets out a Big Bark of its own (60% of the range) whenever yours does. (needs Second Dog) |  |
 | 🥩 Fresh Bone | common | 6 | +40% reach, 8% less every wave; gone after 5 waves. |  |
 | 🍿 Snack Pack | common | 6 | +40% speed, 8% less every wave; gone after 5 waves. |  |
-| 🏆 Trophy Wall | uncommon | 12 | +1% reach for every 10 wolves scared this run (up to +40%). |  |
+| 🎖️ Trophy Wall | uncommon | 12 | +1% reach for every 10 wolves scared this run (up to +40%). |  |
 | 🔥 Campfire | uncommon | 12 | +8% speed for every charm you sell (up to +48%). Burns out after the boss. |  |
 | 🦉 Night Owl | common | 8 | +25% reach in the second half of every wave. |  |
 
@@ -329,7 +329,7 @@ card, a line in its tooltip, kept for the rest of the run. It costs more.
 | 🌫️ Ghostly | see-through, dashed | Takes no collar slot (the only way past 5) | 3% | +50% |
 | ✨ Gilded | gold sheen | +2 wool at every shearing; sells for its full price | 6% | +30% |
 | 🌈 Polished | rainbow edge | Counts twice (like a Mimic Bell copy), +5% speed and reach | 2% | +80% |
-| 🍀 Blessed | soft glow | Once, when the flock drops below the line, the shepherd lets it go; then the blessing wears off | 2% | +50% |
+| 🕊️ Blessed | soft glow | Once, when the flock drops below the line, the shepherd lets it go; then the blessing wears off | 2% | +50% |
 
 Lucky Collar doubles the chances. Mimic Bell and Pack Mentality copy a charm's effect, not its
 augment. The collar count shows Ghostly charms apart ("5 / 5 +1 🌫️").
