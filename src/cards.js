@@ -6,10 +6,10 @@ const DRAG_START = 6; // pixels the pointer has to move before a press becomes a
 
 const GROUP_GLYPH = { dog: '🐕', shepherd: '👨‍🌾', flock: '🐑', trick: '🎭', bark: '📢', wool: '🧶', edge: '❤️‍🔥', collar: '🧿' };
 
-// spec: { icon | image, name, rarity, group, pips, frozen, dim }
+// spec: { icon | image, name, rarity, group, pips, frozen, dim, aug }
 export function makeCard(spec) {
   const card = document.createElement('div');
-  card.className = `card rarity-${spec.rarity ?? 'common'}${spec.frozen ? ' frozen' : ''}${spec.dim ? ' dim' : ''}`;
+  card.className = `card rarity-${spec.rarity ?? 'common'}${spec.frozen ? ' frozen' : ''}${spec.dim ? ' dim' : ''}${spec.aug ? ` aug-${spec.aug}` : ''}`;
   card.tabIndex = 0;
   card.setAttribute('role', 'button');
   card.innerHTML = '<span class="card-group"></span><span class="card-icon"></span><span class="card-name"></span><span class="card-pips"></span>';
@@ -30,11 +30,12 @@ export class CardTip {
     this.el = el;
   }
 
-  show(card, { title, meta, text, catch: downside, foot }) {
+  show(card, { title, meta, aug, text, catch: downside, foot }) {
     const el = this.el;
-    el.innerHTML = '<strong></strong><small></small><p class="tip-text"></p><p class="tip-catch"></p><p class="tip-foot"></p>';
+    el.innerHTML = '<strong></strong><small></small><p class="tip-aug"></p><p class="tip-text"></p><p class="tip-catch"></p><p class="tip-foot"></p>';
     el.querySelector('strong').textContent = title;
     el.querySelector('small').textContent = meta ?? '';
+    el.querySelector('.tip-aug').textContent = aug ?? '';
     el.querySelector('.tip-text').textContent = text ?? '';
     el.querySelector('.tip-catch').textContent = downside ? `Catch: ${downside}` : '';
     el.querySelector('.tip-foot').textContent = foot ?? '';

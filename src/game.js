@@ -14,7 +14,7 @@ import { Bestiary, ENTRY, entryId } from './bestiary.js';
 import { Achievements } from './achievements.js';
 import { Tips } from './tips.js';
 import { Wardrobe, rewardFor } from './cosmetics.js';
-import { CHARM, SHOP, ANIMAL, TRAIN, TRAINING, modifiers, drawCards, drawAnimal, animalPrice, trainingPrice, trainingText, trainingValue } from './upgrades.js';
+import { CHARM, SHOP, ANIMAL, TRAIN, TRAINING, AUGMENTS, rollAugment, modifiers, drawCards, drawAnimal, animalPrice, trainingPrice, trainingText, trainingValue } from './upgrades.js';
 
 export const STATE = {
   MENU: 'MENU',
@@ -472,7 +472,7 @@ export class Game {
   // --- Upgrades ------------------------------------------------------------
 
   applyUpgrades() {
-    const mods = (this.ctx.mods = modifiers(this.charms, this.training));
+    const mods = (this.ctx.mods = modifiers(this.charms, this.training, this.charmAugments));
     Object.assign(this.dog.stats, {
       maxSpeed: DOG.maxSpeed * mods.dogSpeed,
       acceleration: DOG.acceleration * mods.dogSpeed,
@@ -567,7 +567,16 @@ export class Game {
     const kind = (k) => (k.startsWith('animal:') ? 'animal' : 'charm');
     const frozen = (type) => this.frozen.filter((k) => kind(k) === type);
     const m = this.ctx.mods;
-    const charms = [...frozen('charm'), ...drawCards(this.charms, SHOP.charms - frozen('charm').length, frozen('charm'), m.lucky)];
+    const fresh = drawCards(this.charms, SHOP.charms - frozen('charm').length, frozen('charm'), m.lucky);
+    const charms = [...frozen('charm'), ...fresh];
+    // Augments: kept on frozen cards, rolled fresh for the rest.
+    const kept = {};
+    for (const k of frozen('charm')) if (this.cardAugments[k]) kept[k] = this.cardAugments[k];
+    for (const k of fresh) {
+      const aug = rollAugment(m.lucky);
+      if (aug) kept[k] = aug;
+    }
+    this.cardAugments = kept;
     // Wool Market charm: two animals.
     const animal = [...frozen('animal')];
     for (let i = animal.length; i < (m.market ? 2 : 1); i++) {
@@ -611,7 +620,7 @@ export class Game {
   cardPrice(key) {
     const base = key.startsWith('animal:')
       ? animalPrice(key.slice(7), this.ownedAnimals(key.slice(7)))
-      : CHARM[key].price;
+      : CHARM[key].price * (1 + (AUGMENTS[this.cardAugments[key]]?.price ?? 0));
     const market = key.startsWith('animal:') && this.ctx.mods.market ? 0.5 : 1; // Wool Market charm
     return Math.max(1, Math.round(base * this.rules.prices * this.ctx.mods.discount * market));
   }
@@ -624,7 +633,7 @@ export class Game {
   }
 
   openShop() {
-    this.shop = { cards: this.drawShopCards(), bought: new Set(), rerollCost: this.ctx.mods.cheapReroll ? 1 : SHOP.reroll };
+    this.shop = { cards: this.drawShopCards(), bought: new Set(), rerollCost: this.ctx.mods.cheapReroll ? 1 : SHOP.reroll, freeRerolls: this.ctx.mods.freeReroll ? 1 : 0 };
   }
 
   showShop() {
@@ -647,10 +656,13 @@ export class Game {
           bought,
         };
       }
-      return { key, ...CHARM[key], price, bought, frozen: this.frozen.includes(key), full: this.charms.length >= this.collarSlots() };
+      const aug = this.cardAugments[key];
+      return { key, ...CHARM[key], aug, price, bought, frozen: this.frozen.includes(key), full: aug !== 'ghostly' && this.slotsUsed() >= this.collarSlots() };
     });
     const collar = this.charms.map((id, i) => {
-      const c = { ...CHARM[id], sell: this.sellPrice(id) };
+      const c = { ...CHARM[id], aug: this.charmAugments[id], sell: this.sellPrice(id) };
+      if (id === 'pack') c.text = `${c.text} ${this.charms[0] && !['mimic', 'pack'].includes(this.charms[0]) ? `Now copying: ${CHARM[this.charms[0]].name}.` : 'Nothing to copy yet.'}`;
+      if (id === 'oldScar' && this.charmData.oldScar?.scars) c.text = `${c.text} So far: +${5 * this.charmData.oldScar.scars}% reach.`;
       // Mimic Bell says what it's copying.
       if (id === 'mimic') {
         const next = this.charms[i + 1];
@@ -658,7 +670,9 @@ export class Game {
       }
       return c;
     });
-    this.ui.renderShop({ cards, collar, dog: this.dogUpgrades(), slots: this.collarSlots(), rerollCost: this.ctx.mods.noReroll ? null : this.shop.rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
+    const ghosts = this.charms.length - this.slotsUsed();
+    const rerollCost = this.ctx.mods.noReroll ? null : this.shop.freeRerolls > 0 ? 0 : this.shop.rerollCost;
+    this.ui.renderShop({ cards, collar, dog: this.dogUpgrades(), slots: this.collarSlots(), ghosts, used: this.slotsUsed(), rerollCost, wool: this.wool, frozen: this.frozen.length, maxFrozen: SHOP.maxFrozen });
   }
 
   // The end-of-wave or game-over panel, whichever is due. If it fails, the wave screen still comes
@@ -720,7 +734,7 @@ export class Game {
   buy(key) {
     const price = this.cardPrice(key);
     if (this.shop.bought.has(key) || this.wool < price) return;
-    if (!key.startsWith('animal:') && this.charms.length >= this.collarSlots()) return this.ui.denyCollar();
+    if (!key.startsWith('animal:') && this.cardAugments[key] !== 'ghostly' && this.slotsUsed() >= this.collarSlots()) return this.ui.denyCollar();
     this.wool -= price;
     this.stats.woolSpent += price;
     if (key.startsWith('animal:')) this.stats.animals.push(key.slice(7));
@@ -729,6 +743,8 @@ export class Game {
     if (key.startsWith('animal:')) this.pendingAnimals.push(key.slice(7));
     else {
       this.charms.push(key);
+      if (this.cardAugments[key]) this.charmAugments[key] = this.cardAugments[key];
+      this.charmData[key] = { waves: 0, polish: 0, scars: 0 };
       if (key === 'nestEgg') this.nestEggWaves = 0;
       if (key === 'bellCall' && !this.ownedAnimals('bellwether')) this.pendingAnimals.push('bellwether');
       this.applyUpgrades();
@@ -739,9 +755,20 @@ export class Game {
     this.saveRun();
   }
 
-  // Charms the collar can hold (Summer 6 takes one away).
+  // Charms the collar can hold (Summer 6 takes one away). Ghostly charms don't take a slot.
   collarSlots() {
-    return SHOP.slots + this.rules.slots + this.ctx.mods.extraSlots;
+    return SHOP.slots + this.rules.slots;
+  }
+
+  slotsUsed() {
+    return this.charms.filter((c) => this.charmAugments[c] !== 'ghostly').length;
+  }
+
+  // Wave settings with this run's charms: Early Supper shortens the waves.
+  makeWaveConfig() {
+    const cfg = waveConfig(this.wave, this.waveRules());
+    cfg.duration = Math.round(cfg.duration * (this.ctx.mods.waveLength ?? 1));
+    return cfg;
   }
 
   // The summer's rules with this run's extras (Wolf Moon: one more wolf a wave).
@@ -751,7 +778,43 @@ export class Game {
 
   sellPrice(id) {
     const egg = id === 'nestEgg' ? FLOCK_CHARMS.nestEgg * this.nestEggWaves : 0; // Nest Egg grows every wave
-    return Math.floor(CHARM[id].price * this.rules.prices * SHOP.sellBack) + egg;
+    const back = this.charmAugments[id] === 'gilded' ? 1 : SHOP.sellBack; // Gilded: full price
+    return Math.floor(CHARM[id].price * this.rules.prices * back) + egg + (this.charmData[id]?.polish ?? 0);
+  }
+
+  // Take a charm off the collar for good (sold, used up or destroyed), with its augment and state.
+  dropCharm(id) {
+    this.charms = this.charms.filter((c) => c !== id);
+    delete this.charmAugments[id];
+    delete this.charmData[id];
+  }
+
+  // Charms that change over a run. 'end' (after shearing): they age; decaying ones run out; Collar
+  // Polish shines the rest; Campfire burns out after the boss. 'start' (before a wave): Old Scar
+  // takes the charm to its right.
+  ageCharms(when) {
+    const gone = [];
+    if (when === 'end') {
+      for (const id of this.charms) {
+        const d = (this.charmData[id] ??= { waves: 0, polish: 0, scars: 0 });
+        d.waves++;
+        if ((id === 'freshBone' || id === 'snack') && d.waves >= 5) gone.push(id);
+        if (id === 'fizzy' && d.waves >= 3) gone.push(id);
+      }
+      if (this.ctx.mods.polish) for (const id of this.charms) if (id !== 'polish') this.charmData[id].polish += this.ctx.mods.polish;
+      if (this.isBossWave()) this.soldCount = 0;
+    } else if (this.ctx.mods.oldScar) {
+      const victim = this.charms[this.charms.indexOf('oldScar') + 1];
+      if (victim) {
+        (this.charmData.oldScar ??= { waves: 0, polish: 0, scars: 0 }).scars += Math.floor(CHARM[victim].price / 10);
+        gone.push(victim);
+      }
+    }
+    for (const id of gone) {
+      this.dropCharm(id);
+      this.juice.charmGone(this.dog, CHARM[id]);
+    }
+    if (gone.length) this.applyUpgrades();
   }
 
   // Drag a charm along the collar (Mimic Bell copies whatever is to its right).
@@ -770,7 +833,8 @@ export class Game {
   sellCharm(id) {
     if (this.state !== STATE.WAVE_COMPLETE || !this.charms.includes(id)) return;
     this.wool += this.sellPrice(id);
-    this.charms = this.charms.filter((c) => c !== id);
+    this.dropCharm(id);
+    this.soldCount++; // Campfire
     this.applyUpgrades();
     this.sfx.coin();
     this.showShop();
@@ -778,6 +842,15 @@ export class Game {
   }
 
   reroll() {
+    if (this.shop.freeRerolls > 0) {
+      // Loaded Dice charm: the first one is free.
+      this.shop.freeRerolls--;
+      this.shop.cards = this.drawShopCards();
+      this.shop.bought.clear();
+      this.sfx.click();
+      this.showShop();
+      return this.saveRun();
+    }
     if (this.ctx.mods.noReroll || this.wool < this.shop.rerollCost) return; // Savings Account: no rerolls
     this.wool -= this.shop.rerollCost;
     if (!this.ctx.mods.cheapReroll) this.shop.rerollCost += SHOP.reroll; // Haggler: always 1
@@ -804,6 +877,10 @@ export class Game {
     this.heartbeat = 0;
     this.veteran = 0; // Veteran charm stacks
     this.nestEggWaves = 0; // Nest Egg: waves it has been on the collar
+    this.charmAugments = {}; // charm id → augment on the collar
+    this.cardAugments = {}; // shop card key → augment (kept while a card is frozen)
+    this.charmData = {}; // charm id → { waves, polish, scars } for charms that change over a run
+    this.soldCount = 0; // Campfire: charms sold (until the boss)
     this.lineStart = 0;
     for (const w of this.wolves) w.destroy();
     this.wolves.length = 0;
@@ -846,7 +923,8 @@ export class Game {
 
   nextWave() {
     this.wave++;
-    const cfg = (this.cfg = this.ctx.cfg = waveConfig(this.wave, this.waveRules()));
+    this.safely(() => this.ageCharms('start'), 'charms');
+    const cfg = (this.cfg = this.ctx.cfg = this.makeWaveConfig());
     this.ctx.cohesionScale = 1;
 
     // Livestock bought in the shop comes first: it's paid for.
@@ -864,7 +942,7 @@ export class Game {
     for (const kind of ['ram', 'black', 'bellwether']) for (let i = count(kind); i < cfg[kind]; i++) kinds.push(kind);
     if (cfg.golden && !count('golden')) kinds.push('golden');
     for (let i = 0; i < this.ctx.mods.extraGolden; i++) kinds.push('golden'); // Golden Child charm
-    if (this.ctx.mods.rams && this.wave % 3 === 0) kinds.push('ram'); // Battering Rams charm
+    if (this.ctx.mods.rams && this.wave % FLOCK_CHARMS.ramEvery === 0) kinds.push('ram'); // Battering Rams charm
     for (let i = 0; i < cfg.sleepy; i++) kinds.push('sleepy');
     for (let i = 0; i < cfg.wanderers; i++) kinds.push('wanderer');
     const mods = this.ctx.mods;
@@ -890,9 +968,9 @@ export class Game {
     // The line: the flock may lose a share of its sheep this wave, but no more.
     this.lineStart = this.sheepCount();
     this.line = lineFor(this.wave, this.lineStart);
-    // On the Brink and Glass Collar charms: the shepherd spares one fewer each (always at least one).
+    // On the Brink spares one fewer, Shepherd's Favor two more (the line stays between 0 and the flock).
     const fewer = this.ctx.mods.spareFewer;
-    if (this.line && fewer) this.line = Math.min(this.lineStart - 1, this.line + fewer);
+    if (this.line && fewer) this.line = Math.max(0, Math.min(this.lineStart - 1, this.line + fewer));
     this.boss = null;
     this.bossSpawned = false;
     this.bossOvertime = false;
@@ -989,7 +1067,9 @@ export class Game {
     const perfect = this.flockSize() === this.waveStartSheep ? SHEARING.perfect : 0;
     const owed = Math.floor(this.wool / SHEARING.interestPer);
     const interest = m.noInterestCap ? owed : Math.min(owed, SHEARING.interestMax + m.interest); // Savings Account: no cap
-    const reward = sheared + calm + perfect + interest + fair + fleeces;
+    const gilded = 2 * Object.values(this.charmAugments).filter((a) => a === 'gilded').length; // Gilded charms
+    const market = m.marketDay * (1 + Math.floor((this.charmData.marketDay?.waves ?? 0) / 2)); // Market Day
+    const reward = sheared + calm + perfect + interest + fair + fleeces + gilded + market;
     if (m.nestEgg) this.nestEggWaves++;
     this.stats.woolEarned += reward;
     this.wool += reward;
@@ -1018,10 +1098,13 @@ export class Game {
         [`Interest (1 per ${SHEARING.interestPer} saved)`, interest],
         ['County Fair', fair],
         ['Fleeces left behind', fleeces],
+        ['Gilded charms', gilded],
+        ['Market Day', market],
       ],
       line: this.line ? { spare: this.lineStart - this.line, lost: this.lineStart - this.sheepCount() } : null,
       reward,
     };
+    this.safely(() => this.ageCharms('end'), 'charms');
     this.openShop();
     this.saveRun();
     // The show: none of it matters to the game's state.
@@ -1097,6 +1180,10 @@ export class Game {
       training: this.training,
       veteran: this.veteran,
       nestEggWaves: this.nestEggWaves,
+      charmAugments: this.charmAugments,
+      cardAugments: this.cardAugments,
+      charmData: this.charmData,
+      soldCount: this.soldCount,
       stats: this.stats,
       run: this.achievements.run,
       shepherd: [r(this.shepherd.position.x), r(this.shepherd.position.z)],
@@ -1138,6 +1225,10 @@ export class Game {
     this.training = data.training ?? {};
     this.veteran = data.veteran ?? 0;
     this.nestEggWaves = data.nestEggWaves ?? 0;
+    this.charmAugments = data.charmAugments ?? {};
+    this.cardAugments = data.cardAugments ?? {};
+    this.charmData = data.charmData ?? {};
+    this.soldCount = data.soldCount ?? 0;
     this.frozen = data.frozen ?? [];
     this.stats = { ...newRunStats(), ...data.stats };
     Object.assign(this.achievements.run, data.run);
@@ -1171,7 +1262,7 @@ export class Game {
     });
     if (data.goat) this.goat = new Goat(this.world.scene).setPosition(data.goat[0], 0, data.goat[1]);
     flockCenter(this.sheep, this.center);
-    this.cfg = this.ctx.cfg = waveConfig(this.wave, this.waveRules());
+    this.cfg = this.ctx.cfg = this.makeWaveConfig();
     this.ctx.cohesionScale = 1;
 
     if (data.at === 'wave') {
@@ -1518,6 +1609,11 @@ export class Game {
     for (const s of this.sheep) {
       const d = s.position.distanceTo(from.position);
       if (mega) s.fear = 0; // a Mega Bark calms the whole flock
+      if (m.magnet && !s.grabbedBy && s.position.distanceTo(this.center) > 7) {
+        // Magnet Collar: strays head back to the shepherd.
+        s.regroup = WHISTLE.regroupTime;
+        s.regroupTo = this.shepherd;
+      }
       if (horn) {
         if (d < full && !s.grabbedBy) {
           s.regroup = WHISTLE.regroupTime;
@@ -1649,8 +1745,18 @@ export class Game {
       this.ctx.cohesionScale = BELL.lostCohesion;
       this.juice.bellwetherLost(sheep.position);
     }
-    // Crossing the line ends the run on the spot: no waiting out a lost wave.
+    // Crossing the line ends the run on the spot: no waiting out a lost wave. Unless a Lucky Bone or a
+    // Blessed charm saves it, once.
     if (this.line && !sheep.type.fake && this.sheepCount() < this.line && this.state === STATE.PLAYING) {
+      const blessed = this.charms.find((c) => this.charmAugments[c] === 'blessed');
+      if (this.ctx.mods.luckyBone || blessed) {
+        if (this.ctx.mods.luckyBone) this.dropCharm('luckyBone');
+        else delete this.charmAugments[blessed];
+        this.line = this.sheepCount();
+        this.applyUpgrades();
+        this.juice.spared(this.shepherd);
+        return;
+      }
       this.juice.lineCrossed(this.shepherd);
       return this.gameOver('line');
     }
@@ -1690,6 +1796,30 @@ export class Game {
     if (m.veteran) reach *= 1 + VETERAN.reach * this.veteran * m.veteran;
     if (m.sentinel) reach *= this.dog.speed < SPECIAL.sentinel.still ? 1 + this.sentinel * m.sentinel : SPECIAL.sentinel.moving;
     if (m.tracker) speed *= this.dog.alert ? 1 + 0.2 * m.tracker : 0.9 ** m.tracker; // Tracker charm
+    const d = (id) => this.charmData[id] ?? {};
+    if (m.freshBone) reach *= 1 + Math.max(0, 0.4 - 0.08 * (d('freshBone').waves ?? 0)) * m.freshBone; // Fresh Bone
+    if (m.snack) speed *= 1 + Math.max(0, 0.4 - 0.08 * (d('snack').waves ?? 0)) * m.snack; // Snack Pack
+    if (m.trophy) reach *= 1 + Math.min(0.4, 0.01 * Math.floor(this.stats.scared / 10) * m.trophy); // Trophy Wall
+    if (m.campfire) speed *= 1 + Math.min(0.48, 0.08 * this.soldCount * m.campfire); // Campfire
+    if (m.nightOwl && this.state === STATE.PLAYING && this.cfg && this.waveTime > this.cfg.duration / 2) reach *= 1 + 0.25 * m.nightOwl; // Night Owl
+    if (m.oldScar) reach *= 1 + 0.05 * (d('oldScar').scars ?? 0); // Old Scar
+    const polished = Object.values(this.charmAugments).filter((a) => a === 'polished').length;
+    if (polished) {
+      speed *= 1 + 0.05 * polished;
+      reach *= 1 + 0.05 * polished;
+    }
+    if (m.loneDog) {
+      const k = 1 + 0.12 * Math.max(0, this.collarSlots() - this.slotsUsed() + 1) * m.loneDog; // Lone Dog: its own slot counts
+      speed *= k;
+      reach *= k;
+    }
+    if (m.buddy) {
+      const groups = {};
+      for (const c of this.charms) if (c !== 'buddy') groups[CHARM[c].group] = (groups[CHARM[c].group] ?? 0) + 1;
+      const k = 1 + 0.08 * Math.max(0, Math.max(0, ...Object.values(groups)) - 1) * m.buddy; // Buddy System
+      speed *= k;
+      reach *= k;
+    }
     if (m.wellFed) {
       const k = 1 + Math.min(0.6, 0.01 * Math.floor(this.wool / 4) * m.wellFed); // Well Fed charm
       speed *= k;

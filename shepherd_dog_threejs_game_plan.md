@@ -3162,3 +3162,55 @@ charms stay cards on the collar; the dog's stats are a panel.
     was weak (Thick Fleece +90%, Sheepdog's Oath saves 3 grabs).
 -   Bots after the changes: Fortress 3/5, Crew 3/5, Edge 3/5, Hunter
     5/9, Barker 4/9, Rancher 3/9, no plan 1/4.
+
+------------------------------------------------------------------------
+
+# 107. Augments and 18 More Charms (implemented)
+
+**Augments** (Balatro's editions) replace Glass Collar as the way to more
+slots: a charm card in the shop can roll one (`AUGMENTS`, `rollAugment()`),
+shown as a sheen on the card and a line in the tooltip, kept for the run
+(`charmAugments`; frozen cards keep theirs in `cardAugments`).
+
+-   🌫️ Ghostly (3%, +50% price): takes no collar slot (`slotsUsed()`).
+-   ✨ Gilded (6%, +30%): +2 wool at every shearing; sells for full price.
+-   🌈 Polished (2%, +80%): counts twice in `effectiveCharms()`, +5%
+    speed and reach.
+-   🍀 Blessed (2%, +50%): once, crossing the line is forgiven (line set
+    to the flock); the augment wears off. Lucky Bone does the same and
+    breaks.
+-   Lucky Collar doubles the chances; copies (Mimic Bell, Pack Mentality)
+    copy the effect, not the augment.
+
+**18 new charms** (72 in all), by Balatro joker type:
+
+-   Decaying: Fresh Bone (+40% reach, −8% a wave, gone after 5), Snack
+    Pack (the same for speed), Fizzy Water (grabs ×2 for 3 waves).
+-   Growing: Trophy Wall (+1% reach per 10 wolves scared, up to 40%),
+    Campfire (+8% speed per charm sold, up to 48%, out after the boss),
+    Market Day (+1 wool at shearing, +1 more every 2 waves).
+-   Position and slots: Lone Dog (+12% speed and reach per empty slot,
+    its own included), Pack Mentality (copies the leftmost charm), Old
+    Scar (destroys the charm to its right each wave for +5% reach per 10
+    wool of its price), Buddy System (+8% speed and reach per extra charm
+    in your biggest group).
+-   Bark: Bark Collector (+10% Big Bark range per bark charm), Magnet
+    Collar (Big Barks send strays home).
+-   Safety and risk: Lucky Bone, Shepherd's Favor (spares 2 more,
+    shearing −25%), Early Supper (waves −20%, shearing −20%), Night Owl
+    (+25% reach in the second half of a wave).
+-   Wool: Loaded Dice (first reroll free), Collar Polish (+1 sell value a
+    wave for the other charms).
+-   `ageCharms()` runs at the end of each wave (aging, decay, polish,
+    Campfire reset) and before the next (Old Scar); `charmData` keeps each
+    charm's state; `charmGone` / `spared` juice.
+-   Parked: Decoy (needs a new kind of sheep) and Jeweller (a decision
+    for the designer), in FUTURE_IDEAS.
+
+Balance (build bots, a new 🎯 Lone Dog build keeps just Lone Dog and
+Thick Fleece): Lone Dog started at +15% a slot and won 3/4, +10% won 1/5,
+settled at +12% (2/6). Bark Collector 5% → 10% a charm. Crew kept winning
+(5/5), carried by Battering Rams: a butt every 4 s within 2, a ram every
+4 waves; the Second Dog starts at 50% (was 55%). Last Light every 5 s.
+Final: Crew 4/6, Edge 3/5, Hunter 2/4, Rancher 2/4, Barker 2/5, Lone Dog
+2/6, Fortress 3/9, no plan 0/4.

@@ -188,7 +188,9 @@ each. The shop shows three random cards (two charms and an animal); buy any you 
 reroll them (2 wool, +2 per extra reroll that wave). With a full collar, sell a charm for half its
 price to make room. During a wave the collar's charms show at the end of the top bar. Uncommon
 charms (blue border) come up 60% as often as common ones, rare ones (gold) 35%, the legendary
-Mimic Bell 6%.
+Mimic Bell 6%. Some charms change over a run: decaying ones (Fresh Bone, Snack Pack, Fizzy Water)
+fade and are used up, growing ones (Trophy Wall, Campfire, Market Day) get better, and Old Scar eats
+the charm to its right at the start of every wave.
 
 **The shop screen** (Balatro style): the collar across the top with your wool, the wave's result
 on the left (sheep home, the line, the wool it made), the tray in the middle (the shop with 🎲
@@ -200,7 +202,7 @@ name; hover (or tap) one for the tooltip with its effect, catch and price.
 - **Click / tap:** selects a card, pins its tooltip and shows its buttons in place of the price:
   Buy, ❄️ Freeze or Sell. Click the background to put it back.
 
-**55 charms.** Each is a rule change or a boost, many with a catch (in red on the card). Charms with
+**72 charms.** Each is a rule change or a boost, many with a catch (in red on the card). Charms with
 a number stack if a Mimic Bell copies them; on/off ones can't be doubled. Big Barks only come from
 bark charms (there's no button). Wool only comes from the flock: charms can make shearing pay more,
 never wolves.
@@ -215,13 +217,20 @@ never wolves.
 | 🔥 Hot Streak | uncommon | 14 | Every combo step gives +6% speed and reach until the chain breaks (up to +30%). | The combo window is 30% shorter. |
 | 🐺 Alpha Dog | rare | 22 | Plain wolves and pups flee on sight, from 1.8× the dog's reach. | Brutes and the boss hold out 50% longer. |
 | 🐾 Tracker | common | 8 | The dog runs 20% faster while a wolf is going for the flock. | 10% slower the rest of the time. |
-| 🐕 Second Dog | rare | 40 | A young dog joins you and guards the flock on its own. Slow and easily winded at first: upgrade its speed and reach in the Your dog panel. |  |
+| 🐕 Second Dog | rare | 40 | A young dog joins you and guards the flock on its own. Slow and easily winded at first: upgrade its speed and reach in the shop. |  |
 | 🎵 Chorus | uncommon | 12 | The second dog lets out a Big Bark of its own (60% of the range) whenever yours does. (needs Second Dog) |  |
+| 🥩 Fresh Bone | common | 6 | +40% reach, 8% less every wave; gone after 5 waves. |  |
+| 🍿 Snack Pack | common | 6 | +40% speed, 8% less every wave; gone after 5 waves. |  |
+| 🏆 Trophy Wall | uncommon | 12 | +1% reach for every 10 wolves scared this run (up to +40%). |  |
+| 🔥 Campfire | uncommon | 12 | +8% speed for every charm you sell (up to +48%). Burns out after the boss. |  |
+| 🦉 Night Owl | common | 8 | +25% reach in the second half of every wave. |  |
 
 **📢 Bark**
 
 | Charm | Rarity | Price | Effect | Catch |
 | --- | --- | --- | --- | --- |
+| 📣 Bark Collector | uncommon | 10 | Big Barks reach 10% further for every bark charm on the collar. |  |
+| 🧲 Magnet Collar | common | 8 | Big Barks also send straying sheep back to the flock. |  |
 | 📢 Watchdog | common | 8 | The dog lets out a Big Bark every 8 s: every wolf nearby flees, brutes included, and stays away 60% longer. |  |
 | 🧨 Short Fuse | common | 6 | Watchdog's Big Barks come twice as often. (needs Watchdog) | Big Barks reach 40% less far. |
 | 💥 Booming Bark | common | 8 | Big Barks reach 40% further. |  |
@@ -231,7 +240,7 @@ never wolves.
 | 🗣️ Echo | rare | 20 | Every Big Bark echoes from the shepherd a second later. |  |
 | 🌩️ Thunderclap | rare | 24 | Big Barks knock wolves dizzy for a moment, then they run twice as far. |  |
 | 🔋 Pent Up | rare | 22 | Every 4th Big Bark is a Mega Bark: double the range, and it calms the whole flock. |  |
-| 🕯️ Last Light | uncommon | 12 | On the line, a Big Bark every 4 s. |  |
+| 🕯️ Last Light | uncommon | 12 | On the line, a Big Bark every 5 s. |  |
 | 📯 Herding Horn | common | 10 | The Big Bark calls every sheep in its range to the dog instead of startling them. | Wolves only flee from half the range. |
 
 **👨‍🌾 Shepherd and helpers**
@@ -245,22 +254,26 @@ never wolves.
 | 🌾 Scarecrows | rare | 20 | Place two scarecrows that scare off ordinary wolves (not brutes). They go if you sell this charm. |  |
 | 👴 Grumpy Old Man | uncommon | 14 | The shepherd goes after wolves near the flock himself and swats them with his crook. | The flock trails after him. |
 | 🪤 Snares | uncommon | 12 | Each scarecrow holds the first wolf that comes near it every wave for 5 s. (needs Scarecrows) |  |
+| 🦴 Lucky Bone | rare | 18 | Once, when the flock drops below the line, the shepherd lets it go. Then the bone breaks. |  |
+| 🙏 Shepherd's Favor | uncommon | 12 | The shepherd spares 2 more sheep every wave. | Shearing pays 25% less. |
+| ⏳ Early Supper | common | 6 | Waves are 20% shorter. | Shearing pays 20% less. |
 
 **🐑 The flock**
 
 | Charm | Rarity | Price | Effect | Catch |
 | --- | --- | --- | --- | --- |
-| 🧶 Thick Fleece | uncommon | 14 | Wolves need 75% longer to take a sheep. |  |
+| 🧶 Thick Fleece | uncommon | 14 | Wolves need 90% longer to take a sheep. |  |
 | 🐑 Bigger Flock | common | 8 | +3 sheep join every wave. |  |
 | 🍼 Lambing Season | common | 8 | +3 lambs every wave (they pay double). |  |
 | ✂️ Sharp Shears | uncommon | 12 | +30% wool from shearing. |  |
 | 🐷 Piggy Bank | common | 8 | Interest on unspent wool can go 3 higher. |  |
-| 🐏 Battering Rams | uncommon | 14 | Rams head-butt wolves that come near them, like the goat. A ram joins every 3 waves. | Rams give no wool. |
+| 🐏 Battering Rams | uncommon | 14 | Rams head-butt wolves that come near them, like the goat. A ram joins every 4 waves. | Rams give no wool. |
 | 🛡️ Safety in Numbers | uncommon | 14 | Wolves can't take a sheep that has 4 or more others close around it. | Stragglers (fewer than 2 close by) are taken twice as fast. |
-| 🤞 Sheepdog's Oath | rare | 22 | The first two times a wolf grabs a sheep each wave, it lets go and runs. |  |
+| 🤞 Sheepdog's Oath | rare | 22 | The first three times a wolf grabs a sheep each wave, it lets go and runs. |  |
 | 🔔 Bellwether's Call | uncommon | 12 | A bellwether joins the flock (if there isn't one), and its bell rings twice as often and reaches 50% further. |  |
 | 🌻 Greener Pastures | uncommon | 12 | Calm sheep take wolves 60% longer to grab, and the calm bonus at shearing is doubled. |  |
 | 💪 Strength in Numbers | rare | 22 | The dog gets +1% speed and reach for every sheep in the flock (up to +50%). |  |
+| 🥤 Fizzy Water | common | 8 | Wolves need twice as long to take a sheep, for the next 3 waves. Then it's gone. |  |
 
 **🧶 Wool**
 
@@ -272,6 +285,9 @@ never wolves.
 | 🏦 Savings Account | rare | 18 | Interest on unspent wool has no cap. | You can't reroll the shop. |
 | 🍖 Well Fed | uncommon | 14 | The dog gets +1% speed and reach for every 4 wool you keep unspent (up to +60%). |  |
 | 🎪 County Fair | rare | 20 | Shearing pays +1 wool for every 2 sheep, and +5 for a wave with no losses. |  |
+| 🚀 Market Day | uncommon | 10 | +1 wool at shearing, and 1 more for every 2 waves it stays on the collar. |  |
+| 🎲 Loaded Dice | common | 6 | The first reroll in every shop is free. |  |
+| 🎁 Collar Polish | uncommon | 8 | Every wave, your other charms sell for 1 more. |  |
 
 **🎭 Tricks**
 
@@ -280,7 +296,7 @@ never wolves.
 | 🏆 Proud Shepherd | uncommon | 14 | Every combo that reaches ×3 makes the shepherd prouder: +8% wool from that wave's shearing (up to +80%). |  |
 | ✨ Golden Child | rare | 22 | A golden fleece (10 wool a wave) joins every wave. | Every wolf wants them. |
 | 💥 Chain Reaction | rare | 20 | A fleeing wolf scares every wolf it runs past (not the boss). Each one extends the combo. | Scared wolves come back 30% sooner. |
-| ❤️‍🔥 On the Brink | uncommon | 12 | Last Sheep Standing starts one sheep above the line and is 2.5 times as strong. | The shepherd spares one sheep fewer. |
+| ❤️‍🔥 On the Brink | uncommon | 12 | Last Sheep Standing starts one sheep above the line and is twice as strong. | The shepherd spares one sheep fewer. |
 | 📈 Veteran | uncommon | 14 | Every wave you finish without losing a sheep gives the dog +5% reach, for good. | Losing 3 or more sheep in a wave resets it. |
 | 🏕️ Staying Put | common | 8 | The shepherd never moves the flock to new grass. | Wolves learn the spot: they stalk 30% less. |
 
@@ -297,8 +313,26 @@ never wolves.
 | Charm | Rarity | Price | Effect | Catch |
 | --- | --- | --- | --- | --- |
 | 🪞 Mimic Bell | legendary | 40 | Copies the charm to its right (drag charms along the collar to reorder them). Charms with a number stack; the rest can't be doubled. |  |
-| 🔮 Glass Collar | rare | 16 | +1 collar slot. | The shepherd spares one sheep fewer. |
-| 🍀 Lucky Collar | uncommon | 10 | Rare and legendary charms turn up twice as often. |  |
+| 🍀 Lucky Collar | uncommon | 10 | Rare and legendary charms, and augments, turn up twice as often. |  |
+| 🧠 Pack Mentality | rare | 24 | Copies the leftmost charm on the collar. Charms with a number stack; the rest can't be doubled. |  |
+| 🎯 Lone Dog | uncommon | 12 | +12% speed and reach for every empty collar slot (its own counts). |  |
+| 🗡️ Old Scar | rare | 18 | At the start of every wave it destroys the charm to its right and gains +5% reach for good for every 10 wool that charm cost. |  |
+| 🔗 Buddy System | uncommon | 12 | +8% speed and reach for every charm in your biggest group (bark, flock, shepherd…) beyond the first. |  |
+
+### Augments
+
+Now and then a charm in the shop comes with an **augment** (like Balatro's editions): a sheen on the
+card, a line in its tooltip, kept for the rest of the run. It costs more.
+
+| Augment | Look | Effect | Chance per card | Price |
+| --- | --- | --- | --- | --- |
+| 🌫️ Ghostly | see-through, dashed | Takes no collar slot (the only way past 5) | 3% | +50% |
+| ✨ Gilded | gold sheen | +2 wool at every shearing; sells for its full price | 6% | +30% |
+| 🌈 Polished | rainbow edge | Counts twice (like a Mimic Bell copy), +5% speed and reach | 2% | +80% |
+| 🍀 Blessed | soft glow | Once, when the flock drops below the line, the shepherd lets it go; then the blessing wears off | 2% | +50% |
+
+Lucky Collar doubles the chances. Mimic Bell and Pack Mentality copy a charm's effect, not its
+augment. The collar count shows Ghostly charms apart ("5 / 5 +1 🌫️").
 
 ### Freezing cards
 

@@ -514,7 +514,7 @@ export const LAST_STAND = {
 export const BARK = {
   watchdog: 8, // seconds between Watchdog's barks
   flee: 1.6, // wolves scared by a Big Bark stay away this much longer than a normal scare
-  lastLight: 4, // seconds between Last Light's barks on the line
+  lastLight: 5, // seconds between Last Light's barks on the line
   echoDelay: 1, // Echo: seconds before the shepherd's echo
   daze: 1.2, // Thunderclap: seconds a wolf stands dizzy before running
   megaRange: 2, // Pent Up: a Mega Bark's range ×
@@ -528,8 +528,9 @@ export const FLOCK_CHARMS = {
   crowd: 4, // this many sheep close by and wolves can't take it
   straggler: 2, // fewer than this close by and it's taken twice as fast
   pastures: 1.6, // Greener Pastures: × grab time for a calm sheep
-  ramReach: 2.5, // Battering Rams: a ram butts wolves this close
-  ramCooldown: 2.5,
+  ramReach: 2, // Battering Rams: a ram butts wolves this close
+  ramCooldown: 4,
+  ramEvery: 4, // a ram joins every this many waves
   snare: 5, // Snares: seconds a snared wolf is held
   nestEgg: 4, // Nest Egg: sell value gained per wave
 };

@@ -7,6 +7,7 @@ import { ACHIEVEMENT } from './achievements.js';
 import { WARDROBE, SLOTS, item, rewardFor } from './cosmetics.js';
 import { Dog } from './entities.js';
 import { makeCard, CardTip, draggable } from './cards.js';
+import { AUGMENTS } from './upgrades.js';
 
 const $ = (id) => document.getElementById(id);
 const tmp = new THREE.Vector3();
@@ -220,20 +221,21 @@ export class UI {
 
   renderShop(data) {
     this.shopData = data;
-    const { cards, collar, slots, rerollCost, wool } = data;
+    const { cards, collar, slots, ghosts = 0, used = collar.length, rerollCost, wool } = data;
+    const augLine = (a) => (a ? `${AUGMENTS[a].icon} ${AUGMENTS[a].name}: ${AUGMENTS[a].text}` : '');
     const keys = new Set([...cards.map((c) => `shop:${c.key}`), ...collar.map((c) => `collar:${c.id}`)]);
     if (this.selected && !keys.has(this.selected)) this.selected = null;
     $('shop-wool').textContent = wool;
     // Savings Account charm: no rerolls (rerollCost is null).
-    $('shop-reroll').innerHTML = rerollCost == null ? '🎲 No rerolls' : `🎲 Reroll <span id="reroll-cost">${rerollCost}</span>`;
+    $('shop-reroll').innerHTML = rerollCost == null ? '🎲 No rerolls' : rerollCost === 0 ? '🎲 Reroll free' : `🎲 Reroll <span id="reroll-cost">${rerollCost}</span>`;
     $('shop-reroll').disabled = rerollCost == null || wool < rerollCost;
-    $('collar-count').textContent = `${collar.length} / ${slots}`;
+    $('collar-count').textContent = `${used} / ${slots}${ghosts ? ` +${ghosts} 🌫️` : ''}`;
     const groupName = { dog: 'Dog', shepherd: 'Shepherd', flock: 'Flock', trick: 'Trick', bark: 'Bark', wool: 'Wool', edge: 'Edge', collar: 'Collar' };
     const rarityName = (r) => r[0].toUpperCase() + r.slice(1);
 
     // The collar: filled slots are cards you can drag off to sell.
     $('collar-slots').replaceChildren(
-      ...Array.from({ length: slots }, (_, i) => {
+      ...Array.from({ length: slots + ghosts }, (_, i) => {
         const c = collar[i];
         if (!c) {
           const empty = document.createElement('div');
@@ -241,8 +243,8 @@ export class UI {
           empty.innerHTML = '<div class="card card-empty"></div>';
           return empty;
         }
-        const info = { title: c.name, meta: `${rarityName(c.rarity)} · ${groupName[c.group]}`, text: c.text, catch: c.catch, foot: `Sells for 🧶 ${c.sell} · drag it off the collar to sell, or along it to move it` };
-        return this.cardSlot(`collar:${c.id}`, { icon: c.icon, name: c.name, rarity: c.rarity, group: c.group }, info, {
+        const info = { title: c.name, meta: `${rarityName(c.rarity)} · ${groupName[c.group]}`, aug: augLine(c.aug), text: c.text, catch: c.catch, foot: `Sells for 🧶 ${c.sell} · drag it off the collar to sell, or along it to move it` };
+        return this.cardSlot(`collar:${c.id}`, { icon: c.icon, name: c.name, rarity: c.rarity, group: c.group, aug: c.aug }, info, {
           small: true,
           actions: [[`Sell 🧶${c.sell}`, () => this.onSell?.(c.id)]],
           // Drop on the sell zone to sell, or on another collar slot to move it there.
@@ -270,10 +272,10 @@ export class UI {
       const target = c.livestock ? $('side-flock') : $('collar'); // where it's dropped to buy
       const info = c.livestock
         ? { title: c.name, meta: `Livestock${c.frozen ? ' · ❄️ frozen' : ''}`, text: c.text, foot: `${c.pays ? c.pays + ' · ' : ''}Drag onto your flock to buy` }
-        : { title: c.name, meta: `${rarityName(c.rarity)} · ${groupName[c.group]}${c.frozen ? ' · ❄️ frozen' : ''}`, text: c.text, catch: c.catch, foot: c.full ? 'The collar is full: sell a charm first' : 'Drag onto the collar to buy' };
+        : { title: c.name, meta: `${rarityName(c.rarity)} · ${groupName[c.group]}${c.frozen ? ' · ❄️ frozen' : ''}`, aug: augLine(c.aug), text: c.text, catch: c.catch, foot: c.full ? 'The collar is full: sell a charm first' : 'Drag onto the collar to buy' };
       return this.cardSlot(
         `shop:${c.key}`,
-        { icon: c.icon, image: c.image, name: c.name, rarity: c.livestock ? 'livestock' : c.rarity, group: c.group, frozen: c.frozen },
+        { icon: c.icon, image: c.image, name: c.name, rarity: c.livestock ? 'livestock' : c.rarity, group: c.group, frozen: c.frozen, aug: c.aug },
         info,
         {
           price: c.price,

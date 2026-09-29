@@ -6,7 +6,7 @@ import {
   SHEARING, GOAT, LAMB, BLACK, BELL, SLEEPY, GOLDEN, DISGUISE, RAM_CALM, RASCAL, PUPS, HOWLER,
   TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, waveConfig,
 } from './config.js';
-import { CHARMS, CHARM, SHOP, LIVESTOCK, TRAINING, TRAIN, TRAINING_PRICE, animalPrice, modifiers, trainingText, trainingPrice } from './upgrades.js';
+import { CHARMS, CHARM, SHOP, LIVESTOCK, TRAINING, TRAIN, TRAINING_PRICE, AUGMENTS, animalPrice, modifiers, trainingText, trainingPrice } from './upgrades.js';
 import { ACHIEVEMENTS, ACHIEVEMENT } from './achievements.js';
 import { WARDROBE, SLOTS, rewardFor } from './cosmetics.js';
 import { ENTRIES, Bestiary } from './bestiary.js';
@@ -238,6 +238,12 @@ $('upgrades-body').innerHTML = `
   ${table(
     ['', 'Charm', 'Group', 'Rarity', 'Effect', 'Catch', 'Price'],
     CHARMS.map((c) => [c.icon, `<strong>${esc(c.name)}</strong>`, groupName[c.group], c.rarity, esc(c.text), esc(c.catch ?? ''), String(c.price)])
+  )}
+  <h3>Augments</h3>
+  <p>A charm card in the shop can come with an augment (like Balatro's editions), kept for the run. Lucky Collar doubles the chances; Mimic Bell and Pack Mentality copy the effect, not the augment.</p>
+  ${table(
+    ['', 'Augment', 'Effect', 'Chance per card', 'Extra price'],
+    Object.values(AUGMENTS).map((a) => [a.icon, `<strong>${esc(a.name)}</strong>`, esc(a.text), `${Math.round(a.chance * 100)}%`, `+${Math.round(a.price * 100)}%`])
   )}
   <h3>Helpers</h3>
   ${chips([

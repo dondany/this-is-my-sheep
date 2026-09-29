@@ -18,8 +18,13 @@ Tricks brainstormed but not built yet (charms that change the rules, each with a
 - 👴 Grumpy Old Man: the shepherd chases wolves near the flock with his crook. Catch: the flock
   follows him.
 - 🪤 Snares: scarecrows hold the first wolf that walks in for 5 s. Catch: it howls for the pack.
-- Charms that add or remove collar slots (e.g. a rare "Bigger Collar": +1 slot; a strong charm that
-  takes two slots). The slot count (5) is due a rebalance anyway.
+- 🪆 Decoy: a straw sheep by the flock that wolves go for first; it can't be eaten and falls apart
+  after two grabs a wave. Needs a sheep kind that wolves chase but that doesn't count anywhere.
+- 💍 Jeweller (waiting for a decision): at the start of every wave, gives the charm to its left a
+  random augment (Ghostly rarest, 10%), skipping charms that have one; crumbles after 3 uses. The
+  one way to aim an augment. Alternatives: a one-shot "Jeweller's Loupe" that lets you pick the
+  augment, or none (augments stay pure shop luck, like Balatro's base shop).
+- A charm that takes two slots but is very strong.
 - Fence posts along one side of the meadow. More cosmetics: shepherd outfits, sheep with bows or
   bells, more meadow themes (snow for endless mode).
 
