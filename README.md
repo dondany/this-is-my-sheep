@@ -13,8 +13,8 @@ Greymuzzle, with at least one sheep left, and you win the run (the top bar shows
 ★ for any survivors, ★★ for 15 or more, ★★★ for 30 or more. Wins and your best star rating are
 saved and shown on the menu.
 
-**The line.** From wave 2 the shepherd can spare 2 sheep plus one in five of the flock a wave starts
-with (3 of 9, 6 of 20, 10 of 40; the goat doesn't count). That draws the line, the number after the slash on the flock counter:
+**The line.** From wave 2 the shepherd can spare 3 sheep plus a quarter of the flock a wave starts
+with (5 of 9, 8 of 20, 13 of 40; the goat doesn't count). That draws the line, the number after the slash on the flock counter:
 🐑 12 / 6. The bar under it shows how many you can still lose, and turns red on the line. The moment
 the flock drops below it, the run is over ("The shepherd called it off"): no waiting out a lost
 wave. Every wave draws a fresh line, so scraping through one wave doesn't doom the next (like a
@@ -97,7 +97,7 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🦊 | **Trickster** (orange, fox-like) | 7 | Feints: once the dog is running at it, it switches to the sheep furthest from the dog ("HEH!"). Fragile: scared from further away. |
 | 🐺 | **Alpha** (big, pale mane, ring on the ground) | 8, one per wave | While it's around, the other wolves stalk half as long; when it attacks it howls and every prowling wolf attacks with it. Scare it and every wolf inside its ring (10 units) flees too. |
 | 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early. |
-| 👑 | **Old Greymuzzle** (boss: huge, grey muzzle, mane and scars) | 15, and every 5 endless waves | Arrives a quarter of the way into the final wave with a low howl. Needs the dog next to it for 3 s (fear meter) and leads the pack like an alpha. Must be driven off 3 times (+1 per return in endless): after each of the first ones it comes back with two fresh wolves; the last time it leaves for good. The wave can't end until it's gone (overtime). Walks slow and heavy: every footfall thuds, puffs dust, shakes the screen a little and makes sheep within 12 units jump (higher the closer). |
+| 👑 | **Old Greymuzzle** (boss: huge, grey muzzle, mane and scars) | 15, and every 5 endless waves | Arrives a quarter of the way into the final wave with a low howl. Needs the dog next to it for 3 s (fear meter) and leads the pack like an alpha. Must be driven off 3 times (+1 per return in endless): after each of the first ones it comes back with a fresh wolf; the last time it leaves for good. The wave can't end until it's gone (overtime). Walks slow and heavy: every footfall thuds, puffs dust, shakes the screen a little and makes sheep within 12 units jump (higher the closer). |
 
 Wolves arrive in pairs from opposite sides of the meadow: 3 in wave 1 and one more every other wave
 (6 in wave 8, 10 in the final wave). Fewer wolves, but meaner: a growing share of the pack (35% early,
@@ -166,15 +166,15 @@ charms, one training card and one animal.
 ### Training (the dog's levels)
 
 A training card goes onto the dog (drag it onto "Your dog" in the sidebar, or click it and Buy).
-It doesn't take a collar slot. The next level costs 5 + 3 per level already trained (5, 8, 11…).
+It doesn't take a collar slot. The next level costs 4 + 2 per level already trained (4, 6, 8…).
 The sidebar lists the dog's levels, like Balatro's hand levels.
 
 | Training | Stat | Per level | Top level |
 | --- | --- | --- | --- |
-| ⚡ Sprints | Speed | The dog runs and turns 8% faster | 8 |
-| 🎯 Reach | Reach | +0.5 (the ring: wolves inside it get scared, sheep react from proportionally further away); 2.5 at the start. Offered twice as often | 10 |
-| 😱 Stare Down | Scare | Scared wolves stay away 15% longer | 6 |
-| 🦴 Brave Heart | Grit | Brutes and the boss give up 12% sooner | 6 |
+| ⚡ Sprints | Speed | The dog runs and turns 10% faster | 8 |
+| 🎯 Reach | Reach | +0.6 (the ring: wolves inside it get scared, sheep react from proportionally further away); 2.5 at the start. Offered twice as often | 10 |
+| 😱 Stare Down | Scare | Scared wolves stay away 20% longer | 6 |
+| 🦴 Brave Heart | Grit | Brutes and the boss give up 15% sooner | 5 |
 | 👃 Nose Work | Nose | Sneaky wolves show up 25% sooner; disguises sniffed out faster | 4 |
 | 🐾 Pup Sprints *(needs Second Dog)* | Pup speed | Second dog +5% of your dog's speed | 8 |
 | 🔊 Pup's Bark *(needs Second Dog)* | Pup reach | Second dog's reach +4% | 8 |
@@ -199,7 +199,7 @@ name; hover (or tap) one for the tooltip with its effect, catch and price.
 - **Click / tap:** selects a card, pins its tooltip and shows its buttons in place of the price:
   Buy, ❄️ Freeze or Sell. Click the background to put it back.
 
-**54 charms.** Each is a rule change or a boost, many with a catch (in red on the card). Charms with
+**55 charms.** Each is a rule change or a boost, many with a catch (in red on the card). Charms with
 a number stack if a Mimic Bell copies them; on/off ones can't be doubled. Big Barks only come from
 bark charms (there's no button). Wool only comes from the flock: charms can make shearing pay more,
 never wolves.
@@ -209,22 +209,22 @@ never wolves.
 | Charm | Rarity | Price | Effect | Catch |
 | --- | --- | --- | --- | --- |
 | 🏃 Zoomies | rare | 20 | +40% speed. Dashing through a wolf at full speed scares it, brutes included. | -30% reach. |
-| 🌙 Night Watch | rare | 20 | Reach ×1.8. | -30% speed. |
-| 🗿 Sentinel | uncommon | 14 | Standing still, the dog's reach grows to ×2 over 2 s. | -20% reach while moving. |
+| 🌙 Night Watch | rare | 20 | Reach ×2. | -20% speed. |
+| 🗿 Sentinel | uncommon | 14 | Standing still, the dog's reach grows to ×2 over 1.2 s. | -20% reach while moving. |
 | 🔥 Hot Streak | uncommon | 14 | Every combo step gives +6% speed and reach until the chain breaks (up to +30%). | The combo window is 30% shorter. |
 | 🐺 Alpha Dog | rare | 22 | Plain wolves and pups flee on sight, from 1.8× the dog's reach. | Brutes and the boss hold out 50% longer. |
-| 🐾 Tracker | common | 8 | The dog runs 30% faster while a wolf is going for the flock. | 10% slower the rest of the time. |
-| 🐕 Second Dog | rare | 35 | A young dog joins you and guards the flock on its own. Slow and easily winded at first: Pup Sprints and Pup's Bark training make it better. |  |
+| 🐾 Tracker | common | 8 | The dog runs 20% faster while a wolf is going for the flock. | 10% slower the rest of the time. |
+| 🐕 Second Dog | rare | 40 | A young dog joins you and guards the flock on its own. Slow and easily winded at first: Pup Sprints and Pup's Bark training make it better. |  |
 | 🎵 Chorus | uncommon | 12 | The second dog lets out a Big Bark of its own (60% of the range) whenever yours does. (needs Second Dog) |  |
 
 **📢 Bark**
 
 | Charm | Rarity | Price | Effect | Catch |
 | --- | --- | --- | --- | --- |
-| 📢 Watchdog | common | 8 | The dog lets out a Big Bark every 15 s: every wolf nearby flees, brutes included. |  |
+| 📢 Watchdog | common | 8 | The dog lets out a Big Bark every 8 s: every wolf nearby flees, brutes included, and stays away 60% longer. |  |
 | 🧨 Short Fuse | common | 6 | Watchdog's Big Barks come twice as often. (needs Watchdog) | Big Barks reach 40% less far. |
 | 💥 Booming Bark | common | 8 | Big Barks reach 40% further. |  |
-| 🔔 Alarm Bell | uncommon | 12 | A Big Bark whenever a wolf grabs a sheep near the dog. |  |
+| 🔔 Alarm Bell | uncommon | 12 | A Big Bark whenever a wolf grabs a sheep (at most every 2 s). |  |
 | ⚡ Combo Bark | uncommon | 14 | Every ×4 combo sets off a Big Bark. |  |
 | 😤 Howl Back | uncommon | 10 | The dog barks back at every howl: the howler flees before the flock panics. |  |
 | 🗣️ Echo | rare | 20 | Every Big Bark echoes from the shepherd a second later. |  |
@@ -237,10 +237,10 @@ never wolves.
 
 | Charm | Rarity | Price | Effect | Catch |
 | --- | --- | --- | --- | --- |
-| 🦯 Shepherd's Crook | common | 10 | The shepherd swats wolves that come within 4 units of him. |  |
+| 🦯 Shepherd's Crook | common | 10 | The shepherd swats wolves that come within 3.5 units of him. |  |
 | 🎶 Calming Song | common | 8 | Sheep panic 35% less around wolves. |  |
 | 🪄 Herding Instinct | common | 8 | The flock sticks together 40% more tightly, and sheep can stand 20% closer to each other. |  |
-| 📯 Shepherd's Whistle | rare | 20 | Every 15 s the shepherd whistles the whole flock back to him. |  |
+| 📯 Shepherd's Whistle | rare | 20 | Every 20 s the shepherd whistles the whole flock back to him. |  |
 | 🌾 Scarecrows | rare | 20 | Place two scarecrows that scare off ordinary wolves (not brutes). They go if you sell this charm. |  |
 | 👴 Grumpy Old Man | uncommon | 14 | The shepherd goes after wolves near the flock himself and swats them with his crook. | The flock trails after him. |
 | 🪤 Snares | uncommon | 12 | Each scarecrow holds the first wolf that comes near it every wave for 5 s. (needs Scarecrows) |  |
@@ -249,27 +249,28 @@ never wolves.
 
 | Charm | Rarity | Price | Effect | Catch |
 | --- | --- | --- | --- | --- |
-| 🧶 Thick Fleece | uncommon | 14 | Wolves need 60% longer to take a sheep. |  |
-| 🐑 Bigger Flock | common | 8 | +2 sheep join every wave. |  |
-| 🍼 Lambing Season | common | 8 | +2 lambs every wave (they pay double). |  |
+| 🧶 Thick Fleece | uncommon | 14 | Wolves need 75% longer to take a sheep. |  |
+| 🐑 Bigger Flock | common | 8 | +3 sheep join every wave. |  |
+| 🍼 Lambing Season | common | 8 | +3 lambs every wave (they pay double). |  |
 | ✂️ Sharp Shears | uncommon | 12 | +30% wool from shearing. |  |
 | 🐷 Piggy Bank | common | 8 | Interest on unspent wool can go 3 higher. |  |
 | 🐏 Battering Rams | uncommon | 14 | Rams head-butt wolves that come near them, like the goat. A ram joins every 3 waves. | Rams give no wool. |
-| 🛡️ Safety in Numbers | uncommon | 14 | Wolves can't take a sheep that has 5 or more others close around it. | Stragglers (fewer than 2 close by) are taken twice as fast. |
-| 🤞 Sheepdog's Oath | rare | 22 | The first time a wolf grabs a sheep each wave, it lets go and runs. |  |
+| 🛡️ Safety in Numbers | uncommon | 14 | Wolves can't take a sheep that has 4 or more others close around it. | Stragglers (fewer than 2 close by) are taken twice as fast. |
+| 🤞 Sheepdog's Oath | rare | 22 | The first two times a wolf grabs a sheep each wave, it lets go and runs. |  |
 | 🔔 Bellwether's Call | uncommon | 12 | A bellwether joins the flock (if there isn't one), and its bell rings twice as often and reaches 50% further. |  |
-| 🌻 Greener Pastures | uncommon | 12 | Calm sheep take wolves 40% longer to grab, and the calm bonus at shearing is doubled. |  |
-| 💪 Strength in Numbers | rare | 22 | The dog gets +1% speed and reach for every 2 sheep in the flock (up to +50%). |  |
+| 🌻 Greener Pastures | uncommon | 12 | Calm sheep take wolves 60% longer to grab, and the calm bonus at shearing is doubled. |  |
+| 💪 Strength in Numbers | rare | 22 | The dog gets +1% speed and reach for every sheep in the flock (up to +50%). |  |
 
 **🧶 Wool**
 
 | Charm | Rarity | Price | Effect | Catch |
 | --- | --- | --- | --- | --- |
-| 🥚 Nest Egg | common | 4 | Sells for 3 more wool for every wave it stays on the collar. |  |
-| 🏷️ Haggler | uncommon | 12 | Everything in the shop costs 25% less, and rerolls always cost 1. |  |
+| 🥚 Nest Egg | common | 4 | Sells for 4 more wool for every wave it stays on the collar. |  |
+| 🏷️ Haggler | uncommon | 12 | Everything in the shop costs 30% less, and rerolls always cost 1. |  |
 | 🧺 Wool Market | uncommon | 10 | Animals cost half, and the shop offers two of them. |  |
 | 🏦 Savings Account | rare | 18 | Interest on unspent wool has no cap. | You can't reroll the shop. |
-| 🎪 County Fair | rare | 20 | Shearing pays +1 wool for every 3 sheep, and +5 for a wave with no losses. |  |
+| 🍖 Well Fed | uncommon | 14 | The dog gets +1% speed and reach for every 4 wool you keep unspent (up to +60%). |  |
+| 🎪 County Fair | rare | 20 | Shearing pays +1 wool for every 2 sheep, and +5 for a wave with no losses. |  |
 
 **🎭 Tricks**
 
@@ -278,7 +279,7 @@ never wolves.
 | 🏆 Proud Shepherd | uncommon | 14 | Every combo that reaches ×3 makes the shepherd prouder: +8% wool from that wave's shearing (up to +80%). |  |
 | ✨ Golden Child | rare | 22 | A golden fleece (10 wool a wave) joins every wave. | Every wolf wants them. |
 | 💥 Chain Reaction | rare | 20 | A fleeing wolf scares every wolf it runs past (not the boss). Each one extends the combo. | Scared wolves come back 30% sooner. |
-| ❤️‍🔥 On the Brink | uncommon | 12 | Last Sheep Standing starts one sheep above the line and is twice as strong. | The shepherd spares one sheep fewer. |
+| ❤️‍🔥 On the Brink | uncommon | 12 | Last Sheep Standing starts one sheep above the line and is 2.5 times as strong. | The shepherd spares one sheep fewer. |
 | 📈 Veteran | uncommon | 14 | Every wave you finish without losing a sheep gives the dog +5% reach, for good. | Losing 3 or more sheep in a wave resets it. |
 | 🏕️ Staying Put | common | 8 | The shepherd never moves the flock to new grass. | Wolves learn the spot: they stalk 30% less. |
 

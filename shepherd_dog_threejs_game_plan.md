@@ -3053,3 +3053,53 @@ collar to 54, grouped by the build they feed (full list in the README):
     can't be doubled (its tooltip says what it copies). Collar charms can
     be dragged along the collar to reorder (`moveCharm()`).
 -   Numbers in `FLOCK_CHARMS` and `BARK` (`src/config.js`).
+
+------------------------------------------------------------------------
+
+# 104. Six Builds, Balanced With Build Bots (implemented)
+
+Balance after sections 100-103 (no XP, no manual bark, wool only from the
+flock, 55 charms). A build bot drives like the strong bot (chases the
+nearest threat every 0.5 s) but shops by a plan, Balatro style: its
+build's charms first (selling the least useful when the collar is
+full), up to 3-4 rerolls for build charms or when rich, any training it
+can afford, animals when rich (the Rancher always). A "control" bot
+buys the cheapest cards with no plan.
+
+| Build | Core charms | Wins (bot) |
+| --- | --- | --- |
+| 🎺 Crew | Second Dog, Shepherd's Crook, Grumpy Old Man, Scarecrows, Whistle | 8/15 (53%) |
+| ⚡ Hunter | Hot Streak, Tracker, Chain Reaction, Zoomies, Proud Shepherd | 3/6 (50%) |
+| ❤️‍🔥 Edge | On the Brink, Last Light, Hot Streak, Glass Collar, Blood Price | 3/6 (50%) |
+| 🛡️ Fortress | Thick Fleece, Safety in Numbers, Sheepdog's Oath, Sentinel, Night Watch | 4/9 (44%) |
+| 💰 Rancher | Well Fed, Piggy Bank, Bigger Flock, Strength in Numbers, County Fair | 4/11 (36%) |
+| 📢 Barker | Watchdog, Short Fuse, Booming Bark, Echo, Thunderclap | 3/9 (33%) |
+| Control | (cheapest cards) | 0/9 |
+
+What it took, in order:
+
+-   Right after the changes nothing won (1 of 21): no manual bark, no
+    XP and no tufts left the dog far weaker than before. The margin went
+    from 2 + a fifth to **3 + a quarter** of the flock (`GOAL`).
+-   Training was the real gap (6-10 levels a run against ~20 perk points
+    under XP): cheaper (4 + 2 per level) and stronger per level (Sprints
+    10%, Reach +0.6, Stare Down 20%, Brave Heart 15%).
+-   Big Barks: the startle radius shrank to 3 (automatic barks kept
+    scattering the flock), range 14, bark-scared wolves stay away 60%
+    longer (`BARK.flee`), Watchdog every 8 s.
+-   The boss comes back with one fresh wolf per drive-off (was two):
+    wave 15 had become a wall.
+-   Fortress: Safety in Numbers at 4 neighbours within 3.5, Sheepdog's
+    Oath saves two grabs, Sentinel grows in 1.2 s, Night Watch reach ×2
+    for −20% speed, Greener Pastures ×1.6, Thick Fleece +75%.
+-   Crew was carried by Shepherd's Whistle + Crook: whistle every 20 s
+    (was 15), crook reach 3.5 (was 4), Second Dog 40 wool.
+-   Rancher got rich and couldn't spend (200-380 wool left): new charm
+    🍖 Well Fed (+1% speed and reach per 4 unspent wool, up to +60%,
+    Balatro's Bull), Strength in Numbers +1% per sheep (was per 2),
+    Bigger Flock / Lambing Season +3, Nest Egg +4 a wave, Haggler −30%.
+-   Barker: Alarm Bell reacts to any grab. Hunter was then too strong
+    (8 of 9): Tracker +20% (was 30%), Chain Reaction within 2. Edge
+    (8 of 12): On the Brink ×2.5, Last Light every 4 s.
+-   The bot scripts live outside the repo (headless Chrome driven over
+    CDP); each number above is 4-15 runs, so read them as ±15%.

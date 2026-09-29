@@ -121,8 +121,8 @@ export const BUMP = {
 // Shared flocking constants; per-type values live in SHEEP_TYPES.
 // The dog's special move: right-click, Space, or the HUD button.
 export const BIG_BARK = {
-  radius: 12, // every wolf this close flees, brutes included
-  startleRadius: 6, // sheep this close to the dog get startled too
+  radius: 14, // every wolf this close flees, brutes included
+  startleRadius: 3, // sheep this close to the dog get startled too
 };
 
 export const SHEEP = {
@@ -498,8 +498,8 @@ export const GOAL = {
   // of the flock the wave starts with (the goat doesn't count). Lose more and the run is over on
   // the spot.
   lineFrom: 2,
-  spareBase: 2,
-  spareShare: 0.2,
+  spareBase: 3,
+  spareShare: 0.25,
 };
 
 // Last Sheep Standing: on the line (one more loss ends the run) the dog finds a second wind.
@@ -512,32 +512,33 @@ export const LAST_STAND = {
 
 // Big Barks come only from charms (there's no manual one).
 export const BARK = {
-  watchdog: 15, // seconds between Watchdog's barks
+  watchdog: 8, // seconds between Watchdog's barks
+  flee: 1.6, // wolves scared by a Big Bark stay away this much longer than a normal scare
   lastLight: 4, // seconds between Last Light's barks on the line
   echoDelay: 1, // Echo: seconds before the shepherd's echo
   daze: 1.2, // Thunderclap: seconds a wolf stands dizzy before running
   megaRange: 2, // Pent Up: a Mega Bark's range ×
   alarmGap: 2, // Alarm Bell: at most one bark per this many seconds
-  alarmRadius: 8, // Alarm Bell: grabs this close to the dog
+  alarmRadius: 40, // Alarm Bell: grabs this close to the dog (anywhere near the flock)
 };
 
 // Flock charms: Safety in Numbers, Greener Pastures, Battering Rams, Snares, Nest Egg.
 export const FLOCK_CHARMS = {
-  crowdRadius: 3, // Safety in Numbers: "close around it"
-  crowd: 5, // this many sheep close by and wolves can't take it
+  crowdRadius: 3.5, // Safety in Numbers: "close around it"
+  crowd: 4, // this many sheep close by and wolves can't take it
   straggler: 2, // fewer than this close by and it's taken twice as fast
-  pastures: 1.4, // Greener Pastures: × grab time for a calm sheep
+  pastures: 1.6, // Greener Pastures: × grab time for a calm sheep
   ramReach: 2.5, // Battering Rams: a ram butts wolves this close
   ramCooldown: 2.5,
   snare: 5, // Snares: seconds a snared wolf is held
-  nestEgg: 3, // Nest Egg: sell value gained per wave
+  nestEgg: 4, // Nest Egg: sell value gained per wave
 };
 
 // The dog's rule-changing charms (Zoomies, Night Watch, Sentinel, Hot Streak, Alpha Dog).
 export const SPECIAL = {
   zoomies: { speed: 1.4, reach: 0.7, dashSpeed: 0.85, dashRadius: 1.3 }, // dash: over this share of top speed, within this distance
-  nightWatch: { speed: 0.7, reach: 1.8 },
-  sentinel: { still: 0.8, grow: 2, max: 1, moving: 0.8 }, // still: speed below which the dog counts as standing
+  nightWatch: { speed: 0.8, reach: 2 },
+  sentinel: { still: 0.8, grow: 1.2, max: 1, moving: 0.8 }, // still: speed below which the dog counts as standing
   hotStreak: { perStep: 0.06, maxSteps: 5, window: 0.7 },
   alphaDog: { sight: 1.8, courage: 1.5 }, // plain wolves and pups flee from reach × sight
 };
@@ -564,7 +565,7 @@ export function lineFor(wave, flock) {
 export const BOSS = {
   arriveAt: 0.25, // fraction of the wave's duration
   driveOffs: 3, // +1 each time it comes back in endless
-  reinforcements: 2, // fresh wolves that come back with it after each drive-off
+  reinforcements: 1, // fresh wolves that come back with it after each drive-off
   endlessEvery: 5,
   stompRadius: 12, // sheep this close jump at each of its footfalls (higher the closer)
 };

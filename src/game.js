@@ -947,7 +947,7 @@ export class Game {
     const proud = Math.round(shorn * this.ctx.mods.proud * Math.min(10, this.proudCombos));
     const sheared = shorn + proud;
     const calm = Math.floor(flock.filter((s) => !s.wasGrabbed && s.stress < SHEARING.calmStress).length * SHEARING.calmBonus * (m.pastures ? 2 : 1));
-    const fair = m.fair * (Math.floor(flock.length / 3) + (lostNow === 0 ? 5 : 0)); // County Fair charm
+    const fair = m.fair * (Math.floor(flock.length / 2) + (lostNow === 0 ? 5 : 0)); // County Fair charm
     const fleeces = m.blood * Math.max(0, lostNow); // Blood Price charm
     const perfect = this.flockSize() === this.waveStartSheep ? SHEARING.perfect : 0;
     const owed = Math.floor(this.wool / SHEARING.interestPer);
@@ -1438,6 +1438,7 @@ export class Game {
     for (const w of this.wolves) {
       if (w.position.distanceTo(from.position) < radius && forceScare(w, this.ctx, from)) {
         scared++;
+        w.stateTimer *= BARK.flee; // a Big Bark sends them further than a normal scare
         // Thunderclap charm: dizzy for a moment, then it runs twice as far.
         if (m.thunder) {
           w.pause = Math.max(w.pause, BARK.daze);
@@ -1615,14 +1616,19 @@ export class Game {
     const b = this.dogBase;
     if (!b) return;
     const m = this.ctx.mods;
-    const twice = m.brink ? 2 : 1; // On the Brink charm
+    const twice = m.brink ? 2.5 : 1; // On the Brink charm: 2.5 times the second wind
     let speed = this.lastStand ? 1 + (LAST_STAND.speed - 1) * twice : 1;
     let reach = this.lastStand ? 1 + (LAST_STAND.reach - 1) * twice : 1;
     if (m.veteran) reach *= 1 + VETERAN.reach * this.veteran * m.veteran;
     if (m.sentinel) reach *= this.dog.speed < SPECIAL.sentinel.still ? 1 + this.sentinel * m.sentinel : SPECIAL.sentinel.moving;
-    if (m.tracker) speed *= this.dog.alert ? 1 + 0.3 * m.tracker : 0.9 ** m.tracker; // Tracker charm
+    if (m.tracker) speed *= this.dog.alert ? 1 + 0.2 * m.tracker : 0.9 ** m.tracker; // Tracker charm
+    if (m.wellFed) {
+      const k = 1 + Math.min(0.6, 0.01 * Math.floor(this.wool / 4) * m.wellFed); // Well Fed charm
+      speed *= k;
+      reach *= k;
+    }
     if (m.strength) {
-      const k = 1 + Math.min(0.5, 0.005 * this.sheepCount() * m.strength); // Strength in Numbers charm
+      const k = 1 + Math.min(0.5, 0.01 * this.sheepCount() * m.strength); // Strength in Numbers charm
       speed *= k;
       reach *= k;
     }

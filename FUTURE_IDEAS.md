@@ -35,9 +35,10 @@ Tricks brainstormed but not built yet (charms that change the rules, each with a
 - A second boss (random at wave 15), meadow layouts (river, fences), the seeded daily run.
 
 ## Balance
-- Needs checking with real players. Bots (design doc sections 68, 70, 76, 86, 87) suggest a strong player
-  wins Summer 1 most of the time (★★-★★★) and an average one ends around wave 9, but bots go
-  straight for whatever is most urgent, so real runs may feel different.
+- Needs checking with real players. Build bots (design doc section 104) win 33-53% with each of the
+  six builds and 0% without a plan, but they shop from a fixed list and don't read the meadow, so
+  real runs will feel different. The strongest-looking combos to watch: Shepherd's Whistle + Crook
+  (Crew), Tracker + Hot Streak (Hunter), On the Brink + Last Light (Edge).
 - Wanderers, black sheep and golden fleeces are usually lost within a wave or two when nobody herds
   them. That may be fine; worth watching in real play.
 
