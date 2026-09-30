@@ -3382,3 +3382,66 @@ Seventh follow-up: a template for bosses, and the Siege Engine from the start of
 -   Bots: Hunter 4/4, Crew 4/4, Barker 0/4, Fortress 1/4, Control 0/4
     (9/16 for the builds). Two runs of 20 now end at wave 5 (a Fortress and
     a Control): the boss bites, as it should, without being a wall.
+
+Eighth follow-up: four more bosses, drawn per run (the Pied Piper, the
+Twins, the Burrower, the Den Mother).
+
+-   Boss waves are 5, 10 and 15, like Balatro's boss blinds. `BOSSES`
+    entries now have a `pool`: *survive* (wave 5: Siege Engine, Pied
+    Piper; can't be beaten, `bounty` 10 for lasting the wave out), *fight*
+    (wave 10: Twins, Burrower, Den Mother; can be beaten, bounty 15 if
+    they are) and *final* (Old Greymuzzle). `drawBosses()` picks the run's
+    wave-5 and wave-10 bosses at the start (`Game.bossPlan`, saved with
+    the run); `bossOn(wave, plan)` resolves a wave's boss. The bounty is a
+    line in the shearing breakdown, and the shop before a boss wave shows
+    a red "Next: boss wave!" note with the boss's tagline (`nextBoss` in
+    the wave panel).
+-   **Pied Piper** (`piper`, fearless, `charming`: sheep don't fear it):
+    STROLLs to a spot at the edge of the screen (the siege crews' placement,
+    left or right), then PIPEs: 5 s, then a 4 s tune every 14 s. While it
+    plays every awake sheep gets `lured`: a pull of 2.5 towards it,
+    *added* to its usual urges; the first sheep within 2 of it is lured
+    away, one a tune. The first version replaced them, and the
+    whole flock walked over (15 sheep lured in 30 s with the dog idle);
+    added, the growing pull home to the shepherd holds the flock and it
+    stretches towards the piper instead (2 lured in 30 s with the dog
+    idle in the middle of the flock). The dog in the way holds sheep back
+    through their normal fear of it.
+-   **Twins** (`twinDark`, `twinLight`; one bestiary entry): from opposite
+    sides, tied by a line (`Game.tether`). A scared twin flees for
+    `TWINS.window` (5 s) and comes back, unless the other is scared in
+    that time; then both are `defeated`. The bar counts the window down.
+-   **Burrower**: a new `DIG` state. Underground it's hidden (a `Mound`
+    of earth follows it, kicking up dirt), heads for a sheep at 4.2 u/s,
+    can't be barked at or stopped by scarecrows, and sheep don't fear it.
+    Under its sheep it comes up, throws the sheep within 3.5 aside (the
+    siege `blast()`, now with parameters) and grabs it. The dog's normal
+    scare (at 0.75× reach, so on the mound) digs it out: a drive-off, 3 in
+    all. After fleeing, or losing its grip, it dives again.
+-   **Den Mother**: prowls 3 inside the meadow's edge (reachable, unlike
+    the howlers' ring), never attacks, and every 25 s calls a pup pack
+    from where she stands that heads straight for the flock (none while
+    her pack is still about). A 1.8 s fear meter; each of her 2 drive-offs
+    scatters every pup, the last sends them home for good.
+-   Drive-offs now work for any wolf with `drivesLeft` (Greymuzzle,
+    Burrower, Den Mother); only Greymuzzle brings reinforcements and
+    stomps. `bossAround()` (the HUD bar) no longer hides the bar while the
+    boss carries a sheep off; `bossActive()` (overtime) still does.
+-   Local test hook: `?wave=10&boss=twins` makes that the run's boss.
+-   Checked in headless Chrome for each boss (with the dog chasing it):
+    the Twins beaten (second scared 3 s after the first), the Burrower dug
+    out 3 times, the Den Mother driven off twice, no errors; screenshots of
+    each, the bestiary portraits, and the guide's bosses and wave tables.
+-   Balance (build bots, 4 runs × 5 builds a batch, which now also play
+    the bosses as a player would: chase the Burrower's mound and the Den
+    Mother, stand between the Piper and the flock while it plays; and they
+    now advance the game clock, which the Twins' window needs). First
+    batch: 7 of 20 runs ended at wave 5 and 9 at wave 10. The Piper lured
+    7-8 sheep in the runs it ended (its spot at the screen edge is only
+    about 7 from the nearest sheep), so it now takes at most one sheep a
+    tune, with a weaker pull and longer rests; the Den Mother's pups
+    piled up (a pack every 14 s, up to 9 pups), so she now calls every
+    25 s, only while her last pack is gone, with a shorter fear meter.
+    Final batch: Hunter 4/4, Crew 4/4, Barker 1/4, Fortress 1/4 (10/16),
+    no-plan Control 1/4; nothing ends at wave 5, and wave 10 is the run's
+    check (8 of 20 end there, spread over all three fight bosses).

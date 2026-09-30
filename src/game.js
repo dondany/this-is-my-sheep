@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { bossOn, GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, BARK, FLOCK_CHARMS, SIEGE, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, COLORS, waveConfig } from './config.js';
+import { bossOn, drawBosses, TWINS, BURROWER, DEN, GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, BARK, FLOCK_CHARMS, SIEGE, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
-import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Catapult, angleTo } from './entities.js';
+import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Catapult, Mound, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
 import { updateFlock, updateGoat, flockCenter } from './flock.js';
 import { updateWolves, toWander, isThreatening, stunWolf, forceScare } from './wolves.js';
@@ -135,6 +135,9 @@ export class Game {
     this.charms = []; // charm ids on the dog's collar, in slot order; reset every run
     this.catapults = []; // siege crews' catapults on the field
     this.siegeMarkers = []; // where their shots will land
+    this.mounds = []; // the Burrower's mound of earth
+    this.tether = null; // the line between the Twins
+    this.bossPlan = {}; // wave → boss id, drawn each run
     this.training = {}; // training id → level
     this.shop = null;
     this.frozen = []; // shop cards kept for the next wave's shop
@@ -189,6 +192,26 @@ export class Game {
         this.removeSiegeMarker(w);
         if (!w.shotsFired) this.achievements.add('siegeBroken'); // before it fired at all
         this.juice.siegeBroken(w);
+      },
+      // Bosses (see spawnBoss and updateBosses).
+      onPiperTune: (w, playing) => this.juice.piperTune(w, playing),
+      onPiperSnatch: (s, w) => {
+        this.juice.piperSnatch(s);
+        this.onSheepLost(s, w);
+      },
+      onTwinDown: (w) => this.juice.twinDown(w),
+      onTwinsBeaten: (a, b) => {
+        this.bossBeaten = true;
+        this.freeze(FEEL.bigHitstop);
+        this.juice.twinsBeaten(a, b);
+      },
+      onBurrowerDive: (w) => this.juice.burrowerDive(w),
+      onBurrowerDugOut: (w) => this.juice.burrowerDugOut(w),
+      onBurrowerSurface: (w) => this.juice.burrowerSurface(w),
+      onDenCall: (w) => {
+        if (this.wolves.filter((o) => o.kind === 'pup' && !o.gone).length >= DEN.maxPups) return;
+        this.spawnWolf('pups', undefined, { from: w.position });
+        this.juice.denCall(w);
       },
       onRascalDash: (w) => {
         this.juice.rascalDash(w);
@@ -922,6 +945,8 @@ export class Game {
     this.endless = false;
     this.victoryPanel = null;
     this.boss = null;
+    this.bossPlan = drawBosses(); // wave → boss id for this run's boss waves
+    this.clearBossProps();
     this.combo = { count: 0, timer: 0 };
     this.achievements.newRun();
     this.stats = newRunStats();
@@ -995,8 +1020,10 @@ export class Game {
     const fewer = this.ctx.mods.spareFewer;
     if (this.line && fewer) this.line = Math.max(0, Math.min(this.lineStart - 1, this.line + fewer));
     this.boss = null;
-    this.bossDef = bossOn(this.wave); // this wave's boss, if it has one (BOSSES)
+    this.bossDef = bossOn(this.wave, this.bossPlan); // this wave's boss, if it has one (BOSSES)
     this.bossSpawned = false;
+    this.bossBeaten = false;
+    this.clearBossProps();
     this.bossOvertime = false;
     this.proudCombos = 0; // Proud Shepherd: combos that reached ×3 this wave
     for (const s of this.sheep) {
@@ -1102,7 +1129,10 @@ export class Game {
     const interest = m.noInterestCap ? owed : Math.min(owed, SHEARING.interestMax + m.interest); // Savings Account: no cap
     const gilded = 2 * Object.values(this.charmAugments).filter((a) => a === 'gilded').length; // Gilded charms
     const market = m.marketDay * (1 + Math.floor((this.charmData.marketDay?.waves ?? 0) / 2)); // Market Day
-    const reward = sheared + calm + perfect + interest + fair + fleeces + gilded + market;
+    // A survive boss pays for lasting the wave out; a fight boss only if it was beaten.
+    const def = this.bossDef;
+    const bounty = def && (def.pool === 'survive' || (def.pool === 'fight' && this.bossBeaten)) ? def.bounty : 0;
+    const reward = sheared + calm + perfect + interest + fair + fleeces + gilded + market + bounty;
     if (m.nestEgg) this.nestEggWaves++;
     this.stats.woolEarned += reward;
     this.wool += reward;
@@ -1133,9 +1163,11 @@ export class Game {
         ['Fleeces left behind', fleeces],
         ['Gilded charms', gilded],
         ['Market Day', market],
+        [def?.pool === 'fight' ? `${def.name} beaten` : `${def?.name} outlasted`, bounty],
       ],
       line: this.line ? { spare: this.lineStart - this.line, lost: this.lineStart - this.sheepCount() } : null,
       reward,
+      nextBoss: this.nextBossNote(),
     };
     this.safely(() => this.ageCharms('end'), 'charms');
     this.openShop();
@@ -1217,6 +1249,7 @@ export class Game {
       cardAugments: this.cardAugments,
       charmData: this.charmData,
       soldCount: this.soldCount,
+      bossPlan: this.bossPlan,
       stats: this.stats,
       run: this.achievements.run,
       shepherd: [r(this.shepherd.position.x), r(this.shepherd.position.z)],
@@ -1262,6 +1295,7 @@ export class Game {
     this.cardAugments = data.cardAugments ?? {};
     this.charmData = data.charmData ?? {};
     this.soldCount = data.soldCount ?? 0;
+    if (data.bossPlan) this.bossPlan = data.bossPlan;
     this.frozen = data.frozen ?? [];
     this.stats = { ...newRunStats(), ...data.stats };
     Object.assign(this.achievements.run, data.run);
@@ -1322,6 +1356,7 @@ export class Game {
   }
 
   toMenu() {
+    this.clearBossProps();
     for (const w of this.wolves) w.destroy();
     this.wolves.length = 0;
     for (const s of this.sheep.filter((s) => s.type.fake)) this.removeSheep(s);
@@ -1417,14 +1452,15 @@ export class Game {
     this.juice.disguiseRevealed(w, mode);
   }
 
-  // { boss }: a siege crew as the Siege Engine. Returns the wolf (not for pups).
-  spawnWolf(kind, angle, { boss = false } = {}) {
+  // { boss }: a siege crew as the Siege Engine. { from }: pups coming from a spot on the meadow (the
+  // Den Mother) instead of the tree line. Returns the wolf (not for pups).
+  spawnWolf(kind, angle, { boss = false, from = null } = {}) {
     // Spread arrivals around the meadow rather than bunching on one side.
     // Sneaky wolves slip in on the far side of the flock from the dog.
     const base =
       kind === 'sneaky'
         ? Math.atan2(this.center.z - this.dog.position.z, this.center.x - this.dog.position.x)
-        : kind === 'siege'
+        : kind === 'siege' || kind === 'piper'
           ? (Math.random() < 0.5 ? 0 : Math.PI) + (Math.random() * 2 - 1) * SIEGE.spread // left or right
           : (angle ?? this.wolvesSpawned * 2.4 + Math.random() * 1.2);
     this.lastSpawnAngle = base;
@@ -1433,11 +1469,16 @@ export class Game {
     if (kind === 'pups') {
       const group = { pups: [], split: false, alarm: 0, scares: [] };
       for (let i = 0; i < PUPS.count; i++) {
-        const w = new Wolf(this.world.scene, 'pup').setPosition(...at(base + (i - 1) * 0.04));
+        const w = new Wolf(this.world.scene, 'pup').setPosition(...(from ? [from.x + (i - 1) * 1.2, 0, from.z + (i % 2) * 1.2] : at(base + (i - 1) * 0.04)));
         w.group = group;
         group.pups.push(w);
         this.wolves.push(w);
         toWander(w, this.ctx);
+        if (from) {
+          // Sent by the Den Mother: straight for the flock.
+          w.state = 'APPROACH';
+          w.retarget = 0;
+        }
       }
       this.sfx.howl(1.5);
       return;
@@ -1447,11 +1488,15 @@ export class Game {
     if (kind === 'siege') this.siegeThisWave = true;
     const w = new Wolf(this.world.scene, kind).setPosition(...at(base));
     this.wolves.push(w);
-    if (w.type.siege) {
-      // Siege crew: its spot is on the edge of the dog's meadow, straight in from where it arrives.
+    if (w.type.siege || w.type.piper) {
+      // Siege crew and Pied Piper: the spot is on the edge of the dog's meadow, straight in from where
+      // it arrives (kept on screen by placeSiege).
       const r = WORLD.playRadius - SIEGE.edgeInset;
       w.edge = { x: Math.cos(base) * r, z: Math.sin(base) * r };
       w.site = { ...w.edge };
+      if (w.type.piper) w.fearless = true;
+    }
+    if (w.type.siege) {
       // The Siege Engine: a bigger catapult, and a crew the dog can't chase off.
       w.fearless = boss;
       w.catapult = new Catapult(this.world.scene, { boss }).setPosition(...at(base + 0.04));
@@ -1495,7 +1540,24 @@ export class Game {
   spawnBoss() {
     const def = this.bossDef;
     this.bossSpawned = true;
-    const w = def.id === 'siegeEngine' ? this.spawnWolf('siege', undefined, { boss: true }) : this.spawnGreymuzzle();
+    const angle = Math.random() * Math.PI * 2;
+    const drives = (w, n) => {
+      w.drivesLeft = w.drivesTotal = n;
+      return w;
+    };
+    let w;
+    if (def.id === 'siegeEngine') w = this.spawnWolf('siege', undefined, { boss: true });
+    else if (def.id === 'piper') w = this.spawnWolf('piper');
+    else if (def.id === 'burrower') w = drives(this.spawnWolf('burrower', angle), BURROWER.drives);
+    else if (def.id === 'denMother') w = drives(this.spawnWolf('denMother', angle), DEN.drives);
+    else if (def.id === 'twins') {
+      // From opposite sides, tied to each other.
+      w = this.spawnWolf('twinDark', angle);
+      const twin = this.spawnWolf('twinLight', angle + Math.PI);
+      w.twin = twin;
+      twin.twin = w;
+      twin.bossDef = def;
+    } else w = this.spawnGreymuzzle();
     w.bossDef = def;
     this.boss = w;
     this.juice.bossArrives(w, def);
@@ -1504,8 +1566,83 @@ export class Game {
 
   // What the boss bar under the HUD says after the boss's name.
   bossStatus(w) {
-    if (w.bossDef.id === 'greymuzzle') return '●'.repeat(w.drivesTotal - w.drivesLeft) + '○'.repeat(w.drivesLeft);
+    const id = w.bossDef.id;
+    if (w.drivesTotal) return '●'.repeat(w.drivesTotal - w.drivesLeft) + '○'.repeat(w.drivesLeft) + (w.state === 'DIG' ? ' · underground' : '');
+    if (id === 'piper') return w.state !== 'PIPE' ? 'on its way' : w.playing ? '♪ playing!' : `next tune in ${Math.ceil(w.stateTimer)} s`;
+    if (id === 'twins') {
+      const down = [w, w.twin].find((t) => t?.downUntil > this.time);
+      return down ? `${(down.downUntil - this.time).toFixed(1)} s to scare the other!` : `scare both within ${TWINS.window} s`;
+    }
     return "won't budge";
+  }
+
+  // What's waiting in the next wave, for the shop screen.
+  nextBossNote() {
+    const next = bossOn(this.wave + 1, this.bossPlan);
+    return next && { icon: next.icon, name: next.name, tagline: next.tagline };
+  }
+
+  // Per-frame boss business that isn't the wolves' own: the Pied Piper's spot and notes, the
+  // Burrower's mound, and the line tying the Twins together.
+  updateBosses(dt) {
+    for (const w of this.wolves) {
+      if (w.type.piper) {
+        if (w.state === 'STROLL') this.placeSiege(w, 0.5);
+        if (w.playing && (w.noteTimer = (w.noteTimer ?? 0) - dt) <= 0) {
+          w.noteTimer = 0.3;
+          this.juice.piperNote(w);
+        }
+      }
+      if (w.type.burrower) {
+        const under = w.state === 'DIG' && !w.gone;
+        w.root.visible = !under;
+        if (under && !w.mound) this.mounds.push((w.mound = new Mound(this.world.scene)));
+        if (w.mound) {
+          w.mound.root.visible = under;
+          if (under) {
+            w.mound.position.set(w.position.x, 0, w.position.z);
+            w.mound.root.rotation.y = w.heading;
+            w.mound.root.scale.set(1, 0.85 + 0.15 * Math.sin(this.time * 14), 1);
+            if (w.speed > 1 && (w.dirtTimer = (w.dirtTimer ?? 0) - dt) <= 0) {
+              w.dirtTimer = 0.08;
+              this.particles.dust(w.position, 2, 1.1);
+            }
+          }
+          if (w.gone) {
+            w.mound.destroy();
+            this.mounds = this.mounds.filter((m) => m !== w.mound);
+            w.mound = null;
+          }
+        }
+      }
+    }
+    const twins = this.state === STATE.PLAYING ? this.wolves.filter((w) => w.type.twin && !w.gone && !w.defeated) : [];
+    if (twins.length === 2) {
+      if (!this.tether) {
+        this.tether = new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+          new THREE.LineBasicMaterial({ color: COLORS.danger, transparent: true, opacity: 0.4 })
+        );
+        this.world.scene.add(this.tether);
+      }
+      const p = this.tether.geometry.attributes.position;
+      twins.forEach((t, i) => p.setXYZ(i, t.position.x, 0.15, t.position.z));
+      p.needsUpdate = true;
+      const down = twins.some((t) => t.downUntil > this.time);
+      this.tether.material.opacity = down ? 0.5 + 0.4 * Math.sin(this.time * 16) : 0.35;
+    } else if (this.tether) {
+      this.world.scene.remove(this.tether);
+      this.tether = null;
+    }
+  }
+
+  // Remove the Burrower's mounds and the Twins' line (between waves and runs).
+  clearBossProps() {
+    for (const m of this.mounds ?? []) m.destroy();
+    this.mounds = [];
+    for (const w of this.wolves) w.mound = null;
+    if (this.tether) this.world.scene.remove(this.tether);
+    this.tether = null;
   }
 
   spawnGreymuzzle() {
@@ -1533,21 +1670,33 @@ export class Game {
 
   onBossDriven(boss, left) {
     this.juice.bossDriven(boss, left);
-    if (left > 0) {
-      // It comes back with fresh wolves.
-      for (let i = 0; i < BOSS.reinforcements; i++) this.spawnWolf('normal');
+    const id = boss.bossDef?.id;
+    if (left <= 0) this.bossBeaten = true;
+    // Old Greymuzzle comes back with fresh wolves.
+    if (id === 'greymuzzle' && left > 0) for (let i = 0; i < BOSS.reinforcements; i++) this.spawnWolf('normal');
+    // The Den Mother's pups scatter when she runs, and go home with her the last time.
+    if (id === 'denMother') {
+      for (const p of this.wolves.filter((o) => o.kind === 'pup' && !o.gone)) {
+        if (left > 0) forceScare(p, this.ctx, boss);
+        else {
+          p.defeated = true;
+          if (p.target?.grabbedBy === p) p.target.grabbedBy = null;
+          p.target = null;
+          p.state = 'LEAVE';
+        }
+      }
     }
   }
 
-  // A boss that's still around (it isn't beaten, gone or on its way out).
+  // A boss that's still in the fight (not beaten, gone or abandoned).
   bossAround() {
     const b = this.boss;
-    return !!b && !b.defeated && !b.gone && b.state !== 'LEAVE' && !b.abandoned;
+    return !!b && !b.defeated && !b.gone && !b.abandoned;
   }
 
   // A boss that keeps the wave going until it's beaten (Old Greymuzzle).
   bossActive() {
-    return this.bossAround() && this.bossDef?.holdsWave;
+    return this.bossAround() && this.boss.state !== 'LEAVE' && this.bossDef?.holdsWave;
   }
 
   // End of summer: the final wave is over and there are sheep left.
@@ -1748,9 +1897,9 @@ export class Game {
   }
 
   // A crew's spot: the meadow's edge, pulled in towards the flock if the flock has wandered too far
-  // from it, or if the catapult (just behind its crew) would stand too near the edge of the screen.
-  // The camera doesn't move for it.
-  placeSiege(w) {
+  // from it, or if the catapult (`back` behind its crew) would stand too near the edge of the screen.
+  // The camera doesn't move for it. The Pied Piper uses it too.
+  placeSiege(w, back = 2.4) {
     const dx = w.edge.x - this.center.x;
     const dz = w.edge.z - this.center.z;
     const d = Math.hypot(dx, dz);
@@ -1758,7 +1907,7 @@ export class Game {
     for (let k = Math.min(d, SIEGE.maxFromFlock); k > 6; k -= 0.5) {
       w.site.x = this.center.x + (dx / d) * k;
       w.site.z = this.center.z + (dz / d) * k;
-      probe.set(w.site.x + (dx / d) * 2.4, 0, w.site.z + (dz / d) * 2.4).project(this.world.camera);
+      probe.set(w.site.x + (dx / d) * back, 0, w.site.z + (dz / d) * back).project(this.world.camera);
       if (Math.abs(probe.x) < SIEGE.inView && Math.abs(probe.y) < SIEGE.inView) break;
     }
   }
@@ -2084,7 +2233,7 @@ export class Game {
           if (!this.bossActive()) this.completeWave();
           else if (!this.bossOvertime) {
             this.bossOvertime = true;
-            this.ui.banner('Overtime', 'Drive off Old Greymuzzle to end the wave!');
+            this.ui.banner('Overtime', `Drive off ${this.bossDef.name} to end the wave!`);
           }
         }
         break;
@@ -2182,6 +2331,7 @@ export class Game {
 
     updateWolves(wolves, this.ctx, dt);
     this.updateCatapults(dt);
+    this.updateBosses(dt);
     for (let i = wolves.length - 1; i >= 0; i--) {
       const w = wolves[i];
       if (w.gone) {

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Sheep, Wolf, Goat, Catapult } from './entities.js';
-import { FIRST_WAVE, SIEGE } from './config.js';
+import { FIRST_WAVE, BOSS_BY_ID } from './config.js';
 
 const STORAGE_KEY = 'this-is-my-sheep.bestiary';
 
@@ -165,7 +165,7 @@ export const ENTRIES = [
     id: 'siege',
     side: 'wolves',
     name: 'Siege Crew',
-    text: "A wolf drags a catapult in from the left or right to the edge of your meadow, winds it up and fires the wolf sitting in its bucket, crash helmet and all, into the middle of the flock. The landing throws sheep everywhere; the fired wolf runs off dizzy. It keeps firing every so often until you chase the crew off. The first one, the Siege Engine in wave 5, is bigger and can't be chased off at all.",
+    text: "A wolf drags a catapult in from the left or right to the edge of your meadow, winds it up and fires the wolf sitting in its bucket, crash helmet and all, into the middle of the flock. The landing throws sheep everywhere; the fired wolf runs off dizzy. It keeps firing every so often until you chase the crew off. In some runs the wave-5 boss is the Siege Engine: a bigger one whose crew can't be chased off at all.",
     tip: 'Get to the catapult before it fires and the crew bolts. The red ring shows where the next wolf will land.',
     make: (scene) => {
       const c = new Catapult(scene).setPosition(-1.6, 0, -1.6);
@@ -183,6 +183,42 @@ export const ENTRIES = [
     make: (scene) => [new Wolf(scene, 'greymuzzle')],
   },
   {
+    id: 'piper',
+    side: 'wolves',
+    name: 'The Pied Piper',
+    text: 'A boss in motley and a feathered hat. It stands at the edge of the meadow and plays its pipe every few seconds, and every sheep that hears it walks towards it. One that gets there is lured away for good. It pays no attention to the dog.',
+    tip: 'Sheep still shy away from the dog, so put the dog between the piper and the flock while it plays.',
+    make: (scene) => [new Wolf(scene, 'piper')],
+  },
+  {
+    id: 'twins',
+    side: 'wolves',
+    name: 'The Twins',
+    text: "A boss in two halves, one dark and one pale, coming from opposite sides. Scare one and it's back in a few seconds, unless its twin is scared before then too.",
+    tip: 'Scare one, then race to the other before the line between them stops flashing.',
+    make: (scene) => {
+      const a = new Wolf(scene, 'twinDark').setPosition(-1.2, 0, 0);
+      const b = new Wolf(scene, 'twinLight').setPosition(1.2, 0, 0);
+      return [a, b];
+    },
+  },
+  {
+    id: 'burrower',
+    side: 'wolves',
+    name: 'The Burrower',
+    text: "A boss in a miner's helmet. It travels under the meadow as a mound of earth, and comes up right beneath a sheep to take it. Sheep don't see it coming.",
+    tip: 'Run the dog onto the mound to dig it out. It has to be dug out three times.',
+    make: (scene) => [new Wolf(scene, 'burrower')],
+  },
+  {
+    id: 'denMother',
+    side: 'wolves',
+    name: 'The Den Mother',
+    text: "A boss who never takes a sheep herself. She prowls the edge of the meadow and calls a pack of pups every few seconds. When she runs, her pups scatter.",
+    tip: 'Stand next to her until her fear meter fills, twice. The second time, all her pups go home with her.',
+    make: (scene) => [new Wolf(scene, 'denMother')],
+  },
+  {
     id: 'disguised',
     side: 'wolves',
     name: "Wolf in Sheep's Clothing",
@@ -192,7 +228,8 @@ export const ENTRIES = [
   },
 ];
 
-for (const e of ENTRIES) e.wave = e.id === 'siege' ? SIEGE.bossWave : (FIRST_WAVE[e.id === 'pup' ? 'pups' : e.id] ?? 1);
+// When each one first turns up (a boss: its boss wave, even if a run draws another).
+for (const e of ENTRIES) e.wave = e.id === 'siege' ? BOSS_BY_ID.siegeEngine.wave : BOSS_BY_ID[e.id]?.wave ?? FIRST_WAVE[e.id === 'pup' ? 'pups' : e.id] ?? 1;
 
 export const ENTRY = Object.fromEntries(ENTRIES.map((e) => [e.id, e]));
 
@@ -200,6 +237,7 @@ export const ENTRY = Object.fromEntries(ENTRIES.map((e) => [e.id, e]));
 export function entryId(animal) {
   if (animal.kind === 'normal') return animal instanceof Wolf ? 'wolf' : 'sheep';
   if (animal.kind === 'flyer') return 'siege'; // the fired wolf belongs to the siege crew's entry
+  if (animal.kind === 'twinDark' || animal.kind === 'twinLight') return 'twins';
   return animal.kind;
 }
 

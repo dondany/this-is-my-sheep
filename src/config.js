@@ -58,6 +58,20 @@ export const COLORS = {
   bandana: 0xc94f3d,
   pup: 0x8a867e,
   pupLight: 0xbdb8ae,
+  piper: 0x8a6d9e, // the Pied Piper's motley: purple and yellow
+  piperLight: 0xe8c547,
+  piperHat: 0x3f7a3a,
+  twinDark: 0x34333d,
+  twinDarkLight: 0x5a5866,
+  twinLight: 0xd6d0c2,
+  twinLightLight: 0xf4efe4,
+  burrower: 0x7a5a3c,
+  burrowerLight: 0xb89572,
+  minerHelmet: 0xf2c14e,
+  lamp: 0xfff4c2,
+  dirt: 0x8a6645,
+  denMother: 0x9a5b3e,
+  denMotherLight: 0xefdcc0,
 
   wood: 0xa96f45,
   brown: 0x76513a,
@@ -447,6 +461,15 @@ Object.assign(WOLF_TYPES, {
   siege: { ...WOLF_TYPES.normal, speed: 0.9, siege: true },
   // The wolf that gets fired: lands in the flock, then runs off dazed.
   flyer: { ...WOLF_TYPES.normal, flyer: true },
+  // Bosses (see BOSSES). The Pied Piper: never attacks, can't be scared; its tune lures the flock.
+  piper: { ...WOLF_TYPES.normal, scale: 1.3, speed: 0.9, boss: true, piper: true, charming: true },
+  // The Twins: two big wolves that only stay gone if both are scared within TWINS.window.
+  twinDark: { ...WOLF_TYPES.normal, scale: 1.6, speed: 1.12, stalk: 0.7, boss: true, twin: true },
+  twinLight: { ...WOLF_TYPES.normal, scale: 1.6, speed: 1.12, stalk: 0.7, boss: true, twin: true },
+  // The Burrower: travels underground and comes up under a sheep (see BURROWER).
+  burrower: { ...WOLF_TYPES.normal, scale: 1.5, threatScale: 0.75, grabTime: 0.8, boss: true, burrower: true },
+  // The Den Mother: stays back and sends pups; a fear meter like a brute (see DEN).
+  denMother: { ...WOLF_TYPES.normal, scale: 1.9, speed: 0.8, fleeTime: 1.4, courage: 1.8, boss: true, mother: true },
 });
 
 // Siege crew: drags a catapult to the edge of the dog's meadow, winds it up and fires a wolf into
@@ -461,7 +484,6 @@ export const SIEGE = {
   maxFromFlock: 28, // ...but no further than this from the flock (it's pulled in along the same line),
   inView: 0.86, // ...and pulled in if needed so the catapult stands inside this share of the screen (right by its edge)
   arriveAt: 0.5, // turns up this far into the wave
-  bossWave: 5, // the Siege Engine (see BOSSES): a bigger catapult whose crew can't be chased off
   bossScale: 1.35, // its catapult's size
   haulSpeed: 0.55, // × approach speed while dragging the catapult
   setup: 2, // seconds from stopping to the first shot (the landing spot shows after the first 0.4)
@@ -606,35 +628,139 @@ export const BOSS = {
   stompRadius: 12, // sheep this close jump at each of its footfalls (higher the closer)
 };
 
-// The bosses. Each has its wave(s) and comes on top of the wave's pack, `arriveAt` of the way into
-// the wave, and each is announced the same way: a BOSS card when it turns up (`icon`, `name`,
-// `tagline`), a shout over it, a bar under the HUD while it's around (Game.bossStatus), a bigger
-// marker at the edge of the screen, and "Boss wave" in the wave's intro. `holdsWave`: the wave
-// can't end until it's beaten. To add one: an entry here, its spawn in Game.spawnBoss() and its HUD
-// status in Game.bossStatus().
+// The Pied Piper (a "survive" boss): stands at the edge of the screen and plays a tune now and then
+// that draws every sheep towards it. A sheep that reaches it is lured away for good. The dog can't
+// scare it, but sheep still shy away from the dog, so the dog standing in the way holds them back.
+export const PIPER = {
+  first: 5, // seconds from reaching its spot to the first tune
+  tune: 4, // how long each tune lasts
+  rest: 10, // quiet between tunes
+  pull: 2.5, // how hard its tune pulls a sheep towards it (against the pull back to the shepherd)
+  snatch: 2, // the first sheep this close is lured away (one a tune)
+};
+
+// The Twins (a "fight" boss): scare one and it only stays gone if the other is scared within this
+// many seconds too; otherwise it's straight back. Scared together, both leave for good.
+export const TWINS = {
+  window: 5,
+};
+
+// The Burrower (a "fight" boss): travels underground as a mound of earth and comes up under a sheep
+// to take it. The dog on the mound digs it out, which counts as a drive-off.
+export const BURROWER = {
+  digSpeed: 4.2,
+  rest: 1.5, // seconds underground before it moves after diving
+  reach: 1.3, // this close under its sheep, it comes up and grabs it
+  burst: 3.5, // coming up throws the sheep around it this far...
+  push: 9, // ...this hard
+  drives: 3,
+};
+
+// The Den Mother (a "fight" boss): prowls the edge of the meadow, never attacks herself, and calls
+// a pup pack every so often. A fear meter like a brute's; every drive-off scatters the pups, and
+// the last one sends them home with her.
+export const DEN = {
+  inset: 3, // she prowls this far inside the meadow's edge (so the dog can reach her)
+  first: 6, // seconds before her first call
+  interval: 25, // between calls
+  maxPups: 3, // no call while this many pups are about (one pack at a time)
+  drives: 2,
+};
+
+// The bosses. A run draws one boss for wave 5 from the "survive" pool (can't be beaten, only lasted
+// out) and one for wave 10 from the "fight" pool (can be beaten, for a bounty); Old Greymuzzle is
+// always the final one. Each comes on top of its wave's pack, `arriveAt` of the way into the wave,
+// and is announced the same way: a BOSS card when it turns up (`icon`, `name`, `tagline`), a shout
+// over it, a bar under the HUD while it's around (Game.bossStatus), a bigger marker at the edge of
+// the screen, "Boss wave" in the wave's intro, and a heads-up in the shop before. `holdsWave`: the
+// wave can't end until it's beaten. `bounty`: wool for lasting a survive boss out, or for beating
+// a fight boss. To add one: an entry here, its spawn in Game.spawnBoss() and its HUD status in
+// Game.bossStatus().
 export const BOSSES = [
   {
     id: 'siegeEngine',
+    pool: 'survive',
+    wave: 5,
     name: 'The Siege Engine',
     icon: '🏰',
     shout: 'SIEGE ENGINE!',
     tagline: "Its crew won't be chased off: it fires until the wave ends. Keep the flock out of the red rings!",
-    on: (wave) => wave === SIEGE.bossWave,
     arriveAt: 0,
+    bounty: 10,
+  },
+  {
+    id: 'piper',
+    pool: 'survive',
+    wave: 5,
+    name: 'The Pied Piper',
+    icon: '🎶',
+    shout: 'THE PIED PIPER!',
+    tagline: "Its tune draws the flock towards it, and it can't be scared. Stand in the way and hold them back!",
+    arriveAt: 0,
+    bounty: 10,
+  },
+  {
+    id: 'twins',
+    pool: 'fight',
+    wave: 10,
+    name: 'The Twins',
+    icon: '🌗',
+    shout: 'THE TWINS!',
+    tagline: `Scare one and it's straight back, unless the other is scared within ${TWINS.window} s too.`,
+    arriveAt: 0.1,
+    bounty: 15,
+  },
+  {
+    id: 'burrower',
+    pool: 'fight',
+    wave: 10,
+    name: 'The Burrower',
+    icon: '🕳️',
+    shout: 'THE BURROWER!',
+    tagline: `It digs under the meadow and comes up beneath a sheep. Run onto the mound to dig it out: ${BURROWER.drives} times.`,
+    arriveAt: 0.1,
+    bounty: 15,
+  },
+  {
+    id: 'denMother',
+    pool: 'fight',
+    wave: 10,
+    name: 'The Den Mother',
+    icon: '🐾',
+    shout: 'THE DEN MOTHER!',
+    tagline: `She sends pup after pup. Stand your ground next to her until she runs: ${DEN.drives} times, and her pups go with her.`,
+    arriveAt: 0.1,
+    bounty: 15,
   },
   {
     id: 'greymuzzle',
+    pool: 'final',
+    wave: GOAL.finalWave,
     name: 'Old Greymuzzle',
     icon: '👑',
     shout: 'OLD GREYMUZZLE!',
     tagline: "Stand your ground until his meter fills, again and again. The wave won't end until he's gone for good.",
-    on: (wave) => wave === GOAL.finalWave || (wave > GOAL.finalWave && (wave - GOAL.finalWave) % BOSS.endlessEvery === 0),
     arriveAt: BOSS.arriveAt,
     holdsWave: true,
     howl: true,
+    bounty: 0,
   },
 ];
-export const bossOn = (wave) => BOSSES.find((b) => b.on(wave)) ?? null;
+export const BOSS_BY_ID = Object.fromEntries(BOSSES.map((b) => [b.id, b]));
+export const bossPool = (pool) => BOSSES.filter((b) => b.pool === pool);
+
+// A run's bosses: wave → boss id, drawn once at the start of a run.
+export function drawBosses() {
+  const pick = (list) => list[Math.floor(Math.random() * list.length)].id;
+  return { 5: pick(bossPool('survive')), 10: pick(bossPool('fight')) };
+}
+
+// A wave's boss, if it has one: Old Greymuzzle on the final wave (and every few endless waves),
+// otherwise whatever the run drew for it.
+export function bossOn(wave, plan = {}) {
+  if (wave === GOAL.finalWave || (wave > GOAL.finalWave && (wave - GOAL.finalWave) % BOSS.endlessEvery === 0)) return BOSS_BY_ID.greymuzzle;
+  return BOSS_BY_ID[plan[wave]] ?? null;
+}
 
 // Difficulty levels unlocked by winning, like Balatro's stakes. Each summer adds its rule on top of
 // all the earlier ones.

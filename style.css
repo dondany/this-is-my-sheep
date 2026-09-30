@@ -478,6 +478,11 @@ h2 {
   color: #ffcf7a;
 }
 
+.float-text.note {
+  font-size: 30px;
+  color: #d9b8f2;
+}
+
 .float-text.love {
   font-size: 30px;
   color: #f4a7bb;
@@ -1598,6 +1603,23 @@ body.shopping #hint {
 
 .side-line:empty {
   display: none;
+}
+
+/* Heads-up in the shop when the next wave has a boss */
+.side-next {
+  padding: 6px 10px;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--ink);
+  background: #fbe3dc;
+  border: 2px solid var(--danger);
+  border-radius: 10px;
+}
+
+.side-next b {
+  display: block;
+  font-size: 14px;
+  color: var(--danger);
 }
 
 .side-breakdown {

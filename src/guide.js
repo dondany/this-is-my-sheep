@@ -4,7 +4,7 @@
 import {
   spareFor, LAST_STAND, DOG, BIG_BARK, BUMP, ROAM, SHEEP, SHEEP_TYPES, WOLF, WOLF_TYPES, FIRST_WAVE, GOAL, ENDLESS, BOSS, SUMMERS,
   SHEARING, GOAT, LAMB, BLACK, BELL, SLEEPY, GOLDEN, DISGUISE, RAM_CALM, RASCAL, PUPS, HOWLER,
-  TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, SIEGE, BOSSES, bossOn, waveConfig,
+  TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, SIEGE, BOSSES, BOSS_BY_ID, PIPER, TWINS, BURROWER, DEN, waveConfig,
 } from './config.js';
 import { CHARMS, CHARM, SHOP, LIVESTOCK, TRAINING, TRAIN, TRAINING_PRICE, AUGMENTS, animalPrice, modifiers, trainingText, trainingPrice } from './upgrades.js';
 import { ACHIEVEMENTS, ACHIEVEMENT } from './achievements.js';
@@ -23,8 +23,8 @@ const chips = (items) => `<ul class="chips">${items.filter(Boolean).map(([k, v])
 
 // Bestiary ids → the game's type keys.
 const SHEEP_KIND = { sheep: 'normal' };
-const WOLF_KIND = { wolf: 'normal' };
-const firstWave = (id) => FIRST_WAVE[id === 'pup' ? 'pups' : id] ?? 1;
+const WOLF_KIND = { wolf: 'normal', twins: 'twinDark' };
+const firstWave = (id) => (BOSS_BY_ID[id] ? `${BOSS_BY_ID[id].wave} (boss)` : FIRST_WAVE[id === 'pup' ? 'pups' : id] ?? 1);
 const startReach = DOG.threatRadius;
 const reachScale = startReach / DOG.baseReach; // sheep react to the dog relative to its reach
 
@@ -62,8 +62,8 @@ $('goal-body').innerHTML = `
   <h3>Last Sheep Standing</h3>
   <p>On the line, one more loss ends the run, so the dog finds a second wind: ${pct(LAST_STAND.speed)} speed and ${pct(LAST_STAND.reach)} reach. The screen edge pulses red with a heartbeat, and every grab plays in slow motion (${LAST_STAND.slowmo} s). It ends with the wave; finishing a wave on the line earns <em>Held the Line</em>.</p>
   <h3>Bosses</h3>
-  <p>A boss comes on top of its wave's pack. Each one is announced the same way: a red BOSS card and a war horn when it turns up, "Boss wave" in the wave's intro, a red bar under the HUD while it's around, and a bigger marker at the edge of the screen.</p>
-  ${table(['Wave', 'Boss', 'Arrives', 'What it does'], BOSSES.map((b) => [[...Array(GOAL.finalWave).keys()].map((i) => i + 1).filter(b.on).join(', ') + (b.on(GOAL.finalWave + BOSS.endlessEvery) ? ` <small>(and every ${BOSS.endlessEvery} endless)</small>` : ''), `${b.icon} ${esc(b.name)}`, b.arriveAt ? `${Math.round(b.arriveAt * 100)}% in` : 'at the start', esc(b.tagline) + (b.holdsWave ? ' <small>(overtime)</small>' : '')]))}
+  <p>Waves 5, 10 and 15 are boss waves. Each run draws its wave-5 boss from the <em>survive</em> pool (they can't be beaten, only lasted out) and its wave-10 boss from the <em>fight</em> pool (they can be beaten); Old Greymuzzle is always the final one. The shop before a boss wave says which boss is coming. A boss comes on top of its wave's pack, and each one is announced the same way: a red BOSS card and a war horn when it turns up, "Boss wave" in the wave's intro, a red bar under the HUD while it's around, and a bigger marker at the edge of the screen. The bounty is paid at shearing for lasting a survive boss out, or for beating a fight boss.</p>
+  ${table(['Wave', 'Boss', 'Arrives', 'Bounty', 'What it does'], BOSSES.map((b) => [b.pool === 'final' ? `${b.wave} <small>(and every ${BOSS.endlessEvery} endless)</small>` : `${b.wave} <small>(${b.pool}, one of ${BOSSES.filter((o) => o.pool === b.pool).length})</small>`, `${b.icon} ${esc(b.name)}`, b.arriveAt ? `${Math.round(b.arriveAt * 100)}% in` : 'at the start', b.bounty ? `🧶 ${b.bounty}` : '—', esc(b.tagline) + (b.holdsWave ? ' <small>(overtime)</small>' : '')]))}
   <p>Old Greymuzzle arrives ${Math.round(BOSS.arriveAt * 100)}% of the way into the final wave. Like a brute, the dog has to stay next to him until his fear meter fills; like an alpha, he leads the pack. He has to be driven off <strong>${BOSS.driveOffs} times</strong>, coming back with ${BOSS.reinforcements} fresh ${BOSS.reinforcements === 1 ? 'wolf' : 'wolves'} after each of the first ones. The wave can't end until he is (overtime). He walks slow and heavy: every footfall thuds and makes sheep within ${BOSS.stompRadius} jump, higher the closer.</p>
   <h3>Endless mode</h3>
   <p>After winning, <em>Keep grazing</em> plays on:</p>
@@ -148,12 +148,16 @@ const wolfNotes = {
   runner: () => 'Goes for the nearest sheep and gives up a chase when the dog nears its target.',
   rascal: () => `Never takes sheep: dashes through the flock ${RASCAL.passes[0]}-${RASCAL.passes[1]} times at ${RASCAL.speed} u/s, tossing sheep aside.`,
   howler: () => `Never attacks. Howls every ${HOWLER.interval[0]}-${HOWLER.interval[1]} s, panicking sheep within ${HOWLER.radius}.`,
-  siege: () => `One a wave, halfway through it. Comes from the left or right and hauls a catapult towards the edge of your meadow (stopping at the edge of the screen if that's nearer), fires a wolf into the flock ${SIEGE.setup} s after it stops, then another every ${SIEGE.reload} s for the rest of the wave. The landing spot is marked ${SIEGE.aimWarning} s before; it throws sheep within ${SIEGE.blastRadius}. Scare the crew and it abandons the catapult for good. In wave ${SIEGE.bossWave} a bigger one, the Siege Engine, comes as a mini-boss: its crew can't be scared at all, so it fires until the wave ends.`,
+  siege: () => `One a wave, halfway through it. Comes from the left or right and hauls a catapult towards the edge of your meadow (stopping at the edge of the screen if that's nearer), fires a wolf into the flock ${SIEGE.setup} s after it stops, then another every ${SIEGE.reload} s for the rest of the wave. The landing spot is marked ${SIEGE.aimWarning} s before; it throws sheep within ${SIEGE.blastRadius}. Scare the crew and it abandons the catapult for good. The Siege Engine, one of the wave-5 bosses, is a bigger one whose crew can't be scared at all, so it fires until the wave ends.`,
   sneaky: () => `No off-screen arrow until within ${SNEAKY.revealDistance} of the flock; circles to the side away from the dog.`,
   brute: () => 'Has to be kept next to the dog until its fear meter fills; shoves sheep aside.',
   trickster: () => `Switches to the far side of the flock once the dog runs at it (within ${TRICKSTER.commitRadius}).`,
   alpha: () => `Other wolves stalk ${Math.round((1 - ALPHA.stalk) * 100)}% less and attack on its howl; scaring it scares every wolf within ${ALPHA.panicRadius}.`,
   greymuzzle: () => `The final boss: ${BOSS.driveOffs} drive-offs, leads the pack, needs the dog close for a while each time.`,
+  piper: () => `A wave-5 boss. Walks to the edge of the screen, then plays for ${PIPER.tune} s every ${PIPER.tune + PIPER.rest} s: every awake sheep walks towards it at up to ${PIPER.pull} u/s (still shying away from the dog and from wolves), and one that gets within ${PIPER.snatch} is lured away. Can't be scared; sheep don't fear it.`,
+  twinDark: () => `A wave-10 boss, with its twin. A scared twin runs for ${TWINS.window} s and comes back, unless the other is scared in that time too; then both leave for good.`,
+  burrower: () => `A wave-10 boss. Underground it moves at ${BURROWER.digSpeed} u/s towards a sheep, can't be seen or barked at, and sheep don't notice it; ${BURROWER.reach} under a sheep it comes up, grabs it and throws the sheep within ${BURROWER.burst} aside. The dog on the mound digs it out (a drive-off); ${BURROWER.drives} in all.`,
+  denMother: () => `A wave-10 boss. Prowls ${DEN.inset} inside the meadow's edge and calls a pup pack every ${DEN.interval} s (the first after ${DEN.first} s, none while ${DEN.maxPups} pups are about). ${DEN.drives} drive-offs; each scatters her pups, the last sends them home.`,
   disguised: () => 'What comes out of the sheepskin: a regular wolf.',
 };
 
@@ -199,14 +203,19 @@ const pending = [...document.querySelectorAll('img[data-portrait]')];
 
 // --- Waves -------------------------------------------------------------------
 
-const nameOf = (kind) => ({ normal: 'wolf', pups: 'pup pack' })[kind] ?? (BOSSES.find((b) => b.id === kind) && `${BOSSES.find((b) => b.id === kind).name} (boss)`) ?? ENTRIES.find((e) => e.id === kind)?.name.toLowerCase() ?? kind;
+const nameOf = (kind) =>
+  ({ normal: 'wolf', pups: 'pup pack' })[kind] ??
+  (BOSS_BY_ID[kind.split('|')[0]] && `boss: ${kind.split('|').map((id) => BOSS_BY_ID[id].name).join(' or ')}`) ??
+  ENTRIES.find((e) => e.id === kind)?.name.toLowerCase() ??
+  kind;
 const waveRows = [];
 for (const wave of [...Array(GOAL.finalWave).keys()].map((i) => i + 1).concat([16, 20, 25])) {
   const cfg = waveConfig(wave);
   const counts = {};
   for (const k of cfg.pack) counts[k] = (counts[k] ?? 0) + 1;
-  const boss = bossOn(wave);
-  if (boss) counts[boss.id] = 1;
+  // Boss waves: Old Greymuzzle, or one of a pool drawn per run.
+  const bosses = BOSSES.filter((b) => (b.pool === 'final' ? wave === GOAL.finalWave || (wave > GOAL.finalWave && (wave - GOAL.finalWave) % BOSS.endlessEvery === 0) : b.wave === wave));
+  if (bosses.length) counts[bosses.map((b) => b.id).join('|')] = 1;
   const pack = Object.entries(counts)
     .sort((a, b) => (a[0] === 'normal') - (b[0] === 'normal'))
     .map(([k, c]) => `${c > 1 ? c + '× ' : ''}${nameOf(k)}`)
@@ -222,6 +231,7 @@ for (const wave of [...Array(GOAL.finalWave).keys()].map((i) => i + 1).concat([1
   const newcomers = Object.keys(FIRST_WAVE)
     .filter((k) => FIRST_WAVE[k] === wave)
     .map((k) => (k === 'goat' ? 'goat (in the shop)' : nameOf(k === 'pups' ? 'pup' : k)));
+  const boss = bosses.length > 0;
   const label = wave > GOAL.finalWave ? `${wave} <small>(endless${boss ? ', boss' : ''})</small>` : wave === GOAL.finalWave ? `${wave} <small>(final, boss)</small>` : boss ? `${wave} <small>(boss)</small>` : String(wave);
   waveRows.push([
     label,

@@ -350,6 +350,70 @@ export class Juice {
     this.sfx.bleat(true, 1.1);
   }
 
+  // --- Bosses --------------------------------------------------------------
+
+  piperTune(wolf, playing) {
+    if (playing) {
+      this.floatText('♪ ♫ ♪', { follow: wolf, offsetY: 3.6, cls: 'warn', duration: 1.4, size: 32 });
+      this.ring(wolf.position, { from: 1, to: 30, duration: 1.4, color: 0xb48ad6, opacity: 0.35 });
+      this.sfx.pipeTune();
+    }
+  }
+
+  // A note drifting up from the pipe while it plays.
+  piperNote(wolf) {
+    const notes = ['♪', '♫', '♬'];
+    const p = tmp.copy(wolf.position);
+    p.x += (Math.random() - 0.5) * 2;
+    p.z += (Math.random() - 0.5) * 2;
+    this.floatText(notes[(Math.random() * notes.length) | 0], { position: p, offsetY: 2.5 + Math.random(), cls: 'note', duration: 1.2 });
+  }
+
+  piperSnatch(sheep) {
+    this.floatText('LURED AWAY!', { position: sheep.position, offsetY: 2.4, cls: 'danger', duration: 1.4 });
+    this.particles.sparkle(tmp.copy(sheep.position).setY(1), 10, [0xb48ad6, 0xe8c547, 0xffffff]);
+  }
+
+  twinDown(wolf) {
+    this.floatText('NOW THE OTHER ONE!', { follow: wolf.twin ?? wolf, offsetY: 3.4, cls: 'warn', duration: 1.6 });
+  }
+
+  twinsBeaten(a, b) {
+    for (const w of [a, b]) this.particles.confetti(tmp.copy(w.position).setY(1.5), 40);
+    this.floatText('TWINS BEATEN!', { follow: a, offsetY: 4.5, cls: 'big', duration: 2.4, size: 40 });
+    this.shake(0.1, 250);
+    this.sfx.waveComplete();
+  }
+
+  dirt(position, count) {
+    this.particles.emit({ position: tmp.copy(position).setY(0.3), count, colors: [COLORS.dirt, COLORS.dust, 0x6b4f36], speed: 4, up: 6, spread: 0.6, life: 0.8, size: 0.4, endSize: 0.25, gravity: 12, drag: 1.5 });
+  }
+
+  burrowerDive(wolf) {
+    this.dirt(wolf.position, 14);
+  }
+
+  // The dog ran onto the mound: up it comes.
+  burrowerDugOut(wolf) {
+    this.dirt(wolf.position, 24);
+    this.floatText('DUG OUT!', { follow: wolf, offsetY: 3.2, cls: 'good', duration: 1.3 });
+    this.sfx.bonk();
+  }
+
+  // Up under a sheep.
+  burrowerSurface(wolf) {
+    this.dirt(wolf.position, 30);
+    this.ring(wolf.position, { from: 0.5, to: 4, duration: 0.4, color: COLORS.dirt, opacity: 0.9 });
+    this.floatText('SURPRISE!', { follow: wolf, offsetY: 3.2, cls: 'danger', duration: 1.2 });
+    this.shake(0.08, 200);
+    this.sfx.stomp();
+  }
+
+  denCall(wolf) {
+    this.floatText('AWOO! (pups!)', { follow: wolf, offsetY: 4, cls: 'warn', duration: 1.4 });
+    this.sfx.howl(1.3, true);
+  }
+
   siegeShrug(wolf) {
     this.floatText('NOT BUDGING!', { follow: wolf, offsetY: 2.8, cls: 'warn', duration: 1.4 });
   }

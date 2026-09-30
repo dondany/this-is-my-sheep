@@ -1,4 +1,4 @@
-import { DOG, SHEEP, WORLD, RAM_CALM, LAMB, BLACK, SLEEPY, BELL, GOAT, BUMP } from './config.js';
+import { DOG, SHEEP, WORLD, RAM_CALM, LAMB, BLACK, SLEEPY, BELL, GOAT, BUMP, PIPER } from './config.js';
 import { angleTo } from './entities.js';
 
 const NEIGH2 = SHEEP.neighbourRadius ** 2;
@@ -111,7 +111,7 @@ function ringBell(s, sheep, ctx) {
 export function updateGoat(g, ctx, dt) {
   const { wolves, center } = ctx;
   g.cooldown -= dt;
-  const busy = (w) => w.gone || w.state === 'FLEE' || w.state === 'LEAVE' || w.stun > 0;
+  const busy = (w) => w.gone || w.state === 'FLEE' || w.state === 'LEAVE' || w.state === 'DIG' || w.stun > 0 || w.fearless;
   if (g.target && (busy(g.target) || g.target.position.distanceTo(g.position) > GOAT.sightRadius * 1.5)) g.target = null;
   if (!g.target && g.cooldown <= 0) {
     let best = GOAT.sightRadius;
@@ -403,6 +403,24 @@ export function updateFlock(sheep, ctx, dt) {
       }
     }
 
+    // The Pied Piper's tune: the sheep walks towards the piper. The pull back to the shepherd grows
+    // the further it strays, so the flock stretches towards the piper rather than all walking over;
+    // the sheep on its side are the ones in danger. They still shy away from the dog and from wolves
+    // (below), which is how the dog holds them back.
+    if (s.lured > 0) {
+      s.lured -= dt;
+      const l = s.lureTo;
+      if (l && !l.gone) {
+        const lx = l.position.x - px;
+        const lz = l.position.z - pz;
+        const ld = Math.hypot(lx, lz) || 1e-3;
+        dx += (lx / ld) * PIPER.pull;
+        dz += (lz / ld) * PIPER.pull;
+        s.mode = 'walk';
+        s.wanderAngle = Math.atan2(lx, lz);
+      }
+    }
+
     // Wanderers that stray well past the flock get a "?".
     if (s.kind === 'wanderer') {
       if (!s.strayed && hd > baseRadius * 1.25) {
@@ -447,6 +465,7 @@ export function updateFlock(sheep, ctx, dt) {
     const panic = t.panic * mods.panic * (nearRam && !t.attract ? RAM_CALM : 1);
     s.wolfNear = false;
     for (const w of wolves) {
+      if (w.state === 'DIG' || w.type.charming) continue; // underground, or too charming to fear
       const wx = px - w.position.x;
       const wz = pz - w.position.z;
       const wd = Math.hypot(wx, wz) || 1e-3;

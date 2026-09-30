@@ -1,4 +1,4 @@
-import { WOLF, WORLD, SNEAKY, ALPHA, PUPS, HOWLER, TRICKSTER, SCARECROW, RASCAL, SHEARING, FLOCK_CHARMS, SIEGE } from './config.js';
+import { WOLF, WORLD, SNEAKY, ALPHA, PUPS, HOWLER, TRICKSTER, SCARECROW, RASCAL, SHEARING, FLOCK_CHARMS, SIEGE, PIPER, TWINS, BURROWER, DEN } from './config.js';
 import { angleTo } from './entities.js';
 
 // Wolf states:
@@ -23,12 +23,21 @@ import { angleTo } from './entities.js';
 //   pup     comes in groups of three that move together and split up when the dog gets close.
 //   rascal  never takes a sheep: DASHes straight through the flock a few times, tossing sheep aside.
 //
+// Bosses (BOSSES in config.js):
+//   piper      STROLLs to its spot at the edge of the screen, then PIPEs: a tune now and then lures
+//              the flock towards it. Can't be scared.
+//   twin       two of them; a scared twin only stays gone if its twin is scared within TWINS.window.
+//   burrower   DIGs underground (a mound of earth) and comes up under a sheep to grab it. The dog on
+//              the mound digs it out.
+//   mother     the Den Mother: prowls the meadow's edge like a howler, never attacks, and calls pups.
+// Bosses with `drivesLeft` have to be driven off that many times.
+//
 // Any wolf can be stunned by the goat for a moment (`stun`).
 // Besides the player's dog, a helper dog (ctx.guards) and scarecrows (ctx.scarecrows) can scare wolves.
 
 const between = ([min, max]) => min + Math.random() * (max - min);
 
-const THREATENING = new Set(['APPROACH', 'CHASE', 'ATTACK', 'DASH', 'HAUL', 'SETUP', 'RELOAD']);
+const THREATENING = new Set(['APPROACH', 'CHASE', 'ATTACK', 'DASH', 'HAUL', 'SETUP', 'RELOAD', 'STROLL', 'PIPE', 'DIG']);
 
 export function toWander(w, ctx) {
   const cfg = ctx.cfg;
@@ -39,6 +48,19 @@ export function toWander(w, ctx) {
   }
   if (w.type.siege) {
     w.state = 'HAUL';
+    return;
+  }
+  if (w.type.piper) {
+    w.state = 'STROLL';
+    return;
+  }
+  // The burrower dives back under and rests a moment before it moves on.
+  if (w.type.burrower) {
+    w.state = 'DIG';
+    w.target = null;
+    w.retarget = 0;
+    w.stateTimer = BURROWER.rest;
+    ctx.onBurrowerDive?.(w);
     return;
   }
   w.state = 'WANDER';
@@ -53,7 +75,7 @@ export function toWander(w, ctx) {
 
 // Scare a wolf no matter what (the Big Bark): brutes don't get to resist.
 export function forceScare(w, ctx, by) {
-  if (w.state === 'FLEE' || w.state === 'LEAVE' || w.gone || w.fearless) return false;
+  if (w.state === 'FLEE' || w.state === 'LEAVE' || w.state === 'DIG' || w.gone || w.fearless) return false;
   const dx = w.position.x - by.position.x;
   const dz = w.position.z - by.position.z;
   scare(w, ctx, dx, dz, Math.hypot(dx, dz) || 1e-3, by);
@@ -142,22 +164,22 @@ function fly(w, ctx, dt) {
   w.stateTimer = 2;
 }
 
-// The landing: every sheep nearby is thrown outward, high, and panics.
-function blast(w, ctx) {
+// The landing: every sheep nearby is thrown outward, high, and panics. (Also the burrower coming up.)
+function blast(w, ctx, { radius = SIEGE.blastRadius, push = SIEGE.blastPush, height = SIEGE.blastHeight } = {}) {
   for (const s of ctx.sheep) {
     if (s.grabbedBy) continue;
     const sx = s.position.x - w.position.x;
     const sz = s.position.z - w.position.z;
     const d = Math.hypot(sx, sz);
-    if (d > SIEGE.blastRadius) continue;
-    const k = 1 - d / SIEGE.blastRadius;
+    if (d > radius) continue;
+    const k = 1 - d / radius;
     const nx = d > 1e-3 ? sx / d : Math.random() - 0.5;
     const nz = d > 1e-3 ? sz / d : Math.random() - 0.5;
-    s.velocity.x += nx * SIEGE.blastPush * (0.4 + k);
-    s.velocity.z += nz * SIEGE.blastPush * (0.4 + k);
+    s.velocity.x += nx * push * (0.4 + k);
+    s.velocity.z += nz * push * (0.4 + k);
     s.bump = 1;
     s.bumpSide = Math.sign(nx) || 1;
-    s.bumpPower = SIEGE.blastHeight * (0.5 + k);
+    s.bumpPower = height * (0.5 + k);
     s.bumpCooldown = 0.8;
     s.fear = 1;
     s.asleep = false;
@@ -217,8 +239,9 @@ function aimAway(w, ddx, ddz, dd) {
 
 // `by` is whatever did the scaring: a dog, or a scarecrow.
 function scare(w, ctx, ddx, ddz, dd, by = ctx.dog) {
-  if (w.fearless) return; // the siege engine's crew won't budge
-  const threatening = isThreatening(w) || !!w.type.howler;
+  if (w.fearless) return; // the Siege Engine's crew and the Pied Piper won't budge
+  const threatening = isThreatening(w) || !!w.type.howler || !!w.type.mother;
+  if (w.state === 'DIG') ctx.onBurrowerDugOut?.(w);
   w.howling = 0;
   w.stun = 0;
   if (w.state === 'ATTACK' && w.target) {
@@ -240,8 +263,25 @@ function scare(w, ctx, ddx, ddz, dd, by = ctx.dog) {
   aimAway(w, ddx, ddz, dd);
   ctx.onWolfScared(w, threatening, by);
 
-  // The boss has to be driven off several times; the last time it leaves for good.
-  if (w.type.boss) {
+  // The Twins: only scared together (within TWINS.window of each other) do they leave for good.
+  if (w.type.twin) {
+    const twin = w.twin;
+    if (twin && !twin.defeated && twin.downUntil > ctx.time) {
+      for (const t of [w, twin]) {
+        t.defeated = true;
+        t.state = 'LEAVE';
+        t.downUntil = 0;
+      }
+      ctx.onTwinsBeaten?.(w, twin);
+    } else {
+      w.downUntil = ctx.time + TWINS.window;
+      w.stateTimer = TWINS.window; // then it's straight back
+      ctx.onTwinDown?.(w);
+    }
+  }
+
+  // Bosses with drive-offs have to be driven off several times; the last time they leave for good.
+  if (w.drivesLeft != null) {
     w.drivesLeft = (w.drivesLeft ?? 1) - 1;
     if (w.drivesLeft <= 0) {
       w.defeated = true;
@@ -312,6 +352,20 @@ function updatePupGroups(wolves, ctx, dt) {
       p.fleeDir.set(Math.cos(a), 0, Math.sin(a));
     });
     ctx.onPupsSplit?.(pups[0]);
+  }
+}
+
+// The Pied Piper's tune: every sheep that can hear it (awake, not held) walks towards the piper
+// for a moment (see flock.js); the first to reach it is lured away (one a tune).
+function lure(w, ctx) {
+  for (const s of [...ctx.sheep]) {
+    if (s.grabbedBy || s.asleep || s.type.fake) continue;
+    s.lured = 0.25;
+    s.lureTo = w;
+    if (!w.snatched && s.position.distanceTo(w.position) < PIPER.snatch) {
+      w.snatched = true;
+      ctx.onPiperSnatch?.(s, w);
+    }
   }
 }
 
@@ -387,7 +441,7 @@ export function updateWolves(wolves, ctx, dt) {
       else if (w.fear > 0) w.fear = Math.max(0, w.fear - dt * 0.5);
     }
     // Scarecrows only fool ordinary wolves: brutes see right through them.
-    if (w.state !== 'FLEE' && w.state !== 'LEAVE' && !courage) {
+    if (w.state !== 'FLEE' && w.state !== 'LEAVE' && w.state !== 'DIG' && !courage) {
       for (const sc of ctx.scarecrows) {
         const sx = px - sc.position.x;
         const sz = pz - sc.position.z;
@@ -445,7 +499,7 @@ export function updateWolves(wolves, ctx, dt) {
         }
         vx = -oz * w.orbitDir * orbitSpeed;
         vz = ox * w.orbitDir * orbitSpeed;
-        const ring = WORLD.lurkRadius - (T.howler ? HOWLER.ringOffset : 0);
+        const ring = T.mother ? WORLD.playRadius - DEN.inset : WORLD.lurkRadius - (T.howler ? HOWLER.ringOffset : 0);
         const radial = (ring - r) * 1.2;
         vx += ox * radial;
         vz += oz * radial;
@@ -466,6 +520,14 @@ export function updateWolves(wolves, ctx, dt) {
             w.howlTimer = between(HOWLER.interval);
             w.howling = HOWLER.windup;
             ctx.onHowlStart?.(w);
+          }
+          break;
+        }
+        // The Den Mother never attacks: she prowls and calls her pups.
+        if (T.mother) {
+          if (ctx.huntingAllowed && (w.callTimer = (w.callTimer ?? DEN.first) - dt) <= 0) {
+            w.callTimer = DEN.interval;
+            ctx.onDenCall?.(w);
           }
           break;
         }
@@ -591,8 +653,11 @@ export function updateWolves(wolves, ctx, dt) {
       case 'ATTACK': {
         const s = w.target;
         if (!s || !s.alive || s.grabbedBy !== w) {
-          w.state = 'APPROACH';
-          w.retarget = 0;
+          if (T.burrower) toWander(w, ctx); // lost its grip: back under
+          else {
+            w.state = 'APPROACH';
+            w.retarget = 0;
+          }
           break;
         }
         snap = true;
@@ -673,6 +738,70 @@ export function updateWolves(wolves, ctx, dt) {
           w.stateTimer = SIEGE.reload;
           w.aimed = false;
         }
+        break;
+      }
+
+      // The Pied Piper: walk to its spot (w.site, kept on screen by the game), then play.
+      case 'STROLL': {
+        const tx = w.site.x - px;
+        const tz = w.site.z - pz;
+        const td = Math.hypot(tx, tz);
+        if (td < 0.6) {
+          w.state = 'PIPE';
+          w.playing = false;
+          w.stateTimer = PIPER.first;
+          break;
+        }
+        const sp = WOLF.approachSpeed * speedScale;
+        vx = (tx / td) * sp;
+        vz = (tz / td) * sp;
+        break;
+      }
+
+      case 'PIPE': {
+        snap = true;
+        w.turnToward(Math.atan2(ctx.center.x - px, ctx.center.z - pz), 6, dt);
+        if (!ctx.huntingAllowed) {
+          w.state = 'LEAVE';
+          w.playing = false;
+          break;
+        }
+        w.stateTimer -= dt;
+        if (w.stateTimer <= 0) {
+          w.playing = !w.playing;
+          w.snatched = false;
+          w.stateTimer = w.playing ? PIPER.tune : PIPER.rest;
+          ctx.onPiperTune?.(w, w.playing);
+        }
+        if (w.playing) lure(w, ctx);
+        break;
+      }
+
+      // The burrower underground: head for a sheep and come up beneath it.
+      case 'DIG': {
+        if ((w.stateTimer -= dt) > 0 || !ctx.huntingAllowed) break;
+        w.retarget -= dt;
+        if (!w.target || !w.target.alive || w.target.grabbedBy || w.retarget <= 0) {
+          w.target = pickTarget(w, ctx);
+          w.retarget = 2;
+        }
+        const s = w.target;
+        if (!s) break;
+        const tx = s.position.x - px;
+        const tz = s.position.z - pz;
+        const td = Math.hypot(tx, tz) || 1e-3;
+        if (td < BURROWER.reach) {
+          w.state = 'ATTACK';
+          w.stateTimer = WOLF.grabTime * T.grabTime * s.type.grabTime * ctx.mods.grab * grabFactor(s, ctx);
+          s.grabbedBy = w;
+          s.wasGrabbed = true;
+          blast(w, ctx, { radius: BURROWER.burst, push: BURROWER.push, height: 1.6 });
+          ctx.onBurrowerSurface?.(w);
+          ctx.onSheepGrabbed(s, w);
+          break;
+        }
+        vx = (tx / td) * BURROWER.digSpeed * speedScale;
+        vz = (tz / td) * BURROWER.digSpeed * speedScale;
         break;
       }
 

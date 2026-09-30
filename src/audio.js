@@ -192,6 +192,13 @@ export class Sfx {
     this.tone({ type: 'sine', freq: 2500, freqEnd: 1900, dur: 0.3, gain: 0.08, attack: 0.02, at: 0.2 });
   }
 
+  // The Pied Piper's tune: a lilting little run on a reedy pipe.
+  pipeTune() {
+    if (!this.ready) return;
+    const notes = [880, 987.77, 1174.66, 987.77, 880, 783.99, 880, 1174.66, 1318.51, 1174.66];
+    notes.forEach((freq, i) => this.tone({ type: 'triangle', freq, dur: 0.32, gain: 0.07, attack: 0.03, at: i * 0.3, vibrato: { rate: 6, depth: 8 } }));
+  }
+
   boing(pitch = 1) {
     if (!this.ready || !this.throttle('boing', 90)) return;
     const f = 260 * pitch * (0.9 + Math.random() * 0.25);

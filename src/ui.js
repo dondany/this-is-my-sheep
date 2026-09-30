@@ -172,8 +172,15 @@ export class UI {
   // buttons. Charms are bought by dragging them onto the collar, animals onto the flock, and sold
   // by dragging them off the collar.
 
-  showWaveComplete({ wave, survived, lines, reward, line }) {
+  showWaveComplete({ wave, survived, lines, reward, line, nextBoss }) {
     $('wave-title').textContent = `Wave ${wave} ✓`;
+    // The next wave's boss, so there's time to buy a counter.
+    const next = $('wave-next');
+    next.classList.toggle('hidden', !nextBoss);
+    if (nextBoss) {
+      next.querySelector('b').textContent = `Next: boss wave! ${nextBoss.icon} ${nextBoss.name}`;
+      next.querySelector('span').textContent = nextBoss.tagline;
+    }
     $('wave-sheep').textContent = survived;
     $('wave-line').textContent = line ? `Lost ${line.lost} · could spare ${line.spare} ✓` : '';
     const short = (label) => label.replace(/ \(.*\)$/, '').replace('Shearing: ', 'Shorn: ');

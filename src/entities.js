@@ -462,6 +462,11 @@ const WOLF_LOOKS = {
   howler: { body: COLORS.howler, light: COLORS.howlerLight, eye: 0x9fd3ff, girth: 1, ears: 1.2 },
   trickster: { body: COLORS.fox, light: COLORS.foxLight, eye: COLORS.wolfEye, girth: 0.8, ears: 1.6, legColor: COLORS.foxDark, bushy: true },
   disguised: { body: COLORS.wolf, light: COLORS.wolfLight, eye: COLORS.wolfEye, girth: 1, ears: 1 },
+  piper: { body: COLORS.piper, light: COLORS.piperLight, eye: COLORS.wolfEye, girth: 0.85, ears: 1.1, head: 1.1 },
+  twinDark: { body: COLORS.twinDark, light: COLORS.twinDarkLight, eye: 0xe8f0ff, girth: 1.05, ears: 1.15 },
+  twinLight: { body: COLORS.twinLight, light: COLORS.twinLightLight, eye: 0x2b2826, girth: 1.05, ears: 1.15 },
+  burrower: { body: COLORS.burrower, light: COLORS.burrowerLight, eye: COLORS.wolfEye, girth: 1.2, ears: 0.7, legs: 0.8 },
+  denMother: { body: COLORS.denMother, light: COLORS.denMotherLight, eye: COLORS.wolfEye, girth: 1.15, ears: 1.2 },
 };
 
 // kind: 'normal' | 'runner' | 'brute' | 'sneaky' | 'alpha' | 'pup' | 'howler' | 'trickster' | 'disguised'
@@ -523,6 +528,11 @@ export class Wolf extends Animal {
       body.add(mesh(GEO.lowSphere, COLORS.sheep, { position: [0.12, 0.24, 0.25], scale: [0.2, 0.14, 0.2] }));
     }
 
+    if (kind === 'denMother') {
+      // A cream ruff around the neck.
+      body.add(mesh(GEO.box, COLORS.denMotherLight, { position: [0, 0.08, 0.32], scale: [0.68, 0.56, 0.32], rotation: [0.25, 0, 0], shadow: true }));
+    }
+
     if (kind === 'alpha' || kind === 'greymuzzle') {
       // Pale mane around the neck and shoulders.
       body.add(mesh(GEO.box, COLORS.alphaMane, { position: [0, 0.1, 0.3], scale: [0.7, 0.6, 0.34], rotation: [0.25, 0, 0], shadow: true }));
@@ -558,6 +568,19 @@ export class Wolf extends Animal {
       for (const side of [-1, 1]) head.add(mesh(GEO.box, COLORS.helmetStripe, { position: [side * 0.22, 0.02, 0.18], scale: [0.03, 0.2, 0.06] }));
     }
 
+    if (kind === 'piper') {
+      // A tall pointed hat with a red feather, and a pipe held in the mouth.
+      head.add(mesh(GEO.cone, COLORS.piperHat, { position: [0, 0.42, 0.06], scale: [0.26, 0.5, 0.26], shadow: true }));
+      head.add(mesh(GEO.box, COLORS.helmetStripe, { position: [0.16, 0.5, -0.02], scale: [0.04, 0.34, 0.08], rotation: [-0.5, 0, -0.4] }));
+      head.add(mesh(GEO.box, COLORS.woodDark, { position: [0, -0.16, 0.72], scale: [0.06, 0.06, 0.5], rotation: [0.35, 0, 0] }));
+    }
+
+    if (kind === 'burrower') {
+      // A miner's helmet with its lamp.
+      head.add(mesh(GEO.sphere, COLORS.minerHelmet, { position: [0, 0.2, 0.1], scale: [0.28, 0.16, 0.3], shadow: true }));
+      head.add(mesh(GEO.box, COLORS.lamp, { position: [0, 0.24, 0.38], scale: [0.12, 0.1, 0.06] }));
+    }
+
     const tail = (this.tail = new THREE.Group());
     tail.position.set(0, 0.1, -0.62);
     body.add(tail);
@@ -575,7 +598,7 @@ export class Wolf extends Animal {
     const run = Math.min(speed / 7, 1);
     // Old Greymuzzle walks slow and heavy: a longer stride, and every footfall (each half stride)
     // is a stomp the game reacts to.
-    const heavy = !!this.type.boss;
+    const heavy = this.kind === 'greymuzzle';
     this.phase += dt * (heavy ? 3 + speed * 0.8 : 5 + speed * 1.4);
     this.swingLegs(this.legs, this.phase, 0.8 * Math.min(1, speed / 2));
     if (heavy) {
@@ -857,7 +880,7 @@ export class Scarecrow extends Animal {
 // The siege crew's catapult: a wooden cart with a throwing arm. `arm` goes from -0.45 (wound back,
 // bucket low behind) to 2 (fired, over the top); `collapse` from 0 to 1 when it falls apart.
 export class Catapult extends Animal {
-  // boss: the wave-5 siege engine, bigger and flying a red banner.
+  // boss: the Siege Engine, bigger and flying a red banner.
   constructor(scene, { boss = false } = {}) {
     super(scene);
     this.arm = -0.3;
@@ -911,6 +934,17 @@ export class Catapult extends Animal {
     if (this.collapse > 0) {
       this.root.rotation.z = this.collapse * 0.7;
       this.root.position.y = -this.collapse * 0.6;
+    }
+  }
+}
+
+// The burrower's mound of earth, travelling above it while it digs.
+export class Mound extends Animal {
+  constructor(scene) {
+    super(scene);
+    this.root.add(mesh(GEO.lowSphere, COLORS.dirt, { scale: [1.3, 0.55, 1.6], shadow: true }));
+    for (const [x, z, s] of [[0.9, 0.5, 0.3], [-0.8, 0.7, 0.25], [0.3, -1.2, 0.28], [-0.6, -0.9, 0.22]]) {
+      this.root.add(mesh(GEO.lowSphere, COLORS.dirt, { position: [x, 0.05, z], scale: [s, s * 0.7, s], shadow: true }));
     }
   }
 }

@@ -48,19 +48,10 @@ Tricks brainstormed but not built yet (charms that change the rules, each with a
   them. That may be fine; worth watching in real play.
 
 ## Bosses
-The boss template is in (`BOSSES` in `config.js`: a BOSS card, war horn, HUD bar and a big marker
-for every boss). Wave 5 has the Siege Engine, wave 15 Old Greymuzzle. Proposed next ones:
-- 🎶 **The Pied Piper** (a "survive" boss): sits at the meadow's edge and howls a tune every ~10 s
-  that draws the flock towards it for a few seconds, a reverse whistle. The dog has to stand
-  between it and the flock to break the pull. Can't be scared; reuses the flock's attraction code.
+Built: the boss pools (wave 5 survive: Siege Engine, Pied Piper; wave 10 fight: Twins, Burrower,
+Den Mother; Old Greymuzzle final). Still to build:
 - ⛈️ **The Storm** (not a wolf): lightning strikes a marked spot every ~8 s, and each strike sends
   the nearby sheep stampeding. The wolves use the chaos. Survive it; the sky clears at the end.
-- 🐺🐺 **The Twins**: two big wolves from opposite sides. Scare one and it only stays gone if the
-  other is scared within 5 s too; otherwise it's straight back. A test of routing and pairs.
-- 🕳️ **The Burrower**: travels underground as a moving mound of earth and pops up in the flock to
-  take a sheep. Stand the dog on the mound to force it up early, and it flees.
-- 🐾 **The Den Mother**: stays back and sends a pup pack every 15 s. Drive her off (fear meter,
-  like a brute) and every pup on the field scatters with her.
 - 🍖 **The Glutton**: a fat wolf that grows with every sheep it takes: slower, but a longer fear
   meter and one more drive-off per sheep. Punishes letting even one go.
 - 🌫️ **The Grey Mist**: fog shrinks what you can see to a ring around the dog and the flock;
@@ -68,12 +59,16 @@ for every boss). Wave 5 has the Siege Engine, wave 15 Old Greymuzzle. Proposed n
   each scare thins the fog.
 - 🧥 **The Crook Thief**: snatches the shepherd's crook, so the shepherd stops calming the flock
   until the dog runs it down. Fast and zig-zagging, but skittish.
-
-Structure to go with them (like Balatro's boss blinds): a boss at waves 5, 10 and 15. Waves 5 and 10
-draw from a pool (the "survive" bosses early, the "fight" ones at 10), and Old Greymuzzle stays the
-final one. The shop before a boss wave shows which boss is coming, so you can buy a counter.
-Recommended first: the Pied Piper and the Den Mother, since they mostly reuse systems already in
-the game.
+- 🌙 **Blood Moon** (survive): a night wave, dark except for a lantern glow around the shepherd and
+  the dog; wolves show only as glowing eyes until close, and all are a little faster.
+- 🦅 **The Eagle**: circles overhead; its shadow picks a sheep and a few seconds later it dives and
+  carries it off. The dog in the shadow before the dive makes it pull up; it keeps coming back.
+- 🐻 **The Bear** (survive): slow, huge, can't be scared; walks straight across the meadow flinging
+  sheep and wolves aside, turning at the edge. Steer the flock out of its path.
+- 🔥 **Wildfire** (survive): a grass fire spreads slowly from one edge; sheep panic near burning
+  ground and wolves hide in the smoke. Herd the flock to the side that isn't burning.
+- 🎭 **The Pretender**: three sheep in the flock are wolves in disguise, and one of them is the real
+  boss. Sniff one out to unmask it; guess wrong and the flock panics.
 
 ## Replay value
 - Daily run: the same waves and shop for everyone each day (a shared random seed), to compare
