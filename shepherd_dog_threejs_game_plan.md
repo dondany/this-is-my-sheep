@@ -3275,3 +3275,25 @@ be one per wave, and it should keep firing, less often.
     bottom, pulled in only as far as needed to keep the catapult inside
     the central 75% of the current view (`Game.placeSiege()`, checked
     each frame while hauling); the camera leans 30% its way.
+
+Third follow-up (playtest): the first version's distance (the meadow's
+edge) felt right; the problem was only crews setting up at the top or
+bottom of the screen, where too little of the meadow shows. And the
+helmet was on the wrong wolf.
+
+-   Crews now arrive only from the left or right (within 0.35 rad of
+    straight across, `SIEGE.spread`) and set up at the meadow's edge
+    again, as in the first version; the oval and `placeSiege()` are gone.
+    If the flock has wandered far to the other side, the spot is pulled
+    in to 28 from it (`maxFromFlock`).
+-   The camera leans 30% towards a crew at work, and up to 55% if the
+    catapult would otherwise sit outside the central 80% of the view (a
+    slow feedback on its projected position, so the view doesn't jump).
+    In headless checks the catapult ended up at 0.67–0.75 of the
+    half-screen with the flock still in view on the other side.
+-   The helmet moved from the hauling crew to the wolf that gets fired
+    (including the one waiting in the bucket): a white crash helmet
+    with a red stripe over the top and red chin straps, human-cannonball
+    style.
+-   Bots after the change: Hunter 1/4, Crew 2/4, Barker 2/4, Fortress
+    2/4 (7/16, against 6/16 before), so still in range.

@@ -551,10 +551,11 @@ export class Wolf extends Animal {
       head.add(mesh(GEO.box, look.eye, { position: [side * 0.11, 0.07, 0.33], scale: [0.08, 0.05, 0.03] }));
     }
 
-    if (kind === 'siege') {
-      // A leather helmet with a little spike: the siege engineer.
-      head.add(mesh(GEO.sphere, COLORS.helmet, { position: [0, 0.2, 0.1], scale: [0.27, 0.16, 0.28], shadow: true }));
-      head.add(mesh(GEO.cone, COLORS.helmet, { position: [0, 0.38, 0.1], scale: [0.05, 0.14, 0.05] }));
+    if (kind === 'flyer') {
+      // The human cannonball's crash helmet: white, with a red stripe over the top and a red chin strap.
+      head.add(mesh(GEO.sphere, COLORS.helmet, { position: [0, 0.2, 0.1], scale: [0.27, 0.17, 0.29], shadow: true }));
+      head.add(mesh(GEO.sphere, COLORS.helmetStripe, { position: [0, 0.2, 0.1], scale: [0.08, 0.178, 0.296] }));
+      for (const side of [-1, 1]) head.add(mesh(GEO.box, COLORS.helmetStripe, { position: [side * 0.22, 0.02, 0.18], scale: [0.03, 0.2, 0.06] }));
     }
 
     const tail = (this.tail = new THREE.Group());

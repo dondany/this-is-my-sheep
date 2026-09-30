@@ -628,8 +628,6 @@ export function updateWolves(wolves, ctx, dt) {
 
       // Siege crew: drag the catapult to its spot, wind it up, fire, reload.
       case 'HAUL': {
-        // The spot (w.site) follows the flock while it's hauled there; the game keeps it in view
-        // (Game.placeSiege).
         const tx = w.site.x - px;
         const tz = w.site.z - pz;
         const td = Math.hypot(tx, tz);

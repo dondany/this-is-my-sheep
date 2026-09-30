@@ -52,7 +52,8 @@ export const COLORS = {
   rascalLight: 0xe3d6bf,
   siege: 0x7d6e62,
   siegeLight: 0xd8cbb8,
-  helmet: 0x6b4b2e,
+  helmet: 0xf4f1ea, // the catapulted wolf's crash helmet
+  helmetStripe: 0xd7263d,
   woodDark: 0x6e4a2e,
   bandana: 0xc94f3d,
   pup: 0x8a867e,
@@ -452,13 +453,15 @@ Object.assign(WOLF_TYPES, {
 // the flock. The landing throws sheep in every direction; the fired wolf then runs off. Reach the
 // catapult before it fires and the crew bolts, leaving it to fall apart.
 export const SIEGE = {
-  // The crew sets up this far from the flock, on the side it came from: less towards the top and
-  // bottom of the screen (world z), which shows less of the meadow than the sides.
-  distance: 18, // to the sides
-  distanceZ: 12, // towards the top of the screen
-  distanceNear: 8, // towards the bottom (nearest the camera, where the least ground shows)
-  inView: 0.75, // ...pulled in if needed so the catapult stays inside this share of the screen
-  cameraLean: 0.3, // the camera leans this much of the way towards a crew that's setting up
+  // Crews only come in from the left or right (the top and bottom of the screen show too little of
+  // the meadow's edge to see the catapult), within this many radians of straight across, and set
+  // up on the edge of the dog's meadow.
+  spread: 0.35,
+  edgeInset: 0.8, // this far inside the meadow's edge...
+  maxFromFlock: 28, // ...but no further than this from the flock (it's pulled in along the same line)
+  cameraLean: 0.3, // the camera leans this much of the way towards a crew at work...
+  cameraLeanMax: 0.55, // ...and up to this much if that's what it takes to keep the catapult on screen
+  inView: 0.8, // "on screen": inside this share of the view
   haulSpeed: 0.55, // × approach speed while dragging the catapult
   setup: 5, // seconds winding up before the first shot
   reload: 12, // then a shot every this many seconds, for the rest of the wave (until it's scared off)

@@ -165,7 +165,7 @@ export const ENTRIES = [
     id: 'siege',
     side: 'wolves',
     name: 'Siege Crew',
-    text: "A wolf in a leather helmet drags a catapult up to the flock, winds it up and fires the wolf sitting in its bucket into the middle of the flock. The landing throws sheep everywhere; the fired wolf runs off dizzy. It keeps firing every so often until you chase the crew off.",
+    text: "A wolf drags a catapult in from the left or right to the edge of your meadow, winds it up and fires the wolf sitting in its bucket, crash helmet and all, into the middle of the flock. The landing throws sheep everywhere; the fired wolf runs off dizzy. It keeps firing every so often until you chase the crew off.",
     tip: 'Get to the catapult before it fires and the crew bolts. The red ring shows where the next wolf will land.',
     make: (scene) => {
       const c = new Catapult(scene).setPosition(-1.6, 0, -1.6);
