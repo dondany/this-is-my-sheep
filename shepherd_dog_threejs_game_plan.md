@@ -3314,3 +3314,19 @@ mustn't move for it.
     the screen; zoomed out, it sets up further away.
 -   Bots after it: Hunter 3/4, Crew 0/4, Barker 2/4, Fortress 3/4 (8/16,
     against 7/16 and 6/16 for the last two versions; noise at 4 runs each).
+
+Fifth follow-up (playtest): the catapult should only turn up in the
+middle of a wave, fire almost as soon as it stops, and reload in half the
+time.
+
+-   The crew is no longer one of the wave's arrivals: `waveConfig()` keeps
+    it in `pack` (the guide's wave table still counts it) but spawns from
+    `order`, which leaves it out, and `cfg.siege` says whether it comes.
+    The game sends it at `SIEGE.arriveAt` (50%) of the wave.
+-   Setup 5 s → 2 s: the landing ring shows 0.4 s after it stops (the ring's
+    1.6 s warning is kept), then the first shot. Reload 12 s → 6 s.
+-   In a 90 s wave 10: arrives at 45 s, stops at 51 s, shots at 53, 59,
+    65, 71, 77, 83 and 89 s. The same seven shots as before, all in the
+    second half.
+-   Bots: Hunter 4/4, Crew 0/4, Barker 1/4, Fortress 3/4; Crew rerun with
+    8 runs: 5/8, so the 0/4 was noise.

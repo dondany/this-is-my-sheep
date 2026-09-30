@@ -2027,13 +2027,14 @@ export class Game {
         break;
       case STATE.PLAYING:
         this.waveTime += dt;
-        if (this.wolvesSpawned < this.cfg.wolves && this.waveTime >= this.nextWolfAt) {
+        const order = this.cfg.order;
+        if (this.wolvesSpawned < order.length && this.waveTime >= this.nextWolfAt) {
           // From wave 2 wolves arrive in pairs from opposite sides, so the dog can't cover both.
-          const pair = this.cfg.pairs && this.wolvesSpawned + 1 < this.cfg.wolves;
-          this.spawnWolf(this.cfg.pack[this.wolvesSpawned] ?? 'normal');
+          const pair = this.cfg.pairs && this.wolvesSpawned + 1 < order.length;
+          this.spawnWolf(order[this.wolvesSpawned] ?? 'normal');
           this.wolvesSpawned++;
           if (pair) {
-            this.spawnWolf(this.cfg.pack[this.wolvesSpawned] ?? 'normal', this.lastSpawnAngle + Math.PI);
+            this.spawnWolf(order[this.wolvesSpawned] ?? 'normal', this.lastSpawnAngle + Math.PI);
             this.wolvesSpawned++;
           }
           this.nextWolfAt += this.cfg.spawnInterval * (pair ? 1.6 : 1);
@@ -2044,6 +2045,7 @@ export class Game {
           this.whistleTimer = this.ctx.mods.whistle;
           this.whistle();
         }
+        if (this.cfg.siege && !this.siegeThisWave && this.waveTime >= this.cfg.duration * SIEGE.arriveAt) this.spawnWolf('siege');
         const arriveAt = this.rules.bossEarly ? Math.min(BOSS.arriveAt, 0.1) : BOSS.arriveAt;
         if (this.isBossWave() && !this.bossSpawned && this.waveTime >= this.cfg.duration * arriveAt) this.spawnBoss();
         // The boss wave only ends once Old Greymuzzle has been driven off for good.

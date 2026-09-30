@@ -460,9 +460,10 @@ export const SIEGE = {
   edgeInset: 0.8, // this far inside the meadow's edge...
   maxFromFlock: 28, // ...but no further than this from the flock (it's pulled in along the same line),
   inView: 0.86, // ...and pulled in if needed so the catapult stands inside this share of the screen (right by its edge)
+  arriveAt: 0.5, // turns up this far into the wave
   haulSpeed: 0.55, // × approach speed while dragging the catapult
-  setup: 5, // seconds winding up before the first shot
-  reload: 12, // then a shot every this many seconds, for the rest of the wave (until it's scared off)
+  setup: 2, // seconds from stopping to the first shot (the landing spot shows after the first 0.4)
+  reload: 6, // then a shot every this many seconds, for the rest of the wave (until it's scared off)
   aimWarning: 1.6, // the landing spot is marked this long before a shot
   flight: 1.3, // seconds in the air
   arc: 9, // peak height
@@ -732,6 +733,8 @@ export function waveConfig(wave, rules = summerRules(1)) {
     bellwether: wave >= FIRST_WAVE.bellwether ? 1 : 0,
     disguised: wave >= FIRST_WAVE.disguised ? 1 : 0,
     wolves: pack.length,
+    order: pack.filter((k) => k !== 'siege'), // the arrivals, in order; a siege crew isn't one of them...
+    siege: pack.includes('siege'), // ...it comes halfway through the wave (SIEGE.arriveAt)
     duration: Math.min(40 + wave * 5, 90),
     spawnInterval: Math.max(2, 7 - wave * 0.5),
     pairs: true, // wolves arrive two at a time, from opposite sides
