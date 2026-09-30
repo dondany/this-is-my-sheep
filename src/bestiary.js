@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Sheep, Wolf, Goat, Catapult } from './entities.js';
-import { FIRST_WAVE } from './config.js';
+import { FIRST_WAVE, SIEGE } from './config.js';
 
 const STORAGE_KEY = 'this-is-my-sheep.bestiary';
 
@@ -165,7 +165,7 @@ export const ENTRIES = [
     id: 'siege',
     side: 'wolves',
     name: 'Siege Crew',
-    text: "A wolf drags a catapult in from the left or right to the edge of your meadow, winds it up and fires the wolf sitting in its bucket, crash helmet and all, into the middle of the flock. The landing throws sheep everywhere; the fired wolf runs off dizzy. It keeps firing every so often until you chase the crew off.",
+    text: "A wolf drags a catapult in from the left or right to the edge of your meadow, winds it up and fires the wolf sitting in its bucket, crash helmet and all, into the middle of the flock. The landing throws sheep everywhere; the fired wolf runs off dizzy. It keeps firing every so often until you chase the crew off. The first one, the Siege Engine in wave 5, is bigger and can't be chased off at all.",
     tip: 'Get to the catapult before it fires and the crew bolts. The red ring shows where the next wolf will land.',
     make: (scene) => {
       const c = new Catapult(scene).setPosition(-1.6, 0, -1.6);
@@ -192,7 +192,7 @@ export const ENTRIES = [
   },
 ];
 
-for (const e of ENTRIES) e.wave = FIRST_WAVE[e.id === 'pup' ? 'pups' : e.id] ?? 1;
+for (const e of ENTRIES) e.wave = e.id === 'siege' ? SIEGE.bossWave : (FIRST_WAVE[e.id === 'pup' ? 'pups' : e.id] ?? 1);
 
 export const ENTRY = Object.fromEntries(ENTRIES.map((e) => [e.id, e]));
 

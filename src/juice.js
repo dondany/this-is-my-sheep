@@ -348,6 +348,17 @@ export class Juice {
     this.sfx.bleat(true, 1.1);
   }
 
+  siegeEngine(wolf) {
+    this.floatText('SIEGE ENGINE!', { follow: wolf, offsetY: 4, cls: 'big', duration: 2.4, size: 44 });
+    this.flash('rgba(201, 87, 69, 0.3)');
+    this.shake(0.1, 400);
+    this.sfx.growl();
+  }
+
+  siegeShrug(wolf) {
+    this.floatText('NOT BUDGING!', { follow: wolf, offsetY: 2.8, cls: 'warn', duration: 1.4 });
+  }
+
   siegeBroken(wolf) {
     this.floatText('SIEGE BROKEN!', { follow: wolf, offsetY: 3, cls: 'good', duration: 1.6 });
   }

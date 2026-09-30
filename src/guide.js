@@ -146,7 +146,7 @@ const wolfNotes = {
   runner: () => 'Goes for the nearest sheep and gives up a chase when the dog nears its target.',
   rascal: () => `Never takes sheep: dashes through the flock ${RASCAL.passes[0]}-${RASCAL.passes[1]} times at ${RASCAL.speed} u/s, tossing sheep aside.`,
   howler: () => `Never attacks. Howls every ${HOWLER.interval[0]}-${HOWLER.interval[1]} s, panicking sheep within ${HOWLER.radius}.`,
-  siege: () => `One a wave, halfway through it. Comes from the left or right and hauls a catapult towards the edge of your meadow (stopping at the edge of the screen if that's nearer), fires a wolf into the flock ${SIEGE.setup} s after it stops, then another every ${SIEGE.reload} s for the rest of the wave. The landing spot is marked ${SIEGE.aimWarning} s before; it throws sheep within ${SIEGE.blastRadius}. Scare the crew and it abandons the catapult for good.`,
+  siege: () => `One a wave, halfway through it. Comes from the left or right and hauls a catapult towards the edge of your meadow (stopping at the edge of the screen if that's nearer), fires a wolf into the flock ${SIEGE.setup} s after it stops, then another every ${SIEGE.reload} s for the rest of the wave. The landing spot is marked ${SIEGE.aimWarning} s before; it throws sheep within ${SIEGE.blastRadius}. Scare the crew and it abandons the catapult for good. In wave ${SIEGE.bossWave} a bigger one, the Siege Engine, comes as a mini-boss: its crew can't be scared at all, so it fires until the wave ends.`,
   sneaky: () => `No off-screen arrow until within ${SNEAKY.revealDistance} of the flock; circles to the side away from the dog.`,
   brute: () => 'Has to be kept next to the dog until its fear meter fills; shoves sheep aside.',
   trickster: () => `Switches to the far side of the flock once the dog runs at it (within ${TRICKSTER.commitRadius}).`,
@@ -197,12 +197,13 @@ const pending = [...document.querySelectorAll('img[data-portrait]')];
 
 // --- Waves -------------------------------------------------------------------
 
-const nameOf = (kind) => ({ normal: 'wolf', pups: 'pup pack' })[kind] ?? ENTRIES.find((e) => e.id === kind)?.name.toLowerCase() ?? kind;
+const nameOf = (kind) => ({ normal: 'wolf', pups: 'pup pack', siegeEngine: 'siege engine (boss)' })[kind] ?? ENTRIES.find((e) => e.id === kind)?.name.toLowerCase() ?? kind;
 const waveRows = [];
 for (const wave of [...Array(GOAL.finalWave).keys()].map((i) => i + 1).concat([16, 20, 25])) {
   const cfg = waveConfig(wave);
   const counts = {};
   for (const k of cfg.pack) counts[k] = (counts[k] ?? 0) + 1;
+  if (cfg.siegeBoss) counts.siegeEngine = 1;
   const pack = Object.entries(counts)
     .sort((a, b) => (a[0] === 'normal') - (b[0] === 'normal'))
     .map(([k, c]) => `${c > 1 ? c + '× ' : ''}${nameOf(k)}`)

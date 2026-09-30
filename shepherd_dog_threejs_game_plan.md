@@ -3330,3 +3330,21 @@ time.
     second half.
 -   Bots: Hunter 4/4, Crew 0/4, Barker 1/4, Fortress 3/4; Crew rerun with
     8 runs: 5/8, so the 0/4 was noise.
+
+Sixth follow-up: the Siege Engine, a wave-5 mini-boss.
+
+-   Wave 5 (`SIEGE.bossWave`) always gets a siege crew halfway through
+    (`cfg.siege`, `cfg.siegeBoss`), on top of its pack. It uses the same
+    timing as the others (2 s to the first shot, then every 6 s), so four
+    shots in the 65 s wave, but its crew is `fearless`: `scare()` and
+    `forceScare()` ignore it (the dog, Big Barks, a scattering alpha,
+    Chain Reaction), and with the dog in range it shrugs ("NOT BUDGING!",
+    at most every 3 s) instead of resisting.
+-   It looks the part: the catapult is 1.35× the size and flies a red
+    banner; "SIEGE ENGINE!" with a red flash and a shake when it arrives;
+    its own tip; the wave-5 intro names it as a newcomer.
+-   Regular, scareable crews still start at wave 10. The bestiary entry
+    now says it's first met in wave 5; the guide's wave table lists the
+    siege engine for wave 5.
+-   Bots: Hunter 2/4, Crew 2/4, Barker 2/4, Fortress 1/4, no-plan Control
+    0/4; no run ended at wave 5, so it adds pressure without being a wall.

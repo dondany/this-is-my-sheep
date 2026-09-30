@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { COLORS, DOG, WORLD, SHEEP_TYPES, WOLF_TYPES, BLACK, ALPHA, GOAT, ROAM, BUMP } from './config.js';
+import { COLORS, DOG, WORLD, SHEEP_TYPES, WOLF_TYPES, BLACK, ALPHA, GOAT, ROAM, BUMP, SIEGE } from './config.js';
 import { GEO, mesh } from './materials.js';
 import { dressDog } from './cosmetics.js';
 
@@ -857,7 +857,8 @@ export class Scarecrow extends Animal {
 // The siege crew's catapult: a wooden cart with a throwing arm. `arm` goes from -0.45 (wound back,
 // bucket low behind) to 2 (fired, over the top); `collapse` from 0 to 1 when it falls apart.
 export class Catapult extends Animal {
-  constructor(scene) {
+  // boss: the wave-5 siege engine, bigger and flying a red banner.
+  constructor(scene, { boss = false } = {}) {
     super(scene);
     this.arm = -0.3;
     this.collapse = 0;
@@ -877,7 +878,11 @@ export class Catapult extends Animal {
     pivot.add(bucket);
     bucket.add(mesh(GEO.box, COLORS.woodDark, { scale: [0.55, 0.26, 0.55], shadow: true }));
     this.passenger = null;
-    root.scale.setScalar(1.2);
+    if (boss) {
+      root.add(mesh(GEO.box, COLORS.woodDark, { position: [0.62, 1.6, 0.75], scale: [0.07, 2.1, 0.07] }));
+      root.add(mesh(GEO.box, COLORS.helmetStripe, { position: [0.62, 2.35, 0.43], scale: [0.04, 0.5, 0.6] }));
+    }
+    root.scale.setScalar(1.2 * (boss ? SIEGE.bossScale : 1));
   }
 
   // A wolf curled up in the bucket, waiting to be fired (`wolf` is its model; null empties it).

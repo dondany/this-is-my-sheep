@@ -461,6 +461,8 @@ export const SIEGE = {
   maxFromFlock: 28, // ...but no further than this from the flock (it's pulled in along the same line),
   inView: 0.86, // ...and pulled in if needed so the catapult stands inside this share of the screen (right by its edge)
   arriveAt: 0.5, // turns up this far into the wave
+  bossWave: 5, // a mini-boss: a bigger catapult whose crew can't be chased off, firing until the wave ends
+  bossScale: 1.35, // its catapult's size
   haulSpeed: 0.55, // × approach speed while dragging the catapult
   setup: 2, // seconds from stopping to the first shot (the landing spot shows after the first 0.4)
   reload: 6, // then a shot every this many seconds, for the rest of the wave (until it's scared off)
@@ -734,7 +736,8 @@ export function waveConfig(wave, rules = summerRules(1)) {
     disguised: wave >= FIRST_WAVE.disguised ? 1 : 0,
     wolves: pack.length,
     order: pack.filter((k) => k !== 'siege'), // the arrivals, in order; a siege crew isn't one of them...
-    siege: pack.includes('siege'), // ...it comes halfway through the wave (SIEGE.arriveAt)
+    siege: pack.includes('siege') || wave === SIEGE.bossWave, // ...it comes halfway through the wave (SIEGE.arriveAt)
+    siegeBoss: wave === SIEGE.bossWave, // the siege engine: can't be scared off
     duration: Math.min(40 + wave * 5, 90),
     spawnInterval: Math.max(2, 7 - wave * 0.5),
     pairs: true, // wolves arrive two at a time, from opposite sides

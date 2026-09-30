@@ -176,8 +176,9 @@ export class Game {
       onSheepTossed: (s) => this.juice.sheepBump(s),
       onSiegeSetup: (w) => {
         this.juice.siegeSetup(w);
-        this.tip('siege');
+        this.tip(w.fearless ? 'siegeBoss' : 'siege');
       },
+      onSiegeShrug: (w) => this.juice.siegeShrug(w),
       onSiegeAim: (w, aim) => this.showSiegeMarker(w, aim),
       onSiegeFire: (w, aim) => this.fireCatapult(w, aim),
       onSiegeLand: (w) => {
@@ -1014,6 +1015,7 @@ export class Game {
     const newcomers = Object.keys(FIRST_WAVE)
       .filter((k) => FIRST_WAVE[k] === this.wave && k !== 'disguised' && k !== 'goat')
       .map((k) => ENTRY[k === 'pups' ? 'pup' : k].name);
+    if (cfg.siegeBoss) newcomers.push('the Siege Engine (boss)');
     const final = this.wave === GOAL.finalWave;
     const sub =
       this.wave === 1
@@ -1025,7 +1027,7 @@ export class Game {
           : this.endless
             ? `${cfg.wolves} wolves`
             : newcomers.length
-              ? `New: ${newcomers.join(' & ')}. See the 📖 bestiary`
+              ? `New: ${newcomers.slice(0, -1).join(', ')}${newcomers.length > 1 ? ' & ' : ''}${newcomers.at(-1)}. See the 📖 bestiary`
               : `${cfg.wolves} wolves are coming`;
     const title = this.endless ? `Endless ${this.wave - GOAL.finalWave}` : final ? 'Final wave' : `Wave ${this.wave}`;
     this.ui.banner(title, this.line ? `${sub} · the shepherd can spare ${this.lineStart - this.line}` : sub);
@@ -1447,8 +1449,12 @@ export class Game {
       const r = WORLD.playRadius - SIEGE.edgeInset;
       w.edge = { x: Math.cos(base) * r, z: Math.sin(base) * r };
       w.site = { ...w.edge };
-      w.catapult = new Catapult(this.world.scene).setPosition(...at(base + 0.04));
+      // The wave-5 siege engine: a bigger catapult, and a crew the dog can't chase off.
+      const boss = !!this.cfg?.siegeBoss && this.state === STATE.PLAYING;
+      w.fearless = boss;
+      w.catapult = new Catapult(this.world.scene, { boss }).setPosition(...at(base + 0.04));
       this.catapults.push(w.catapult);
+      if (boss) this.juice.siegeEngine(w);
     }
     toWander(w, this.ctx);
     if (w.type.howler) w.howlTimer = 6; // time to walk in from the tree line first

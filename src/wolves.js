@@ -53,7 +53,7 @@ export function toWander(w, ctx) {
 
 // Scare a wolf no matter what (the Big Bark): brutes don't get to resist.
 export function forceScare(w, ctx, by) {
-  if (w.state === 'FLEE' || w.state === 'LEAVE' || w.gone) return false;
+  if (w.state === 'FLEE' || w.state === 'LEAVE' || w.gone || w.fearless) return false;
   const dx = w.position.x - by.position.x;
   const dz = w.position.z - by.position.z;
   scare(w, ctx, dx, dz, Math.hypot(dx, dz) || 1e-3, by);
@@ -217,6 +217,7 @@ function aimAway(w, ddx, ddz, dd) {
 
 // `by` is whatever did the scaring: a dog, or a scarecrow.
 function scare(w, ctx, ddx, ddz, dd, by = ctx.dog) {
+  if (w.fearless) return; // the siege engine's crew won't budge
   const threatening = isThreatening(w) || !!w.type.howler;
   w.howling = 0;
   w.stun = 0;
@@ -367,6 +368,12 @@ export function updateWolves(wolves, ctx, dt) {
           break;
         }
       }
+    }
+    // The siege engine's crew just shrugs the dog off.
+    if (by && w.fearless) {
+      if (!(w.shrugAt > ctx.time)) ctx.onSiegeShrug?.(w);
+      w.shrugAt = ctx.time + 3;
+      by = null;
     }
     const courage = T.courage * ctx.mods.courage;
     if (by && courage > 0) {
