@@ -3348,3 +3348,37 @@ Sixth follow-up: the Siege Engine, a wave-5 mini-boss.
     siege engine for wave 5.
 -   Bots: Hunter 2/4, Crew 2/4, Barker 2/4, Fortress 1/4, no-plan Control
     0/4; no run ended at wave 5, so it adds pressure without being a wall.
+
+Seventh follow-up: a template for bosses, and the Siege Engine from the start of wave 5.
+
+-   `BOSSES` in `config.js` lists every boss: id, name, icon, shout,
+    tagline, `on(wave)`, `arriveAt` (share of the wave), `holdsWave`
+    (overtime until it's beaten) and `howl`. `bossOn(wave)` finds a wave's
+    boss; the game keeps it as `bossDef` for the wave.
+-   One flow for all of them: `Game.spawnBoss()` spawns the boss's wolf
+    (the only part that differs), marks it `bossDef`, and runs the shared
+    presentation: `juice.bossArrives(w, def)` (the boss's shout, a red
+    flash, a shake, a new war horn `sfx.bossHorn()`, plus Greymuzzle's
+    howl) and `ui.bossIntro(def)`, a red BOSS card with the icon, name and
+    tagline that slams in and fades after about 4 s. The first-time tips
+    for the bosses are gone; the card says the same thing.
+-   While it's around (`bossAround()`: not beaten, gone, leaving or
+    abandoned), the red bar under the HUD shows `icon name · status`,
+    where `Game.bossStatus()` gives Greymuzzle's drive-off pips and the
+    Siege Engine's "won't budge". The off-screen marker gets the bigger
+    boss style with the boss's icon. `bossActive()` (what holds the wave
+    in overtime) now also needs `holdsWave`.
+-   Boss waves say so in the intro: "Wave 5 · Boss", "Boss wave! …", with
+    a reddish title. The guide has a bosses table and marks boss waves in
+    the wave table.
+-   The Siege Engine now arrives at the very start of wave 5 (after the
+    intro). It's spawned by the boss flow, no longer through
+    `cfg.siege`/`cfg.siegeBoss`, so about ten shots in the 65 s wave
+    instead of four.
+-   Checked in headless Chrome: the card, bar and marker in wave 5;
+    Greymuzzle still arrives at 22.5 s of 90 in wave 15 with his pips,
+    and the wave runs into overtime while he's around.
+-   Boss ideas for later are in FUTURE_IDEAS ("Bosses").
+-   Bots: Hunter 4/4, Crew 4/4, Barker 0/4, Fortress 1/4, Control 0/4
+    (9/16 for the builds). Two runs of 20 now end at wave 5 (a Fortress and
+    a Control): the boss bites, as it should, without being a wall.

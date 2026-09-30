@@ -108,13 +108,23 @@ export class UI {
     if (count >= 2) $('hud-combo-bar').style.transform = `scaleX(${left})`;
   }
 
-  // Boss bar under the HUD: how many more times it has to be driven off.
+  // Boss bar under the HUD while a boss is around: { icon, name, status } (null hides it).
   setBoss(boss) {
     const el = $('hud-boss');
     el.classList.toggle('hidden', !boss);
     if (!boss) return;
-    const pips = '●'.repeat(boss.done) + '○'.repeat(boss.left);
-    this.set('boss', `${boss.name} ${pips}`, (v) => ($('hud-boss-text').textContent = v));
+    this.set('boss', `${boss.icon} ${boss.name} · ${boss.status}`, (v) => ($('hud-boss-text').textContent = v));
+  }
+
+  // The BOSS card when a boss turns up (def: its BOSSES entry).
+  bossIntro(def) {
+    const el = $('boss-intro');
+    el.querySelector('.boss-icon').textContent = def.icon;
+    el.querySelector('.boss-name').textContent = def.name;
+    el.querySelector('.boss-tagline').textContent = def.tagline;
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
   }
 
   // Menu: a Continue button when there's a saved run; Play becomes a (quieter) New Game.
@@ -145,8 +155,9 @@ export class UI {
     this.el.mute.setAttribute('aria-label', muted ? 'Unmute' : 'Mute');
   }
 
-  banner(title, sub = '') {
+  banner(title, sub = '', { boss = false } = {}) {
     const el = this.el.banner;
+    el.classList.toggle('boss', boss);
     el.querySelector('.banner-title').textContent = title;
     el.querySelector('.banner-sub').textContent = sub;
     el.classList.remove('show');
@@ -705,7 +716,10 @@ export class UI {
       el.classList.toggle('runner', wolf.kind === 'runner');
       el.classList.toggle('brute', wolf.kind === 'brute');
       el.classList.toggle('alpha', wolf.kind === 'alpha');
-      el.classList.toggle('boss', !!wolf.type.boss);
+      const boss = !!(wolf.type.boss || wolf.bossDef);
+      el.classList.toggle('boss', boss);
+      const face = boss ? (wolf.bossDef?.icon ?? '👑') : '🐺';
+      if (el.lastChild.textContent !== face) el.lastChild.textContent = face;
       el.classList.toggle('howler', wolf.kind === 'howler');
     }
     for (let i = used; i < this.indicators.length; i++) this.indicators[i].style.display = 'none';

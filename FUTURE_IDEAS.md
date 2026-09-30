@@ -47,6 +47,34 @@ Tricks brainstormed but not built yet (charms that change the rules, each with a
 - Wanderers, black sheep and golden fleeces are usually lost within a wave or two when nobody herds
   them. That may be fine; worth watching in real play.
 
+## Bosses
+The boss template is in (`BOSSES` in `config.js`: a BOSS card, war horn, HUD bar and a big marker
+for every boss). Wave 5 has the Siege Engine, wave 15 Old Greymuzzle. Proposed next ones:
+- 🎶 **The Pied Piper** (a "survive" boss): sits at the meadow's edge and howls a tune every ~10 s
+  that draws the flock towards it for a few seconds, a reverse whistle. The dog has to stand
+  between it and the flock to break the pull. Can't be scared; reuses the flock's attraction code.
+- ⛈️ **The Storm** (not a wolf): lightning strikes a marked spot every ~8 s, and each strike sends
+  the nearby sheep stampeding. The wolves use the chaos. Survive it; the sky clears at the end.
+- 🐺🐺 **The Twins**: two big wolves from opposite sides. Scare one and it only stays gone if the
+  other is scared within 5 s too; otherwise it's straight back. A test of routing and pairs.
+- 🕳️ **The Burrower**: travels underground as a moving mound of earth and pops up in the flock to
+  take a sheep. Stand the dog on the mound to force it up early, and it flees.
+- 🐾 **The Den Mother**: stays back and sends a pup pack every 15 s. Drive her off (fear meter,
+  like a brute) and every pup on the field scatters with her.
+- 🍖 **The Glutton**: a fat wolf that grows with every sheep it takes: slower, but a longer fear
+  meter and one more drive-off per sheep. Punishes letting even one go.
+- 🌫️ **The Grey Mist**: fog shrinks what you can see to a ring around the dog and the flock;
+  wolves outside it only show as markers. Its shadow wolf has to be found and scared 3 times, and
+  each scare thins the fog.
+- 🧥 **The Crook Thief**: snatches the shepherd's crook, so the shepherd stops calming the flock
+  until the dog runs it down. Fast and zig-zagging, but skittish.
+
+Structure to go with them (like Balatro's boss blinds): a boss at waves 5, 10 and 15. Waves 5 and 10
+draw from a pool (the "survive" bosses early, the "fight" ones at 10), and Old Greymuzzle stays the
+final one. The shop before a boss wave shows which boss is coming, so you can buy a counter.
+Recommended first: the Pied Piper and the Den Mother, since they mostly reuse systems already in
+the game.
+
 ## Replay value
 - Daily run: the same waves and shop for everyone each day (a shared random seed), to compare
   how far everyone got.

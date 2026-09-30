@@ -461,7 +461,7 @@ export const SIEGE = {
   maxFromFlock: 28, // ...but no further than this from the flock (it's pulled in along the same line),
   inView: 0.86, // ...and pulled in if needed so the catapult stands inside this share of the screen (right by its edge)
   arriveAt: 0.5, // turns up this far into the wave
-  bossWave: 5, // a mini-boss: a bigger catapult whose crew can't be chased off, firing until the wave ends
+  bossWave: 5, // the Siege Engine (see BOSSES): a bigger catapult whose crew can't be chased off
   bossScale: 1.35, // its catapult's size
   haulSpeed: 0.55, // × approach speed while dragging the catapult
   setup: 2, // seconds from stopping to the first shot (the landing spot shows after the first 0.4)
@@ -606,6 +606,36 @@ export const BOSS = {
   stompRadius: 12, // sheep this close jump at each of its footfalls (higher the closer)
 };
 
+// The bosses. Each has its wave(s) and comes on top of the wave's pack, `arriveAt` of the way into
+// the wave, and each is announced the same way: a BOSS card when it turns up (`icon`, `name`,
+// `tagline`), a shout over it, a bar under the HUD while it's around (Game.bossStatus), a bigger
+// marker at the edge of the screen, and "Boss wave" in the wave's intro. `holdsWave`: the wave
+// can't end until it's beaten. To add one: an entry here, its spawn in Game.spawnBoss() and its HUD
+// status in Game.bossStatus().
+export const BOSSES = [
+  {
+    id: 'siegeEngine',
+    name: 'The Siege Engine',
+    icon: '🏰',
+    shout: 'SIEGE ENGINE!',
+    tagline: "Its crew won't be chased off: it fires until the wave ends. Keep the flock out of the red rings!",
+    on: (wave) => wave === SIEGE.bossWave,
+    arriveAt: 0,
+  },
+  {
+    id: 'greymuzzle',
+    name: 'Old Greymuzzle',
+    icon: '👑',
+    shout: 'OLD GREYMUZZLE!',
+    tagline: "Stand your ground until his meter fills, again and again. The wave won't end until he's gone for good.",
+    on: (wave) => wave === GOAL.finalWave || (wave > GOAL.finalWave && (wave - GOAL.finalWave) % BOSS.endlessEvery === 0),
+    arriveAt: BOSS.arriveAt,
+    holdsWave: true,
+    howl: true,
+  },
+];
+export const bossOn = (wave) => BOSSES.find((b) => b.on(wave)) ?? null;
+
 // Difficulty levels unlocked by winning, like Balatro's stakes. Each summer adds its rule on top of
 // all the earlier ones.
 export const SUMMERS = [
@@ -736,8 +766,7 @@ export function waveConfig(wave, rules = summerRules(1)) {
     disguised: wave >= FIRST_WAVE.disguised ? 1 : 0,
     wolves: pack.length,
     order: pack.filter((k) => k !== 'siege'), // the arrivals, in order; a siege crew isn't one of them...
-    siege: pack.includes('siege') || wave === SIEGE.bossWave, // ...it comes halfway through the wave (SIEGE.arriveAt)
-    siegeBoss: wave === SIEGE.bossWave, // the siege engine: can't be scared off
+    siege: pack.includes('siege'), // ...it comes halfway through the wave (SIEGE.arriveAt)
     duration: Math.min(40 + wave * 5, 90),
     spawnInterval: Math.max(2, 7 - wave * 0.5),
     pairs: true, // wolves arrive two at a time, from opposite sides

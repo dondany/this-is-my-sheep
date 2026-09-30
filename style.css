@@ -1032,6 +1032,108 @@ body[data-effects='off'] #last-stand.on {
   box-shadow: 0 4px 0 rgba(74, 52, 38, 0.3);
 }
 
+#banner.boss .banner-title {
+  color: #ffd9cf;
+}
+
+/* The BOSS card when a boss turns up */
+#boss-intro {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  width: min(560px, calc(100% - 32px));
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 5;
+}
+
+#boss-intro.show {
+  animation: boss-intro 4.2s ease forwards;
+}
+
+.boss-tag {
+  display: inline-block;
+  padding: 2px 22px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #fffaf0;
+  background: var(--danger);
+  border: 3px solid var(--ink);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+}
+
+.boss-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  text-align: left;
+  background: var(--paper);
+  border: 4px solid var(--danger);
+  outline: 3px solid var(--ink);
+  border-radius: 18px;
+  box-shadow: 0 8px 0 rgba(74, 52, 38, 0.3);
+}
+
+.boss-icon {
+  font-size: 58px;
+  line-height: 1;
+}
+
+.boss-name {
+  font-size: 32px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--danger);
+}
+
+.boss-tagline {
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+@keyframes boss-intro {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(1.6) rotate(-4deg);
+  }
+  8% {
+    opacity: 1;
+    transform: translateX(-50%) scale(0.94) rotate(1deg);
+  }
+  14% {
+    transform: translateX(-50%) scale(1) rotate(0);
+  }
+  85% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-24px);
+  }
+}
+
+@media (max-width: 600px) {
+  .boss-icon {
+    font-size: 40px;
+  }
+  .boss-name {
+    font-size: 22px;
+  }
+  .boss-tagline {
+    font-size: 14px;
+  }
+}
+
 /* Push the combo badge below the boss bar while both are showing */
 .hud-boss:not(.hidden) ~ .hud-combo {
   top: 132px;

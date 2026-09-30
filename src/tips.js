@@ -18,10 +18,8 @@ export const TIPS = {
   sleepy: '💤 Sleepy sheep won\'t run from wolves. Running past wakes them, but startles the sheep around them.',
   roam: '👨‍🌾 The shepherd is leading the flock to fresh grass. Keep up!',
   howl: '🌕 A howler panics the whole flock from the edge of the meadow. Chase it off.',
-  siegeBoss: "🏰 The siege engine! Its crew won't be chased off, so it fires until the wave ends. Keep the flock clear of the red rings.",
   siege: '🏰 A siege crew is winding up a catapult near the flock! Get your dog there before it fires, or a wolf lands in the middle of the flock.',
   rascal: '🎒 That rascal just wants to play. Cut across its path before it scatters the flock.',
-  boss: '👑 Old Greymuzzle! Stay next to him until his meter fills. He has to be driven off three times.',
 };
 
 export class Tips {

@@ -278,6 +278,17 @@ export class Sfx {
     [523.25, 659.25, 783.99].forEach((f) => this.tone({ type: 'sine', freq: f, dur: 1.2, gain: 0.06, attack: 0.05, at: 0.5 }));
   }
 
+  // A boss turning up: a low war horn, two short blasts and a long one, over a drum thud.
+  bossHorn() {
+    if (!this.ready) return;
+    for (const [freq, at, dur] of [[110, 0, 0.3], [110, 0.36, 0.3], [146.83, 0.72, 1.1]]) {
+      this.tone({ type: 'sawtooth', freq, dur, gain: 0.13, attack: 0.05, at, filter: 'lowpass', filterFreq: 650 });
+      this.tone({ type: 'square', freq: freq * 2, dur, gain: 0.03, attack: 0.06, at, filter: 'lowpass', filterFreq: 900 });
+    }
+    this.tone({ type: 'sine', freq: 70, freqEnd: 40, dur: 0.5, gain: 0.3 });
+    this.noiseBurst({ dur: 0.3, gain: 0.12, filter: 'lowpass', freq: 160 });
+  }
+
   gameOver() {
     if (!this.ready) return;
     [392, 349.23, 311.13, 261.63].forEach((f, i) => this.tone({ type: 'triangle', freq: f, dur: 0.5, gain: 0.13, at: i * 0.24 }));

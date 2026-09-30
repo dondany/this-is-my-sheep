@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, BARK, FLOCK_CHARMS, SIEGE, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, COLORS, waveConfig } from './config.js';
+import { bossOn, GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, BARK, FLOCK_CHARMS, SIEGE, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
 import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Catapult, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
@@ -176,7 +176,7 @@ export class Game {
       onSheepTossed: (s) => this.juice.sheepBump(s),
       onSiegeSetup: (w) => {
         this.juice.siegeSetup(w);
-        this.tip(w.fearless ? 'siegeBoss' : 'siege');
+        if (!w.fearless) this.tip('siege');
       },
       onSiegeShrug: (w) => this.juice.siegeShrug(w),
       onSiegeAim: (w, aim) => this.showSiegeMarker(w, aim),
@@ -995,6 +995,7 @@ export class Game {
     const fewer = this.ctx.mods.spareFewer;
     if (this.line && fewer) this.line = Math.max(0, Math.min(this.lineStart - 1, this.line + fewer));
     this.boss = null;
+    this.bossDef = bossOn(this.wave); // this wave's boss, if it has one (BOSSES)
     this.bossSpawned = false;
     this.bossOvertime = false;
     this.proudCombos = 0; // Proud Shepherd: combos that reached ×3 this wave
@@ -1015,7 +1016,6 @@ export class Game {
     const newcomers = Object.keys(FIRST_WAVE)
       .filter((k) => FIRST_WAVE[k] === this.wave && k !== 'disguised' && k !== 'goat')
       .map((k) => ENTRY[k === 'pups' ? 'pup' : k].name);
-    if (cfg.siegeBoss) newcomers.push('the Siege Engine (boss)');
     const final = this.wave === GOAL.finalWave;
     const sub =
       this.wave === 1
@@ -1029,8 +1029,10 @@ export class Game {
             : newcomers.length
               ? `New: ${newcomers.slice(0, -1).join(', ')}${newcomers.length > 1 ? ' & ' : ''}${newcomers.at(-1)}. See the 📖 bestiary`
               : `${cfg.wolves} wolves are coming`;
+    const bossWave = this.bossDef && !final;
     const title = this.endless ? `Endless ${this.wave - GOAL.finalWave}` : final ? 'Final wave' : `Wave ${this.wave}`;
-    this.ui.banner(title, this.line ? `${sub} · the shepherd can spare ${this.lineStart - this.line}` : sub);
+    const line = this.line ? `${sub} · the shepherd can spare ${this.lineStart - this.line}` : sub;
+    this.ui.banner(bossWave ? `${title} · Boss` : title, bossWave ? `Boss wave! ${line}` : line, { boss: !!this.bossDef });
     if (this.line) this.tip('line');
     if (this.wave === 1) setTimeout(() => this.tip('move'), 800);
     this.barkTimer = this.ctx.mods.barkEvery; // Watchdog starts counting fresh every wave
@@ -1415,7 +1417,8 @@ export class Game {
     this.juice.disguiseRevealed(w, mode);
   }
 
-  spawnWolf(kind, angle) {
+  // { boss }: a siege crew as the Siege Engine. Returns the wolf (not for pups).
+  spawnWolf(kind, angle, { boss = false } = {}) {
     // Spread arrivals around the meadow rather than bunching on one side.
     // Sneaky wolves slip in on the far side of the flock from the dog.
     const base =
@@ -1449,16 +1452,15 @@ export class Game {
       const r = WORLD.playRadius - SIEGE.edgeInset;
       w.edge = { x: Math.cos(base) * r, z: Math.sin(base) * r };
       w.site = { ...w.edge };
-      // The wave-5 siege engine: a bigger catapult, and a crew the dog can't chase off.
-      const boss = !!this.cfg?.siegeBoss && this.state === STATE.PLAYING;
+      // The Siege Engine: a bigger catapult, and a crew the dog can't chase off.
       w.fearless = boss;
       w.catapult = new Catapult(this.world.scene, { boss }).setPosition(...at(base + 0.04));
       this.catapults.push(w.catapult);
-      if (boss) this.juice.siegeEngine(w);
     }
     toWander(w, this.ctx);
     if (w.type.howler) w.howlTimer = 6; // time to walk in from the tree line first
     if (kind !== 'sneaky') this.sfx.howl({ brute: 0.7, runner: 1.25, alpha: 0.85, trickster: 1.15 }[kind] ?? 1);
+    return w;
   }
 
   // --- Events --------------------------------------------------------------
@@ -1484,14 +1486,29 @@ export class Game {
 
   // --- The goal ------------------------------------------------------------
 
-  // Old Greymuzzle comes on the final wave, and every few endless waves.
+  // Old Greymuzzle's waves: the final one, and every few endless waves.
   isBossWave() {
-    const w = this.wave;
-    return w === GOAL.finalWave || (w > GOAL.finalWave && (w - GOAL.finalWave) % BOSS.endlessEvery === 0);
+    return bossOn(this.wave)?.id === 'greymuzzle';
   }
 
+  // Every boss turns up the same way (see BOSSES); only the wolf itself differs.
   spawnBoss() {
+    const def = this.bossDef;
     this.bossSpawned = true;
+    const w = def.id === 'siegeEngine' ? this.spawnWolf('siege', undefined, { boss: true }) : this.spawnGreymuzzle();
+    w.bossDef = def;
+    this.boss = w;
+    this.juice.bossArrives(w, def);
+    this.ui.bossIntro(def); // (the card says what to do, so no first-time tip)
+  }
+
+  // What the boss bar under the HUD says after the boss's name.
+  bossStatus(w) {
+    if (w.bossDef.id === 'greymuzzle') return '●'.repeat(w.drivesTotal - w.drivesLeft) + '○'.repeat(w.drivesLeft);
+    return "won't budge";
+  }
+
+  spawnGreymuzzle() {
     const a = Math.atan2(this.center.z - this.dog.position.z, this.center.x - this.dog.position.x) + (Math.random() - 0.5);
     const w = new Wolf(this.world.scene, 'greymuzzle').setPosition(Math.cos(a) * WORLD.spawnRadius, 0, Math.sin(a) * WORLD.spawnRadius);
     w.drivesLeft = BOSS.driveOffs + this.rules.bossDrives + Math.floor(Math.max(0, this.wave - GOAL.finalWave) / BOSS.endlessEvery);
@@ -1499,9 +1516,7 @@ export class Game {
     this.wolves.push(w);
     toWander(w, this.ctx);
     w.stateTimer = 2;
-    this.boss = w;
-    this.juice.bossArrives(w);
-    this.tip('boss');
+    return w;
   }
 
   // Old Greymuzzle's footfalls: the ground thuds and every sheep nearby jumps, higher the closer.
@@ -1524,8 +1539,15 @@ export class Game {
     }
   }
 
+  // A boss that's still around (it isn't beaten, gone or on its way out).
+  bossAround() {
+    const b = this.boss;
+    return !!b && !b.defeated && !b.gone && b.state !== 'LEAVE' && !b.abandoned;
+  }
+
+  // A boss that keeps the wave going until it's beaten (Old Greymuzzle).
   bossActive() {
-    return this.boss && !this.boss.defeated && !this.boss.gone;
+    return this.bossAround() && this.bossDef?.holdsWave;
   }
 
   // End of summer: the final wave is over and there are sheep left.
@@ -2052,8 +2074,11 @@ export class Game {
           this.whistle();
         }
         if (this.cfg.siege && !this.siegeThisWave && this.waveTime >= this.cfg.duration * SIEGE.arriveAt) this.spawnWolf('siege');
-        const arriveAt = this.rules.bossEarly ? Math.min(BOSS.arriveAt, 0.1) : BOSS.arriveAt;
-        if (this.isBossWave() && !this.bossSpawned && this.waveTime >= this.cfg.duration * arriveAt) this.spawnBoss();
+        const def = this.bossDef;
+        if (def && !this.bossSpawned) {
+          const arriveAt = def.holdsWave && this.rules.bossEarly ? Math.min(def.arriveAt, 0.1) : def.arriveAt;
+          if (this.waveTime >= this.cfg.duration * arriveAt) this.spawnBoss();
+        }
         // The boss wave only ends once Old Greymuzzle has been driven off for good.
         if (this.waveTime >= this.cfg.duration) {
           if (!this.bossActive()) this.completeWave();
@@ -2094,8 +2119,8 @@ export class Game {
     this.juice.updateFloats(dt);
     this.ui.updateIndicators(this.wolves, this.world.camera);
     this.ui.updateFearMeters(this.wolves, this.world.camera, this.ctx.mods.courage);
-    const boss = this.bossActive() ? this.boss : null;
-    this.ui.setBoss(boss && { name: 'Old Greymuzzle', done: boss.drivesTotal - boss.drivesLeft, left: boss.drivesLeft });
+    const boss = this.state === STATE.PLAYING && this.bossAround() ? this.boss : null;
+    this.ui.setBoss(boss && { icon: boss.bossDef.icon, name: boss.bossDef.name, status: this.bossStatus(boss) });
     const c = this.combo;
     c.timer = Math.max(0, c.timer - dt);
     if (!c.timer) c.count = 0;

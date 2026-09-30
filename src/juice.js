@@ -173,11 +173,13 @@ export class Juice {
     this.sfx.stomp();
   }
 
-  bossArrives(boss) {
-    this.floatText('OLD GREYMUZZLE!', { follow: boss, offsetY: 5, cls: 'big', duration: 2.4, size: 44 });
+  // Any boss turning up (def: its BOSSES entry). The BOSS card itself is the UI's (bossIntro).
+  bossArrives(boss, def) {
+    this.floatText(def.shout, { follow: boss, offsetY: 5, cls: 'big', duration: 2.4, size: 44 });
     this.flash('rgba(201, 87, 69, 0.3)');
     this.shake(0.1, 400);
-    this.sfx.howl(0.55, true);
+    this.sfx.bossHorn();
+    if (def.howl) this.sfx.howl(0.55, true);
   }
 
   bossDriven(boss, left) {
@@ -346,13 +348,6 @@ export class Juice {
     this.shake(0.14, 320);
     this.sfx.stomp();
     this.sfx.bleat(true, 1.1);
-  }
-
-  siegeEngine(wolf) {
-    this.floatText('SIEGE ENGINE!', { follow: wolf, offsetY: 4, cls: 'big', duration: 2.4, size: 44 });
-    this.flash('rgba(201, 87, 69, 0.3)');
-    this.shake(0.1, 400);
-    this.sfx.growl();
   }
 
   siegeShrug(wolf) {
