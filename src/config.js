@@ -458,10 +458,8 @@ export const SIEGE = {
   // up on the edge of the dog's meadow.
   spread: 0.35,
   edgeInset: 0.8, // this far inside the meadow's edge...
-  maxFromFlock: 28, // ...but no further than this from the flock (it's pulled in along the same line)
-  cameraLean: 0.3, // the camera leans this much of the way towards a crew at work...
-  cameraLeanMax: 0.55, // ...and up to this much if that's what it takes to keep the catapult on screen
-  inView: 0.8, // "on screen": inside this share of the view
+  maxFromFlock: 28, // ...but no further than this from the flock (it's pulled in along the same line),
+  inView: 0.86, // ...and pulled in if needed so the catapult stands inside this share of the screen (right by its edge)
   haulSpeed: 0.55, // × approach speed while dragging the catapult
   setup: 5, // seconds winding up before the first shot
   reload: 12, // then a shot every this many seconds, for the rest of the wave (until it's scared off)

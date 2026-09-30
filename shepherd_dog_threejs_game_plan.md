@@ -3297,3 +3297,20 @@ helmet was on the wrong wolf.
     style.
 -   Bots after the change: Hunter 1/4, Crew 2/4, Barker 2/4, Fortress
     2/4 (7/16, against 6/16 before), so still in range.
+
+Fourth follow-up (playtest): at most one catapult a wave, and the camera
+mustn't move for it.
+
+-   The one-a-wave rule is now enforced in `spawnWolf()` too
+    (`siegeThisWave`, reset at wave start): a second siege crew in the same
+    wave, whatever sends it (the pack, a paired spawn, a test hook), comes
+    as a plain wolf. The pack cap alone didn't stop the local `&siege` test
+    link from adding a second catapult on top of the wave's own.
+-   The camera lean is gone. Instead the crew heads for the meadow's edge
+    (as before), but `placeSiege()` pulls its spot in towards the flock
+    until the catapult stands inside the central 86% of the current view
+    (checked every frame while it hauls, and at most 28 from the flock).
+    At the default zoom that's 17–22 from the flock, right by the edge of
+    the screen; zoomed out, it sets up further away.
+-   Bots after it: Hunter 3/4, Crew 0/4, Barker 2/4, Fortress 3/4 (8/16,
+    against 7/16 and 6/16 for the last two versions; noise at 4 runs each).

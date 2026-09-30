@@ -1005,6 +1005,7 @@ export class Game {
     for (const sc of this.scarecrows) sc.snared = false; // Snares reset every wave
     this.waveTime = 0;
     this.wolvesSpawned = 0;
+    this.siegeThisWave = false; // at most one siege crew a wave
     this.nextWolfAt = 2;
     this.introTimer = 2.2;
     this.ui.show(null);
@@ -1437,6 +1438,8 @@ export class Game {
       return;
     }
 
+    if (kind === 'siege' && this.siegeThisWave) kind = 'normal'; // one catapult a wave, whatever sent it
+    if (kind === 'siege') this.siegeThisWave = true;
     const w = new Wolf(this.world.scene, kind).setPosition(...at(base));
     this.wolves.push(w);
     if (w.type.siege) {
@@ -1716,6 +1719,22 @@ export class Game {
     this.juice.siegeFire(w, f);
   }
 
+  // A crew's spot: the meadow's edge, pulled in towards the flock if the flock has wandered too far
+  // from it, or if the catapult (just behind its crew) would stand too near the edge of the screen.
+  // The camera doesn't move for it.
+  placeSiege(w) {
+    const dx = w.edge.x - this.center.x;
+    const dz = w.edge.z - this.center.z;
+    const d = Math.hypot(dx, dz);
+    const probe = (this.siegeProbe ??= new THREE.Vector3());
+    for (let k = Math.min(d, SIEGE.maxFromFlock); k > 6; k -= 0.5) {
+      w.site.x = this.center.x + (dx / d) * k;
+      w.site.z = this.center.z + (dz / d) * k;
+      probe.set(w.site.x + (dx / d) * 2.4, 0, w.site.z + (dz / d) * 2.4).project(this.world.camera);
+      if (Math.abs(probe.x) < SIEGE.inView && Math.abs(probe.y) < SIEGE.inView) break;
+    }
+  }
+
   // Catapults follow their crew while hauled, wind up and swing when firing, and fall apart once
   // the crew is gone (scared off, out of shots, or the wave's over).
   updateCatapults(dt) {
@@ -1725,12 +1744,7 @@ export class Game {
       const toCenter = Math.atan2(this.center.x - c.position.x, this.center.z - c.position.z);
       let target = -0.3;
       if (w.state === 'HAUL') {
-        // Its spot: the meadow's edge, unless the flock has wandered too far from it.
-        const dx = w.edge.x - this.center.x;
-        const dz = w.edge.z - this.center.z;
-        const k = Math.min(1, SIEGE.maxFromFlock / Math.hypot(dx, dz));
-        w.site.x = this.center.x + dx * k;
-        w.site.z = this.center.z + dz * k;
+        this.placeSiege(w);
         // Dragged behind the crew.
         c.position.x = w.position.x - Math.sin(w.heading) * 2.4;
         c.position.z = w.position.z - Math.cos(w.heading) * 2.4;
@@ -2177,15 +2191,6 @@ export class Game {
   updateCamera(dt) {
     // Follow the flock, leaning a little toward the dog so it rarely leaves the frame.
     const focus = this.cameraFocus.copy(this.center).lerp(this.dog.position, 0.25);
-    const crew = this.state === STATE.PLAYING && this.wolves.find((w) => w.catapult && !w.abandoned && ['HAUL', 'SETUP', 'RELOAD'].includes(w.state));
-    // A siege crew at work pulls the view its way, further if its catapult is near the edge of the screen.
-    if (crew) {
-      const v = (this.leanProbe ??= new THREE.Vector3()).copy(crew.catapult.position).project(this.world.camera);
-      const off = Math.max(Math.abs(v.x), Math.abs(v.y));
-      const push = off > SIEGE.inView ? 1 : off < SIEGE.inView - 0.15 ? -1 : 0;
-      this.siegeLean = THREE.MathUtils.clamp((this.siegeLean ?? SIEGE.cameraLean) + push * dt * 0.6, SIEGE.cameraLean, SIEGE.cameraLeanMax);
-      focus.lerp(crew.catapult.position, this.siegeLean);
-    } else this.siegeLean = SIEGE.cameraLean;
     focus.z -= 1.5; // nudge the view down a little so the HUD doesn't cover the flock
     this.punch = Math.max(0, this.punch - dt * 1.5);
     const distance = (35 + Math.min(this.sheep.length, SHEEP.cap) * 0.12) * this.zoom * (1 - FEEL.punch * Math.sin(this.punch * Math.PI));
