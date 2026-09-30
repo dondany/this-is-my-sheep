@@ -33,7 +33,7 @@ const THREATENING = new Set(['APPROACH', 'CHASE', 'ATTACK', 'DASH', 'HAUL', 'SET
 export function toWander(w, ctx) {
   const cfg = ctx.cfg;
   // A fired wolf has had enough; a siege crew goes back to its catapult (or home, if it gave up).
-  if (w.type.flyer || (w.type.siege && (w.abandoned || !(w.shotsLeft > 0)))) {
+  if (w.type.flyer || (w.type.siege && w.abandoned)) {
     w.state = 'LEAVE';
     return;
   }
@@ -628,27 +628,14 @@ export function updateWolves(wolves, ctx, dt) {
 
       // Siege crew: drag the catapult to its spot, wind it up, fire, reload.
       case 'HAUL': {
-        // The spot follows the flock while it's hauled there: SIEGE.distance out from the flock on
-        // the side the crew came from, well inside the dog's meadow (so the dog can reach it).
-        const a = SIEGE.distance;
-        const b = w.siteDir.z > 0 ? SIEGE.distanceNear : SIEGE.distanceZ;
-        const d = (a * b) / Math.hypot(b * w.siteDir.x, a * w.siteDir.z); // on an oval round the flock
-        let sx = ctx.center.x + w.siteDir.x * d;
-        let sz = ctx.center.z + w.siteDir.z * d;
-        const sr = Math.hypot(sx, sz);
-        const edge = WORLD.playRadius - 4;
-        if (sr > edge) {
-          sx *= edge / sr;
-          sz *= edge / sr;
-        }
-        w.site.x = sx;
-        w.site.z = sz;
+        // The spot (w.site) follows the flock while it's hauled there; the game keeps it in view
+        // (Game.placeSiege).
         const tx = w.site.x - px;
         const tz = w.site.z - pz;
         const td = Math.hypot(tx, tz);
         if (td < 0.6) {
           w.state = 'SETUP';
-          w.stateTimer = w.shotsLeft === SIEGE.shots ? SIEGE.setup : SIEGE.reload;
+          w.stateTimer = w.shotsFired ? SIEGE.reload : SIEGE.setup;
           w.aimed = false;
           ctx.onSiegeSetup?.(w);
           break;
@@ -674,13 +661,12 @@ export function updateWolves(wolves, ctx, dt) {
           ctx.onSiegeAim?.(w, w.aim);
         }
         if (w.stateTimer <= 0) {
-          w.shotsLeft--;
+          w.shotsFired = (w.shotsFired ?? 0) + 1;
           ctx.onSiegeFire?.(w, w.aim);
-          if (w.shotsLeft > 0) {
-            w.state = 'RELOAD';
-            w.stateTimer = SIEGE.reload;
-            w.aimed = false;
-          } else w.state = 'LEAVE';
+          // Keeps firing for the rest of the wave, until the dog chases the crew off.
+          w.state = 'RELOAD';
+          w.stateTimer = SIEGE.reload;
+          w.aimed = false;
         }
         break;
       }

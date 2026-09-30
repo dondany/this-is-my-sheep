@@ -186,7 +186,7 @@ export class Game {
       },
       onSiegeBroken: (w) => {
         this.removeSiegeMarker(w);
-        if (w.shotsLeft === SIEGE.shots) this.achievements.add('siegeBroken'); // before it fired at all
+        if (!w.shotsFired) this.achievements.add('siegeBroken'); // before it fired at all
         this.juice.siegeBroken(w);
       },
       onRascalDash: (w) => {
@@ -1441,7 +1441,6 @@ export class Game {
       // Siege crew: sets up a little way out from the flock, on the side it arrives from.
       w.siteDir = { x: Math.cos(base), z: Math.sin(base) };
       w.site = { x: 0, z: 0 };
-      w.shotsLeft = SIEGE.shots;
       w.catapult = new Catapult(this.world.scene).setPosition(...at(base + 0.04));
       this.catapults.push(w.catapult);
     }
@@ -1714,6 +1713,28 @@ export class Game {
     this.juice.siegeFire(w, f);
   }
 
+  // Where a siege crew sets up: out from the flock on the side it came from, as far as the oval
+  // (SIEGE.distance, distanceZ, distanceNear) but pulled in until the catapult sits inside the
+  // central part of the screen, and well inside the dog's meadow.
+  placeSiege(w) {
+    const dir = w.siteDir;
+    const a = SIEGE.distance;
+    const b = dir.z > 0 ? SIEGE.distanceNear : SIEGE.distanceZ;
+    const far = (a * b) / Math.hypot(b * dir.x, a * dir.z);
+    const edge = WORLD.playRadius - 4;
+    const p = new THREE.Vector3();
+    for (let d = far; d >= 5; d -= 0.5) {
+      p.set(this.center.x + dir.x * d, 0, this.center.z + dir.z * d);
+      const r = Math.hypot(p.x, p.z);
+      if (r > edge) p.multiplyScalar(edge / r);
+      // Check where the catapult will stand (just behind its crew).
+      const v = p.clone().addScaledVector(new THREE.Vector3(dir.x, 0, dir.z), 2.4).project(this.world.camera);
+      if (Math.abs(v.x) < SIEGE.inView && Math.abs(v.y) < SIEGE.inView) break;
+    }
+    w.site.x = p.x;
+    w.site.z = p.z;
+  }
+
   // Catapults follow their crew while hauled, wind up and swing when firing, and fall apart once
   // the crew is gone (scared off, out of shots, or the wave's over).
   updateCatapults(dt) {
@@ -1723,6 +1744,7 @@ export class Game {
       const toCenter = Math.atan2(this.center.x - c.position.x, this.center.z - c.position.z);
       let target = -0.3;
       if (w.state === 'HAUL') {
+        this.placeSiege(w);
         // Dragged behind the crew.
         c.position.x = w.position.x - Math.sin(w.heading) * 2.4;
         c.position.z = w.position.z - Math.cos(w.heading) * 2.4;

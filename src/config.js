@@ -454,15 +454,15 @@ Object.assign(WOLF_TYPES, {
 export const SIEGE = {
   // The crew sets up this far from the flock, on the side it came from: less towards the top and
   // bottom of the screen (world z), which shows less of the meadow than the sides.
-  distance: 15, // to the sides
-  distanceZ: 9, // towards the top of the screen
-  distanceNear: 6, // towards the bottom (nearest the camera, where the least ground shows)
-  cameraLean: 0.2, // the camera leans this much of the way towards a crew that's setting up
+  distance: 18, // to the sides
+  distanceZ: 12, // towards the top of the screen
+  distanceNear: 8, // towards the bottom (nearest the camera, where the least ground shows)
+  inView: 0.75, // ...pulled in if needed so the catapult stays inside this share of the screen
+  cameraLean: 0.3, // the camera leans this much of the way towards a crew that's setting up
   haulSpeed: 0.55, // × approach speed while dragging the catapult
-  setup: 3.5, // seconds winding up before the first shot
-  reload: 4.5, // seconds before the next one
+  setup: 5, // seconds winding up before the first shot
+  reload: 12, // then a shot every this many seconds, for the rest of the wave (until it's scared off)
   aimWarning: 1.6, // the landing spot is marked this long before a shot
-  shots: 2,
   flight: 1.3, // seconds in the air
   arc: 9, // peak height
   blastRadius: 8, // sheep this close to the landing get thrown
@@ -670,7 +670,7 @@ export const PACK = {
       rascal: 1,
       howler: 1,
       pups: late ? 2 : 1,
-      siege: wave >= 13 ? 2 : 1,
+      siege: 1, // one catapult a wave
     };
   },
 };
@@ -693,6 +693,9 @@ export function wolfPack(wave, count, rules = summerRules(1)) {
   const pool = shuffle(kinds.flatMap((k) => Array(caps[k]).fill(k)));
   for (const kind of pool) add(kind);
   while (pack.length < count) pack.push('normal');
+  // A siege crew comes on top of the pack: once it's chased off it's gone for good, unlike the
+  // others, so it mustn't cost the wave a wolf.
+  if (pack.includes('siege')) pack.push('normal');
   shuffle(pack);
   // Lead with a normal wolf so the special ones arrive mid-wave.
   const first = pack.indexOf('normal');
@@ -709,6 +712,7 @@ function wolfCount(wave, rules) {
 }
 
 export function waveConfig(wave, rules = summerRules(1)) {
+  const pack = wolfPack(wave, wolfCount(wave, rules), rules);
   const difficulty = 1 + (wave - 1) * 0.15;
   return {
     wave,
@@ -726,7 +730,7 @@ export function waveConfig(wave, rules = summerRules(1)) {
     black: wave < FIRST_WAVE.black ? 0 : wave < 10 ? 1 : 2,
     bellwether: wave >= FIRST_WAVE.bellwether ? 1 : 0,
     disguised: wave >= FIRST_WAVE.disguised ? 1 : 0,
-    wolves: wolfCount(wave, rules),
+    wolves: pack.length,
     duration: Math.min(40 + wave * 5, 90),
     spawnInterval: Math.max(2, 7 - wave * 0.5),
     pairs: true, // wolves arrive two at a time, from opposite sides
@@ -734,6 +738,6 @@ export function waveConfig(wave, rules = summerRules(1)) {
     wolfSpeed: Math.min(1 + (wave - 1) * 0.05, 1.5),
     stalkMin: (2 / difficulty) * rules.stalk,
     stalkMax: (4.5 / difficulty) * rules.stalk,
-    pack: wolfPack(wave, wolfCount(wave, rules), rules),
+    pack,
   };
 }

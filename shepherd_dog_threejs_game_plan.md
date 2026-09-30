@@ -3259,3 +3259,19 @@ to reach (you can only click where you can see).
     ground shows), clamped 4 inside the dog's meadow. The camera leans
     20% towards a working crew's catapult. Checked in eight directions:
     always on screen.
+
+Second follow-up (playtest): the catapult came too close, there should
+be one per wave, and it should keep firing, less often.
+
+-   At most one crew a wave (`PACK.caps` siege 1), and it comes **on top
+    of** the pack (`wolfPack()` adds a plain wolf; `cfg.wolves` is the
+    pack's length): a chased-off crew is gone for good, so it mustn't cost
+    the wave a wolf. Before that change the bots' wins jumped (Hunter and
+    Crew 4/4); after it: Hunter 2/4, Barker 2/4, Crew 1/4, Fortress 1/4.
+-   It no longer stops after two shots: 5 s to wind up, then a shot every
+    12 s for the rest of the wave until it's scared off (7 shots in a
+    90 s wave if left alone). `shotsFired` drives the achievement.
+-   Further out: up to 18 to the sides, 12 towards the top, 8 towards the
+    bottom, pulled in only as far as needed to keep the catapult inside
+    the central 75% of the current view (`Game.placeSiege()`, checked
+    each frame while hauling); the camera leans 30% its way.
