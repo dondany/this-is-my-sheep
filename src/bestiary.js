@@ -165,9 +165,14 @@ export const ENTRIES = [
     id: 'siege',
     side: 'wolves',
     name: 'Siege Crew',
-    text: "A wolf in a leather helmet drags a catapult to the edge of the meadow, winds it up and fires another wolf into the middle of the flock. The landing throws sheep everywhere; the fired wolf runs off dizzy. Two shots, then the crew goes home.",
+    text: "A wolf in a leather helmet drags a catapult up to the flock, winds it up and fires the wolf sitting in its bucket into the middle of the flock. The landing throws sheep everywhere; the fired wolf runs off dizzy. Two shots, then the crew goes home.",
     tip: 'Get to the catapult before it fires and the crew bolts. The red ring shows where the next wolf will land.',
-    make: (scene) => [new Wolf(scene, 'siege'), new Catapult(scene).setPosition(-1.6, 0, -1.6)],
+    make: (scene) => {
+      const c = new Catapult(scene).setPosition(-1.6, 0, -1.6);
+      c.arm = -0.45;
+      c.load(new Wolf(scene, 'flyer'));
+      return [new Wolf(scene, 'siege'), c];
+    },
   },
   {
     id: 'greymuzzle',

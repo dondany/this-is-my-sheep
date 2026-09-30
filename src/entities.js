@@ -871,8 +871,33 @@ export class Catapult extends Animal {
     pivot.position.set(0, 0.75, -0.1);
     root.add(pivot);
     pivot.add(mesh(GEO.box, COLORS.wood, { position: [0, 0, -1.1], scale: [0.16, 0.16, 2.2], shadow: true }));
-    pivot.add(mesh(GEO.box, COLORS.woodDark, { position: [0, 0.14, -2.15], scale: [0.55, 0.26, 0.55], shadow: true }));
+    const bucket = (this.bucket = new THREE.Group());
+    bucket.position.set(0, 0.14, -2.15);
+    pivot.add(bucket);
+    bucket.add(mesh(GEO.box, COLORS.woodDark, { scale: [0.55, 0.26, 0.55], shadow: true }));
+    this.passenger = null;
     root.scale.setScalar(1.2);
+  }
+
+  // A wolf curled up in the bucket, waiting to be fired (`wolf` is its model; null empties it).
+  load(wolf) {
+    this.passenger?.root.removeFromParent();
+    this.passenger = wolf;
+    if (!wolf) return;
+    wolf.root.scale.setScalar(0.7);
+    wolf.root.position.set(0, 0.1, 0);
+    wolf.root.rotation.set(0.35, Math.PI, 0); // facing back up the arm, towards the flock once it swings
+    this.bucket.add(wolf.root);
+  }
+
+  // Where the bucket is right now, in the world (the shot starts here).
+  bucketPosition(out) {
+    return this.bucket.getWorldPosition(out);
+  }
+
+  destroy() {
+    this.load(null);
+    super.destroy();
   }
 
   animate(dt) {

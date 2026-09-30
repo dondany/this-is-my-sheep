@@ -1438,9 +1438,9 @@ export class Game {
     const w = new Wolf(this.world.scene, kind).setPosition(...at(base));
     this.wolves.push(w);
     if (w.type.siege) {
-      // Siege crew: its spot is on the edge of the dog's meadow, straight in from where it arrives.
-      const r = WORLD.playRadius - 0.8;
-      w.site = { x: Math.cos(base) * r, z: Math.sin(base) * r };
+      // Siege crew: sets up a little way out from the flock, on the side it arrives from.
+      w.siteDir = { x: Math.cos(base), z: Math.sin(base) };
+      w.site = { x: 0, z: 0 };
       w.shotsLeft = SIEGE.shots;
       w.catapult = new Catapult(this.world.scene).setPosition(...at(base + 0.04));
       this.catapults.push(w.catapult);
@@ -1701,9 +1701,11 @@ export class Game {
     const c = w.catapult;
     w.firedAt = this.time;
     const f = new Wolf(this.world.scene, 'flyer');
-    const from = c ? c.position : w.position;
-    f.setPosition(from.x, 2.2, from.z);
-    f.flight = { from: { x: from.x, y: 2.2, z: from.z }, to: aim, t: 0 };
+    // It leaves from the bucket (the wolf that was sitting in it goes).
+    const from = c ? c.bucketPosition(new THREE.Vector3()) : w.position.clone().setY(2);
+    c?.load(null);
+    f.setPosition(from.x, from.y, from.z);
+    f.flight = { from: { x: from.x, y: from.y, z: from.z }, to: aim, t: 0 };
     f.state = 'FLY';
     f.crew = w;
     f.heading = Math.atan2(aim.x - from.x, aim.z - from.z);
@@ -1729,6 +1731,8 @@ export class Game {
         c.root.rotation.y = toCenter;
         const sinceFire = this.time - (w.firedAt ?? -99);
         target = sinceFire < 0.9 ? 2 : w.state === 'SETUP' || w.state === 'RELOAD' ? -0.45 : 2;
+        // The next wolf climbs into the bucket once the arm is back down.
+        if (!c.passenger && (w.state === 'SETUP' || w.state === 'RELOAD') && sinceFire > 1.4 && !w.abandoned) c.load(new Wolf(this.world.scene, 'flyer'));
       }
       c.arm += (target - c.arm) * (1 - Math.exp(-(target > c.arm ? 22 : 2.5) * dt));
       if (w.abandoned || w.state === 'LEAVE' || w.gone || this.state !== STATE.PLAYING) c.collapse = 0.01;
@@ -1742,6 +1746,8 @@ export class Game {
         this.catapults.splice(i, 1);
       }
     }
+    // A ring whose crew is gone (and whose shot isn't in the air) goes too.
+    for (const m of this.siegeMarkers.filter((m) => m.crew.gone && !this.wolves.some((f) => f.crew === m.crew && f.state === 'FLY'))) this.removeSiegeMarker(m.crew);
     for (const m of this.siegeMarkers) m.mesh.material.opacity = 0.45 + 0.3 * Math.sin(this.time * 12);
   }
 
@@ -2163,6 +2169,9 @@ export class Game {
   updateCamera(dt) {
     // Follow the flock, leaning a little toward the dog so it rarely leaves the frame.
     const focus = this.cameraFocus.copy(this.center).lerp(this.dog.position, 0.25);
+    // A siege crew at work pulls the view its way a little, so its catapult stays in frame.
+    const crew = this.state === STATE.PLAYING && this.wolves.find((w) => w.catapult && !w.abandoned && ['HAUL', 'SETUP', 'RELOAD'].includes(w.state));
+    if (crew) focus.lerp(crew.catapult.position, SIEGE.cameraLean);
     focus.z -= 1.5; // nudge the view down a little so the HUD doesn't cover the flock
     this.punch = Math.max(0, this.punch - dt * 1.5);
     const distance = (35 + Math.min(this.sheep.length, SHEEP.cap) * 0.12) * this.zoom * (1 - FEEL.punch * Math.sin(this.punch * Math.PI));

@@ -3243,3 +3243,19 @@ it.
     flyer belongs to the same entry). A first-time tip explains it.
 -   Numbers in `SIEGE` (`src/config.js`). Balance with siege crews in:
     Fortress 3/4, Hunter 2/4, Crew 2/4, Barker 1/3.
+
+Follow-up (playtest): the fired wolf wasn't visible before the shot, and
+a crew on the top or bottom edge of the meadow was off-screen and hard
+to reach (you can only click where you can see).
+
+-   The next wolf sits curled up in the catapult's bucket from the
+    wind-up (`Catapult.load()`); the shot leaves from the bucket's world
+    position, and a new wolf climbs in during the reload. The bestiary
+    portrait shows it loaded.
+-   The crew no longer heads for the meadow's edge: its spot follows
+    the flock while it hauls, on an oval round it on the side it came
+    from (`SIEGE.distance` 15 to the sides, `distanceZ` 9 towards the top
+    of the screen, `distanceNear` 6 towards the bottom, where the least
+    ground shows), clamped 4 inside the dog's meadow. The camera leans
+    20% towards a working crew's catapult. Checked in eight directions:
+    always on screen.

@@ -628,6 +628,21 @@ export function updateWolves(wolves, ctx, dt) {
 
       // Siege crew: drag the catapult to its spot, wind it up, fire, reload.
       case 'HAUL': {
+        // The spot follows the flock while it's hauled there: SIEGE.distance out from the flock on
+        // the side the crew came from, well inside the dog's meadow (so the dog can reach it).
+        const a = SIEGE.distance;
+        const b = w.siteDir.z > 0 ? SIEGE.distanceNear : SIEGE.distanceZ;
+        const d = (a * b) / Math.hypot(b * w.siteDir.x, a * w.siteDir.z); // on an oval round the flock
+        let sx = ctx.center.x + w.siteDir.x * d;
+        let sz = ctx.center.z + w.siteDir.z * d;
+        const sr = Math.hypot(sx, sz);
+        const edge = WORLD.playRadius - 4;
+        if (sr > edge) {
+          sx *= edge / sr;
+          sz *= edge / sr;
+        }
+        w.site.x = sx;
+        w.site.z = sz;
         const tx = w.site.x - px;
         const tz = w.site.z - pz;
         const td = Math.hypot(tx, tz);

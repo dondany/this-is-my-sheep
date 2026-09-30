@@ -452,6 +452,12 @@ Object.assign(WOLF_TYPES, {
 // the flock. The landing throws sheep in every direction; the fired wolf then runs off. Reach the
 // catapult before it fires and the crew bolts, leaving it to fall apart.
 export const SIEGE = {
+  // The crew sets up this far from the flock, on the side it came from: less towards the top and
+  // bottom of the screen (world z), which shows less of the meadow than the sides.
+  distance: 15, // to the sides
+  distanceZ: 9, // towards the top of the screen
+  distanceNear: 6, // towards the bottom (nearest the camera, where the least ground shows)
+  cameraLean: 0.2, // the camera leans this much of the way towards a crew that's setting up
   haulSpeed: 0.55, // × approach speed while dragging the catapult
   setup: 3.5, // seconds winding up before the first shot
   reload: 4.5, // seconds before the next one
