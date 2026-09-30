@@ -4,7 +4,7 @@
 import {
   spareFor, LAST_STAND, DOG, BIG_BARK, BUMP, ROAM, SHEEP, SHEEP_TYPES, WOLF, WOLF_TYPES, FIRST_WAVE, GOAL, ENDLESS, BOSS, SUMMERS,
   SHEARING, GOAT, LAMB, BLACK, BELL, SLEEPY, GOLDEN, DISGUISE, RAM_CALM, RASCAL, PUPS, HOWLER,
-  TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, waveConfig,
+  TRICKSTER, ALPHA, SNEAKY, HELPER, SCARECROW, SIEGE, waveConfig,
 } from './config.js';
 import { CHARMS, CHARM, SHOP, LIVESTOCK, TRAINING, TRAIN, TRAINING_PRICE, AUGMENTS, animalPrice, modifiers, trainingText, trainingPrice } from './upgrades.js';
 import { ACHIEVEMENTS, ACHIEVEMENT } from './achievements.js';
@@ -146,6 +146,7 @@ const wolfNotes = {
   runner: () => 'Goes for the nearest sheep and gives up a chase when the dog nears its target.',
   rascal: () => `Never takes sheep: dashes through the flock ${RASCAL.passes[0]}-${RASCAL.passes[1]} times at ${RASCAL.speed} u/s, tossing sheep aside.`,
   howler: () => `Never attacks. Howls every ${HOWLER.interval[0]}-${HOWLER.interval[1]} s, panicking sheep within ${HOWLER.radius}.`,
+  siege: () => `Hauls a catapult to the edge of the dog's meadow, winds it up for ${SIEGE.setup} s and fires a wolf into the flock (${SIEGE.shots} shots, ${SIEGE.reload} s apart). The landing spot is marked ${SIEGE.aimWarning} s before; it throws sheep within ${SIEGE.blastRadius}. Scare the crew first and it abandons the catapult.`,
   sneaky: () => `No off-screen arrow until within ${SNEAKY.revealDistance} of the flock; circles to the side away from the dog.`,
   brute: () => 'Has to be kept next to the dog until its fear meter fills; shoves sheep aside.',
   trickster: () => `Switches to the far side of the flock once the dog runs at it (within ${TRICKSTER.commitRadius}).`,

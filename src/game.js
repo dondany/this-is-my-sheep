@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, BARK, FLOCK_CHARMS, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, COLORS, waveConfig } from './config.js';
+import { GOAL, lineFor, LAST_STAND, VETERAN, SPECIAL, BARK, FLOCK_CHARMS, SIEGE, ENDLESS, BOSS, SUMMERS, summerRules, DOG, ROAM, SHEEP, SHEEP_TYPES, WORLD, BLACK, BELL, GOAT, PUPS, DISGUISE, FIRST_WAVE, HELPER, WHISTLE, BIG_BARK, SHEARING, COLORS, waveConfig } from './config.js';
 import { createWorld } from './world.js';
-import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, angleTo } from './entities.js';
+import { Dog, Sheep, Wolf, Goat, Shepherd, Scarecrow, Catapult, angleTo } from './entities.js';
 import { updateHelper } from './helper.js';
 import { updateFlock, updateGoat, flockCenter } from './flock.js';
 import { updateWolves, toWander, isThreatening, stunWolf, forceScare } from './wolves.js';
@@ -133,6 +133,8 @@ export class Game {
     this.cameraFocus = new THREE.Vector3();
     this.zoom = 1;
     this.charms = []; // charm ids on the dog's collar, in slot order; reset every run
+    this.catapults = []; // siege crews' catapults on the field
+    this.siegeMarkers = []; // where their shots will land
     this.training = {}; // training id → level
     this.shop = null;
     this.frozen = []; // shop cards kept for the next wave's shop
@@ -172,6 +174,21 @@ export class Game {
       onSheepPanic: (s) => this.juice.sheepPanic(s),
       onSheepBump: (s) => this.juice.sheepBump(s),
       onSheepTossed: (s) => this.juice.sheepBump(s),
+      onSiegeSetup: (w) => {
+        this.juice.siegeSetup(w);
+        this.tip('siege');
+      },
+      onSiegeAim: (w, aim) => this.showSiegeMarker(w, aim),
+      onSiegeFire: (w, aim) => this.fireCatapult(w, aim),
+      onSiegeLand: (w) => {
+        this.removeSiegeMarker(w.crew);
+        this.juice.siegeLand(w);
+      },
+      onSiegeBroken: (w) => {
+        this.removeSiegeMarker(w);
+        if (w.shotsLeft === SIEGE.shots) this.achievements.add('siegeBroken'); // before it fired at all
+        this.juice.siegeBroken(w);
+      },
       onRascalDash: (w) => {
         this.juice.rascalDash(w);
         this.tip('rascal');
@@ -877,6 +894,11 @@ export class Game {
     this.heartbeat = 0;
     this.veteran = 0; // Veteran charm stacks
     this.nestEggWaves = 0; // Nest Egg: waves it has been on the collar
+    this.catapults = this.catapults ?? []; // siege crews' catapults on the field
+    for (const c of this.catapults) c.destroy();
+    this.catapults.length = 0;
+    for (const m of this.siegeMarkers ?? []) this.world.scene.remove(m.mesh);
+    this.siegeMarkers = []; // where the catapults' shots will land
     this.charmAugments = {}; // charm id → augment on the collar
     this.cardAugments = {}; // shop card key → augment (kept while a card is frozen)
     this.charmData = {}; // charm id → { waves, polish, scars } for charms that change over a run
@@ -1037,8 +1059,14 @@ export class Game {
       if (w.target?.grabbedBy === w) w.target.grabbedBy = null;
       w.target = null;
       w.howling = 0;
+      if (w.state === 'FLY') {
+        w.position.y = 0;
+        w.root.rotation.x = 0;
+      }
       if (w.state !== 'FLEE') w.state = 'LEAVE';
     }
+    for (const m of this.siegeMarkers) this.world.scene.remove(m.mesh);
+    this.siegeMarkers.length = 0;
 
     if (this.line && this.sheepCount() === this.line) this.achievements.add('heldLine');
     // Veteran charm: a clean wave adds reach for good; a bad one resets it.
@@ -1409,6 +1437,14 @@ export class Game {
 
     const w = new Wolf(this.world.scene, kind).setPosition(...at(base));
     this.wolves.push(w);
+    if (w.type.siege) {
+      // Siege crew: its spot is on the edge of the dog's meadow, straight in from where it arrives.
+      const r = WORLD.playRadius - 0.8;
+      w.site = { x: Math.cos(base) * r, z: Math.sin(base) * r };
+      w.shotsLeft = SIEGE.shots;
+      w.catapult = new Catapult(this.world.scene).setPosition(...at(base + 0.04));
+      this.catapults.push(w.catapult);
+    }
     toWander(w, this.ctx);
     if (w.type.howler) w.howlTimer = 6; // time to walk in from the tree line first
     if (kind !== 'sneaky') this.sfx.howl({ brute: 0.7, runner: 1.25, alpha: 0.85, trickster: 1.15 }[kind] ?? 1);
@@ -1636,6 +1672,77 @@ export class Game {
     this.tip('bigBark');
     if (m.echo && !echo) this.echoIn = BARK.echoDelay; // Echo charm
     if (m.chorus && this.helper && from === this.dog) this.bigBark(this.helper, { echo: true, scale: 0.6 }); // Chorus charm
+  }
+
+  // --- Siege crews ------------------------------------------------------------
+
+  // The red ring where the next shot will land.
+  showSiegeMarker(w, aim) {
+    this.removeSiegeMarker(w);
+    const mesh = new THREE.Mesh(
+      new THREE.RingGeometry(0.9, 1, 48).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color: COLORS.danger, transparent: true, opacity: 0.7, depthWrite: false })
+    );
+    mesh.position.set(aim.x, 0.06, aim.z);
+    mesh.scale.setScalar(SIEGE.blastRadius);
+    mesh.renderOrder = 2;
+    this.world.scene.add(mesh);
+    this.siegeMarkers.push({ crew: w, mesh });
+    this.juice.siegeAim(w);
+  }
+
+  removeSiegeMarker(crew) {
+    for (const m of this.siegeMarkers.filter((m) => m.crew === crew)) this.world.scene.remove(m.mesh);
+    this.siegeMarkers = this.siegeMarkers.filter((m) => m.crew !== crew);
+  }
+
+  // Launch: a wolf flies out of the bucket towards the marked spot.
+  fireCatapult(w, aim) {
+    const c = w.catapult;
+    w.firedAt = this.time;
+    const f = new Wolf(this.world.scene, 'flyer');
+    const from = c ? c.position : w.position;
+    f.setPosition(from.x, 2.2, from.z);
+    f.flight = { from: { x: from.x, y: 2.2, z: from.z }, to: aim, t: 0 };
+    f.state = 'FLY';
+    f.crew = w;
+    f.heading = Math.atan2(aim.x - from.x, aim.z - from.z);
+    f.root.rotation.y = f.heading;
+    this.wolves.push(f);
+    this.juice.siegeFire(w, f);
+  }
+
+  // Catapults follow their crew while hauled, wind up and swing when firing, and fall apart once
+  // the crew is gone (scared off, out of shots, or the wave's over).
+  updateCatapults(dt) {
+    for (const w of this.wolves) {
+      const c = w.catapult;
+      if (!c || c.collapse > 0) continue;
+      const toCenter = Math.atan2(this.center.x - c.position.x, this.center.z - c.position.z);
+      let target = -0.3;
+      if (w.state === 'HAUL') {
+        // Dragged behind the crew.
+        c.position.x = w.position.x - Math.sin(w.heading) * 2.4;
+        c.position.z = w.position.z - Math.cos(w.heading) * 2.4;
+        c.root.rotation.y = w.heading;
+      } else {
+        c.root.rotation.y = toCenter;
+        const sinceFire = this.time - (w.firedAt ?? -99);
+        target = sinceFire < 0.9 ? 2 : w.state === 'SETUP' || w.state === 'RELOAD' ? -0.45 : 2;
+      }
+      c.arm += (target - c.arm) * (1 - Math.exp(-(target > c.arm ? 22 : 2.5) * dt));
+      if (w.abandoned || w.state === 'LEAVE' || w.gone || this.state !== STATE.PLAYING) c.collapse = 0.01;
+    }
+    for (let i = this.catapults.length - 1; i >= 0; i--) {
+      const c = this.catapults[i];
+      if (c.collapse > 0) c.collapse = Math.min(1.8, c.collapse + dt);
+      c.animate(dt);
+      if (c.collapse >= 1.8) {
+        c.destroy();
+        this.catapults.splice(i, 1);
+      }
+    }
+    for (const m of this.siegeMarkers) m.mesh.material.opacity = 0.45 + 0.3 * Math.sin(this.time * 12);
   }
 
   // Grumpy Old Man goes after wolves near the flock; Battering Rams butt wolves that come close.
@@ -2013,6 +2120,7 @@ export class Game {
     for (const sc of this.scarecrows) sc.animate(dt, time);
 
     updateWolves(wolves, this.ctx, dt);
+    this.updateCatapults(dt);
     for (let i = wolves.length - 1; i >= 0; i--) {
       const w = wolves[i];
       if (w.gone) {

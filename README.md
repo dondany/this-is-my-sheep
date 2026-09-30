@@ -97,6 +97,7 @@ numbers in `SHEEP_TYPES` / `WOLF_TYPES`, so balancing is mostly editing values t
 | 🦊 | **Trickster** (orange, fox-like) | 7 | Feints: once the dog is running at it, it switches to the sheep furthest from the dog ("HEH!"). Fragile: scared from further away. |
 | 🐺 | **Alpha** (big, pale mane, ring on the ground) | 8, one per wave | While it's around, the other wolves stalk half as long; when it attacks it howls and every prowling wolf attacks with it. Scare it and every wolf inside its ring (10 units) flees too. |
 | 🐺 | **Wolf in Sheep's Clothing** | 9, one per wave | Joins the flock as a new "sheep" (it doesn't count in the flock total). 15–25 s into the wave it throws off the fleece and goes for the nearest sheep. Tells: grey tail, grey legs, flat walk. Keep the dog next to it for half a second to expose it early. |
+| 🏰 | **Siege Crew** (leather helmet, drags a catapult) | 10, two from 13 | Hauls a wooden catapult to the edge of the dog's meadow, winds it up ("LOADING…") and fires a wolf into the flock: a red ring marks the landing spot 1.6 s before, the wolf tumbles through the air ("WHEEE!") and lands with a "KA-THUNK!" that throws every sheep within 8 far outward. The fired wolf stands dizzy, then runs off. Two shots, 4.5 s apart, then the crew leaves. Get the dog to it before it fires and the crew bolts; the catapult falls apart (*Siege Breaker*). |
 | 👑 | **Old Greymuzzle** (boss: huge, grey muzzle, mane and scars) | 15, and every 5 endless waves | Arrives a quarter of the way into the final wave with a low howl. Needs the dog next to it for 3 s (fear meter) and leads the pack like an alpha. Must be driven off 3 times (+1 per return in endless): after each of the first ones it comes back with a fresh wolf; the last time it leaves for good. The wave can't end until it's gone (overtime). Walks slow and heavy: every footfall thuds, puffs dust, shakes the screen a little and makes sheep within 12 units jump (higher the closer). |
 
 Wolves arrive in pairs from opposite sides of the meadow: 3 in wave 1 and one more every other wave
@@ -401,7 +402,7 @@ the list is in `src/cosmetics.js`.
 
 ### Achievements
 
-37 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
+38 achievements in five groups (waves, wolves, flock, economy, collection), from "Finish wave 1"
 to "Scare off 250 wolves in total" and "Keep a golden fleece alive for 3 waves". Open them with
 🏆 on the menu, pause, end-of-wave and game-over screens (opening mid-wave pauses). A card pops up
 in the corner when one unlocks. Unlocks and lifetime counters are saved in `localStorage`; the
@@ -456,7 +457,7 @@ http://localhost:8000/guide.html.
 | `src/guide.js` | Builds the internal field guide (`guide.html`) from the game's data |
 | `src/cosmetics.js` | Wardrobe items, how accessories are built, and the saved choices |
 | `src/tips.js` | First-time tips and which ones the player has seen |
-| `src/achievements.js` | The 37 achievements, lifetime counters and unlock checks |
+| `src/achievements.js` | The 38 achievements, lifetime counters and unlock checks |
 | `src/upgrades.js` | The dog's stats (and their prices), charms, livestock; card draws and the multipliers they add up to |
 | `src/cards.js` | Shop cards: the card element, its tooltip, drag and drop onto drop zones |
 | `src/helper.js` | AI for the Second Dog upgrade |

@@ -456,6 +456,8 @@ const WOLF_LOOKS = {
   alpha: { body: COLORS.alpha, light: COLORS.alphaMane, eye: COLORS.alphaEye, girth: 1.05, ears: 1.1 },
   greymuzzle: { body: COLORS.greymuzzle, light: COLORS.greymuzzleLight, eye: COLORS.bossEye, girth: 1.2, ears: 0.9 },
   rascal: { body: COLORS.rascal, light: COLORS.rascalLight, eye: COLORS.wolfEye, girth: 0.85, ears: 1.35, legs: 0.95, head: 1.15 },
+  siege: { body: COLORS.siege, light: COLORS.siegeLight, eye: COLORS.wolfEye, girth: 1.05, ears: 0.9 },
+  flyer: { body: COLORS.wolf, light: COLORS.wolfLight, eye: COLORS.wolfEye, girth: 1, ears: 1.2 },
   pup: { body: COLORS.pup, light: COLORS.pupLight, eye: COLORS.wolfEye, girth: 1.1, ears: 1.3, legs: 0.8, head: 1.35 },
   howler: { body: COLORS.howler, light: COLORS.howlerLight, eye: 0x9fd3ff, girth: 1, ears: 1.2 },
   trickster: { body: COLORS.fox, light: COLORS.foxLight, eye: COLORS.wolfEye, girth: 0.8, ears: 1.6, legColor: COLORS.foxDark, bushy: true },
@@ -547,6 +549,12 @@ export class Wolf extends Animal {
       const e = look.ears;
       head.add(mesh(GEO.cone, look.body, { position: [side * 0.13, 0.17 + 0.12 * e, 0.04], scale: [0.1 * e, 0.26 * e, 0.08], rotation: [0, Math.PI / 4, side * -0.15 * e] }));
       head.add(mesh(GEO.box, look.eye, { position: [side * 0.11, 0.07, 0.33], scale: [0.08, 0.05, 0.03] }));
+    }
+
+    if (kind === 'siege') {
+      // A leather helmet with a little spike: the siege engineer.
+      head.add(mesh(GEO.sphere, COLORS.helmet, { position: [0, 0.2, 0.1], scale: [0.27, 0.16, 0.28], shadow: true }));
+      head.add(mesh(GEO.cone, COLORS.helmet, { position: [0, 0.38, 0.1], scale: [0.05, 0.14, 0.05] }));
     }
 
     const tail = (this.tail = new THREE.Group());
@@ -843,3 +851,35 @@ export class Scarecrow extends Animal {
 // ---------------------------------------------------------------------------
 
 
+
+// ---------------------------------------------------------------------------
+// The siege crew's catapult: a wooden cart with a throwing arm. `arm` goes from -0.45 (wound back,
+// bucket low behind) to 2 (fired, over the top); `collapse` from 0 to 1 when it falls apart.
+export class Catapult extends Animal {
+  constructor(scene) {
+    super(scene);
+    this.arm = -0.3;
+    this.collapse = 0;
+    const root = this.root;
+    root.add(mesh(GEO.box, COLORS.wood, { position: [0, 0.5, 0], scale: [1.4, 0.26, 2.2], shadow: true }));
+    for (const x of [-0.78, 0.78]) {
+      for (const z of [-0.75, 0.75]) root.add(mesh(GEO.cylinder, COLORS.woodDark, { position: [x, 0.36, z], scale: [0.36, 0.14, 0.36], rotation: [0, 0, Math.PI / 2], shadow: true }));
+      root.add(mesh(GEO.box, COLORS.woodDark, { position: [x * 0.6, 1.05, 0.35], scale: [0.14, 1.1, 0.14], shadow: true }));
+    }
+    root.add(mesh(GEO.box, COLORS.woodDark, { position: [0, 1.55, 0.35], scale: [1.05, 0.14, 0.14] }));
+    const pivot = (this.pivot = new THREE.Group());
+    pivot.position.set(0, 0.75, -0.1);
+    root.add(pivot);
+    pivot.add(mesh(GEO.box, COLORS.wood, { position: [0, 0, -1.1], scale: [0.16, 0.16, 2.2], shadow: true }));
+    pivot.add(mesh(GEO.box, COLORS.woodDark, { position: [0, 0.14, -2.15], scale: [0.55, 0.26, 0.55], shadow: true }));
+    root.scale.setScalar(1.2);
+  }
+
+  animate(dt) {
+    this.pivot.rotation.x = this.arm;
+    if (this.collapse > 0) {
+      this.root.rotation.z = this.collapse * 0.7;
+      this.root.position.y = -this.collapse * 0.6;
+    }
+  }
+}

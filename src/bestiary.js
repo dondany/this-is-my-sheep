@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Sheep, Wolf, Goat } from './entities.js';
+import { Sheep, Wolf, Goat, Catapult } from './entities.js';
 import { FIRST_WAVE } from './config.js';
 
 const STORAGE_KEY = 'this-is-my-sheep.bestiary';
@@ -162,6 +162,14 @@ export const ENTRIES = [
     make: (scene) => [new Wolf(scene, 'alpha')],
   },
   {
+    id: 'siege',
+    side: 'wolves',
+    name: 'Siege Crew',
+    text: "A wolf in a leather helmet drags a catapult to the edge of the meadow, winds it up and fires another wolf into the middle of the flock. The landing throws sheep everywhere; the fired wolf runs off dizzy. Two shots, then the crew goes home.",
+    tip: 'Get to the catapult before it fires and the crew bolts. The red ring shows where the next wolf will land.',
+    make: (scene) => [new Wolf(scene, 'siege'), new Catapult(scene).setPosition(-1.6, 0, -1.6)],
+  },
+  {
     id: 'greymuzzle',
     side: 'wolves',
     name: 'Old Greymuzzle',
@@ -186,6 +194,7 @@ export const ENTRY = Object.fromEntries(ENTRIES.map((e) => [e.id, e]));
 // Which bestiary entry an animal belongs to.
 export function entryId(animal) {
   if (animal.kind === 'normal') return animal instanceof Wolf ? 'wolf' : 'sheep';
+  if (animal.kind === 'flyer') return 'siege'; // the fired wolf belongs to the siege crew's entry
   return animal.kind;
 }
 

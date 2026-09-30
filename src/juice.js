@@ -320,6 +320,38 @@ export class Juice {
     this.sfx.bleat(true);
   }
 
+  siegeSetup(wolf) {
+    this.floatText('LOADING…', { follow: wolf, offsetY: 2.8, cls: 'warn', duration: 1.6 });
+    this.sfx.growl();
+  }
+
+  siegeAim(wolf) {
+    this.floatText('INCOMING!', { position: wolf.aim ? new THREE.Vector3(wolf.aim.x, 0, wolf.aim.z) : wolf.position, offsetY: 2.4, cls: 'danger', duration: 1.4, size: 30 });
+  }
+
+  siegeFire(crew, flyer) {
+    this.floatText('WHEEE!', { follow: flyer, offsetY: 2.2, cls: 'warn', duration: 1.2 });
+    this.particles.dust(tmp.copy(crew.catapult?.position ?? crew.position).setY(0.4), 8, 1.2);
+    this.sfx.bonk();
+    this.sfx.yip();
+  }
+
+  siegeLand(wolf) {
+    this.floatText('KA-THUNK!', { follow: wolf, offsetY: 3, cls: 'big', duration: 1.4, size: 46 });
+    this.ring(wolf.position, { from: 0.5, to: 8, duration: 0.5, color: COLORS.wood, opacity: 0.9 });
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2;
+      this.particles.dust(tmp.set(wolf.position.x + Math.cos(a) * 1.4, 0.2, wolf.position.z + Math.sin(a) * 1.4), 3, 1.6);
+    }
+    this.shake(0.14, 320);
+    this.sfx.stomp();
+    this.sfx.bleat(true, 1.1);
+  }
+
+  siegeBroken(wolf) {
+    this.floatText('SIEGE BROKEN!', { follow: wolf, offsetY: 3, cls: 'good', duration: 1.6 });
+  }
+
   rascalDash(wolf) {
     this.floatText('WHEEE!', { follow: wolf, offsetY: 2.6, cls: 'warn', duration: 0.9 });
     this.sfx.yip();

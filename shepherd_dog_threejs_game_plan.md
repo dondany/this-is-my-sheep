@@ -3214,3 +3214,32 @@ settled at +12% (2/6). Bark Collector 5% → 10% a charm. Crew kept winning
 4 waves; the Second Dog starts at 50% (was 55%). Last Light every 5 s.
 Final: Crew 4/6, Edge 3/5, Hunter 2/4, Rancher 2/4, Barker 2/5, Lone Dog
 2/6, Fortress 3/9, no plan 0/4.
+
+------------------------------------------------------------------------
+
+# 108. The Siege Crew: a Catapulting Wolf (implemented)
+
+A new wolf, first seen in wave 10 (two from wave 13): a wolf in a
+leather helmet hauls a wooden catapult (`Catapult` in `src/entities.js`,
+with a throwing arm) to the edge of the dog's meadow, straight in from
+where it arrived (`WORLD.playRadius` − 0.8), so the dog can always reach
+it.
+
+-   States (`src/wolves.js`): HAUL (dragging the catapult at 55% speed)
+    → SETUP (3.5 s winding up; 1.6 s before the shot the landing spot is
+    locked on the flock's centre and marked with a pulsing red ring,
+    "INCOMING!") → fire → RELOAD (4.5 s) → fire → LEAVE. All three count
+    as threatening (combos, the dog's alert, Alpha Dog, bots).
+-   The shot: a `flyer` wolf flies a tumbling 1.3 s arc (`fly()`, peak
+    9) to the marked spot ("WHEEE!"). The landing (`blast()`) throws
+    every sheep within 8 outward (push 20, bounce ×2.6, full panic,
+    sleepers wake): "KA-THUNK!", a dust ring, a shake, a thud and a
+    bleat. The fired wolf stands dizzy for 0.9 s, then runs off for good.
+-   Counterplay: scaring the crew (any scare) makes it abandon the
+    catapult, which tips over and sinks; before the first shot that's
+    the achievement 🏰 *Siege Breaker* (38 in total). At the end of a
+    wave, flyers land where they are and catapults fall apart.
+-   Bestiary: "Siege Crew" (the portrait includes the catapult; the
+    flyer belongs to the same entry). A first-time tip explains it.
+-   Numbers in `SIEGE` (`src/config.js`). Balance with siege crews in:
+    Fortress 3/4, Hunter 2/4, Crew 2/4, Barker 1/3.

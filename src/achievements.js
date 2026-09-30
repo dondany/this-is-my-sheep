@@ -1,6 +1,6 @@
 import { ENTRIES } from './bestiary.js';
 
-// Achievements: 37 goals across runs. Lifetime counters (`life`) and this run's records (`run`) are
+// Achievements: 38 goals across runs. Lifetime counters (`life`) and this run's records (`run`) are
 // updated by the game; `check()` unlocks anything newly met. Unlocks and lifetime counters are saved
 // in localStorage.
 
@@ -45,6 +45,7 @@ export const ACHIEVEMENTS = [
   // --- Economy
   { id: 'wool100', group: 'Economy', icon: '🧶', name: 'Shearing Day', text: 'Earn 100 wool in one wave.', done: (l, r) => r.bestWaveWool >= 100 },
   { id: 'interest', group: 'Economy', icon: '🐷', name: 'Nest Egg', text: 'Collect the maximum interest on your savings.', done: (l, r) => r.maxInterest },
+  { id: 'siegeBreaker', group: 'Wolves', icon: '🏰', name: 'Siege Breaker', text: 'Scare off a siege crew before its catapult fires.', done: (l) => l.siegeBroken >= 1 },
   { id: 'bigCombos', group: 'Wolves', icon: '⛓️', name: 'Chain Gang', text: 'Land 10 combos of ×3 or more in total.', done: (l) => l.bigCombos >= 10 },
   { id: 'goat', group: 'Economy', icon: '🐐', name: 'Good Goat', text: 'Have the goat head-butt 10 wolves in total.', done: (l) => l.goatButts >= 10 },
   { id: 'loudMax', group: 'Economy', icon: '🎯', name: 'Long Reach', text: "Upgrade the dog's Reach to the top level.", done: (l, r) => r.loudMax },

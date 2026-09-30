@@ -50,6 +50,10 @@ export const COLORS = {
   howlerLight: 0xb4b0c0,
   rascal: 0x9a8a74,
   rascalLight: 0xe3d6bf,
+  siege: 0x7d6e62,
+  siegeLight: 0xd8cbb8,
+  helmet: 0x6b4b2e,
+  woodDark: 0x6e4a2e,
   bandana: 0xc94f3d,
   pup: 0x8a867e,
   pupLight: 0xbdb8ae,
@@ -438,7 +442,28 @@ Object.assign(WOLF_TYPES, {
   greymuzzle: { ...WOLF_TYPES.normal, scale: 2.3, speed: 0.85, stalk: 0.6, fleeTime: 1.2, courage: 3, grabTime: 0.6, shove: true, leader: true, boss: true },
   // What's under the sheepskin (see DISGUISE).
   disguised: { ...WOLF_TYPES.normal },
+  // Siege crew: hauls a catapult to the edge of the meadow and fires a wolf into the flock (see SIEGE).
+  siege: { ...WOLF_TYPES.normal, speed: 0.9, siege: true },
+  // The wolf that gets fired: lands in the flock, then runs off dazed.
+  flyer: { ...WOLF_TYPES.normal, flyer: true },
 });
+
+// Siege crew: drags a catapult to the edge of the dog's meadow, winds it up and fires a wolf into
+// the flock. The landing throws sheep in every direction; the fired wolf then runs off. Reach the
+// catapult before it fires and the crew bolts, leaving it to fall apart.
+export const SIEGE = {
+  haulSpeed: 0.55, // × approach speed while dragging the catapult
+  setup: 3.5, // seconds winding up before the first shot
+  reload: 4.5, // seconds before the next one
+  aimWarning: 1.6, // the landing spot is marked this long before a shot
+  shots: 2,
+  flight: 1.3, // seconds in the air
+  arc: 9, // peak height
+  blastRadius: 8, // sheep this close to the landing get thrown
+  blastPush: 20,
+  blastHeight: 2.6, // × BUMP.height
+  daze: 0.9, // the landed wolf stands dizzy this long before running off
+};
 
 // Rascal: a young wolf that doesn't hunt. It sprints straight through the flock a few times,
 // tossing sheep aside, then goes back to prowling.
@@ -615,6 +640,7 @@ export const FIRST_WAVE = {
   black: 7, trickster: 7,
   bellwether: 8, alpha: 8,
   disguised: 9,
+  siege: 10,
   goat: 3, // only ever bought in the shop (livestock card), from this wave on
   greymuzzle: 15, // the final boss (not part of the regular pack)
 };
@@ -638,6 +664,7 @@ export const PACK = {
       rascal: 1,
       howler: 1,
       pups: late ? 2 : 1,
+      siege: wave >= 13 ? 2 : 1,
     };
   },
 };

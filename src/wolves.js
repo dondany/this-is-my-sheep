@@ -1,4 +1,4 @@
-import { WOLF, WORLD, SNEAKY, ALPHA, PUPS, HOWLER, TRICKSTER, SCARECROW, RASCAL, SHEARING, FLOCK_CHARMS } from './config.js';
+import { WOLF, WORLD, SNEAKY, ALPHA, PUPS, HOWLER, TRICKSTER, SCARECROW, RASCAL, SHEARING, FLOCK_CHARMS, SIEGE } from './config.js';
 import { angleTo } from './entities.js';
 
 // Wolf states:
@@ -28,10 +28,19 @@ import { angleTo } from './entities.js';
 
 const between = ([min, max]) => min + Math.random() * (max - min);
 
-const THREATENING = new Set(['APPROACH', 'CHASE', 'ATTACK', 'DASH']);
+const THREATENING = new Set(['APPROACH', 'CHASE', 'ATTACK', 'DASH', 'HAUL', 'SETUP', 'RELOAD']);
 
 export function toWander(w, ctx) {
   const cfg = ctx.cfg;
+  // A fired wolf has had enough; a siege crew goes back to its catapult (or home, if it gave up).
+  if (w.type.flyer || (w.type.siege && (w.abandoned || !(w.shotsLeft > 0)))) {
+    w.state = 'LEAVE';
+    return;
+  }
+  if (w.type.siege) {
+    w.state = 'HAUL';
+    return;
+  }
   w.state = 'WANDER';
   w.target = null;
   w.orbitDir = Math.random() < 0.5 ? -1 : 1;
@@ -109,6 +118,53 @@ function tossSheep(w, ctx) {
   }
 }
 
+// A wolf flying out of a catapult: a spinning arc from `w.flight.from` to `w.flight.to`. On landing
+// it throws the sheep around it, stands dizzy for a moment, then runs off.
+function fly(w, ctx, dt) {
+  const f = w.flight;
+  f.t = Math.min(1, f.t + dt / SIEGE.flight);
+  w.position.x = f.from.x + (f.to.x - f.from.x) * f.t;
+  w.position.z = f.from.z + (f.to.z - f.from.z) * f.t;
+  w.position.y = f.from.y * (1 - f.t) + 4 * SIEGE.arc * f.t * (1 - f.t);
+  w.root.rotation.x += dt * 9; // tumbling head over heels
+  w.velocity.set(0, 0, 0);
+  if (f.t < 1) return;
+  w.position.y = 0;
+  w.root.rotation.x = 0;
+  blast(w, ctx);
+  ctx.onSiegeLand?.(w);
+  const cx = w.position.x - ctx.center.x;
+  const cz = w.position.z - ctx.center.z;
+  const cd = Math.hypot(cx, cz) || 1;
+  w.fleeDir.set(cx / cd, 0, cz / cd);
+  w.state = 'FLEE';
+  w.pause = SIEGE.daze;
+  w.stateTimer = 2;
+}
+
+// The landing: every sheep nearby is thrown outward, high, and panics.
+function blast(w, ctx) {
+  for (const s of ctx.sheep) {
+    if (s.grabbedBy) continue;
+    const sx = s.position.x - w.position.x;
+    const sz = s.position.z - w.position.z;
+    const d = Math.hypot(sx, sz);
+    if (d > SIEGE.blastRadius) continue;
+    const k = 1 - d / SIEGE.blastRadius;
+    const nx = d > 1e-3 ? sx / d : Math.random() - 0.5;
+    const nz = d > 1e-3 ? sz / d : Math.random() - 0.5;
+    s.velocity.x += nx * SIEGE.blastPush * (0.4 + k);
+    s.velocity.z += nz * SIEGE.blastPush * (0.4 + k);
+    s.bump = 1;
+    s.bumpSide = Math.sign(nx) || 1;
+    s.bumpPower = SIEGE.blastHeight * (0.5 + k);
+    s.bumpCooldown = 0.8;
+    s.fear = 1;
+    s.asleep = false;
+    ctx.onSheepTossed?.(s, w);
+  }
+}
+
 export function isThreatening(w) {
   return THREATENING.has(w.state);
 }
@@ -171,6 +227,10 @@ function scare(w, ctx, ddx, ddz, dd, by = ctx.dog) {
     ctx.onSheepSaved(s, w);
   }
   w.target = null;
+  if (w.type.siege && !w.abandoned) {
+    w.abandoned = true;
+    ctx.onSiegeBroken?.(w);
+  }
   w.state = 'FLEE';
   w.fear = 0;
   w.resisting = false;
@@ -276,6 +336,10 @@ export function updateWolves(wolves, ctx, dt) {
   updatePupGroups(wolves, ctx, dt);
 
   for (const w of wolves) {
+    if (w.state === 'FLY') {
+      fly(w, ctx, dt);
+      continue;
+    }
     const T = w.type;
     const speedScale = waveSpeed * T.speed;
     const px = w.position.x;
@@ -562,12 +626,56 @@ export function updateWolves(wolves, ctx, dt) {
         break;
       }
 
+      // Siege crew: drag the catapult to its spot, wind it up, fire, reload.
+      case 'HAUL': {
+        const tx = w.site.x - px;
+        const tz = w.site.z - pz;
+        const td = Math.hypot(tx, tz);
+        if (td < 0.6) {
+          w.state = 'SETUP';
+          w.stateTimer = w.shotsLeft === SIEGE.shots ? SIEGE.setup : SIEGE.reload;
+          w.aimed = false;
+          ctx.onSiegeSetup?.(w);
+          break;
+        }
+        const sp = WOLF.approachSpeed * speedScale * SIEGE.haulSpeed;
+        vx = (tx / td) * sp;
+        vz = (tz / td) * sp;
+        break;
+      }
+
+      case 'SETUP':
+      case 'RELOAD': {
+        snap = true;
+        w.turnToward(Math.atan2(ctx.center.x - px, ctx.center.z - pz), 6, dt);
+        if (!ctx.huntingAllowed) {
+          w.state = 'LEAVE';
+          break;
+        }
+        w.stateTimer -= dt;
+        if (!w.aimed && w.stateTimer <= SIEGE.aimWarning) {
+          w.aimed = true;
+          w.aim = { x: ctx.center.x, z: ctx.center.z };
+          ctx.onSiegeAim?.(w, w.aim);
+        }
+        if (w.stateTimer <= 0) {
+          w.shotsLeft--;
+          ctx.onSiegeFire?.(w, w.aim);
+          if (w.shotsLeft > 0) {
+            w.state = 'RELOAD';
+            w.stateTimer = SIEGE.reload;
+            w.aimed = false;
+          } else w.state = 'LEAVE';
+        }
+        break;
+      }
+
       case 'LEAVE': {
         const r = Math.hypot(px, pz) || 1;
         vx = (px / r) * WOLF.fleeSpeed * 0.8;
         vz = (pz / r) * WOLF.fleeSpeed * 0.8;
         if (r > WORLD.spawnRadius) {
-          if (ctx.huntingAllowed && !w.defeated) toWander(w, ctx);
+          if (ctx.huntingAllowed && !w.defeated && !T.flyer && !T.siege) toWander(w, ctx);
           else w.gone = true;
         }
         break;
