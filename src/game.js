@@ -809,7 +809,15 @@ export class Game {
   makeWaveConfig() {
     const cfg = waveConfig(this.wave, this.waveRules());
     cfg.duration = Math.round(cfg.duration * (this.ctx.mods.waveLength ?? 1));
+    // Siege crews only come in runs that have already met the Siege Engine as a boss.
+    if (!this.siegeEngineMet()) cfg.siege = false;
     return cfg;
+  }
+
+  // Has this run had the Siege Engine as an earlier wave's boss?
+  siegeEngineMet() {
+    for (let w = 1; w < this.wave; w++) if (bossOn(w, this.bossPlan)?.id === 'siegeEngine') return true;
+    return false;
   }
 
   // The summer's rules with this run's extras (Wolf Moon: one more wolf a wave).

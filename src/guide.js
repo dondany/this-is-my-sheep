@@ -148,7 +148,7 @@ const wolfNotes = {
   runner: () => 'Goes for the nearest sheep and gives up a chase when the dog nears its target.',
   rascal: () => `Never takes sheep: dashes through the flock ${RASCAL.passes[0]}-${RASCAL.passes[1]} times at ${RASCAL.speed} u/s, tossing sheep aside.`,
   howler: () => `Never attacks. Howls every ${HOWLER.interval[0]}-${HOWLER.interval[1]} s, panicking sheep within ${HOWLER.radius}.`,
-  siege: () => `One a wave, halfway through it. Comes from the left or right and hauls a catapult towards the edge of your meadow (stopping at the edge of the screen if that's nearer), fires a wolf into the flock ${SIEGE.setup} s after it stops, then another every ${SIEGE.reload} s for the rest of the wave. The landing spot is marked ${SIEGE.aimWarning} s before; it throws sheep within ${SIEGE.blastRadius}. Scare the crew and it abandons the catapult for good. The Siege Engine, one of the wave-5 bosses, is a bigger one whose crew can't be scared at all, so it fires until the wave ends.`,
+  siege: () => `From wave 10, only in runs that met the Siege Engine as the wave-5 boss. One a wave, halfway through it. Comes from the left or right and hauls a catapult towards the edge of your meadow (stopping at the edge of the screen if that's nearer), fires a wolf into the flock ${SIEGE.setup} s after it stops, then another every ${SIEGE.reload} s for the rest of the wave. The landing spot is marked ${SIEGE.aimWarning} s before; it throws sheep within ${SIEGE.blastRadius}. Scare the crew and it abandons the catapult for good. The Siege Engine, one of the wave-5 bosses, is a bigger one whose crew can't be scared at all, so it fires until the wave ends.`,
   sneaky: () => `No off-screen arrow until within ${SNEAKY.revealDistance} of the flock; circles to the side away from the dog.`,
   brute: () => 'Has to be kept next to the dog until its fear meter fills; shoves sheep aside.',
   trickster: () => `Switches to the far side of the flock once the dog runs at it (within ${TRICKSTER.commitRadius}).`,
@@ -204,7 +204,7 @@ const pending = [...document.querySelectorAll('img[data-portrait]')];
 // --- Waves -------------------------------------------------------------------
 
 const nameOf = (kind) =>
-  ({ normal: 'wolf', pups: 'pup pack' })[kind] ??
+  ({ normal: 'wolf', pups: 'pup pack', siege: 'siege crew (after the Siege Engine)' })[kind] ??
   (BOSS_BY_ID[kind.split('|')[0]] && `boss: ${kind.split('|').map((id) => BOSS_BY_ID[id].name).join(' or ')}`) ??
   ENTRIES.find((e) => e.id === kind)?.name.toLowerCase() ??
   kind;

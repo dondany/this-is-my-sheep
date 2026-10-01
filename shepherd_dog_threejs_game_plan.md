@@ -3445,3 +3445,10 @@ Twins, the Burrower, the Den Mother).
     Final batch: Hunter 4/4, Crew 4/4, Barker 1/4, Fortress 1/4 (10/16),
     no-plan Control 1/4; nothing ends at wave 5, and wave 10 is the run's
     check (8 of 20 end there, spread over all three fight bosses).
+
+Ninth follow-up (playtest): a regular siege crew turned up in a run whose
+wave-5 boss wasn't the Siege Engine. The catapult is meant to be a boss
+first: `Game.makeWaveConfig()` now drops `cfg.siege` unless the run has
+already met the Siege Engine as an earlier wave's boss
+(`siegeEngineMet()`, from `bossPlan`). The pack keeps its extra plain
+wolf (the one that comes on top of a crew), so those waves stay as full.
