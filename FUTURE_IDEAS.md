@@ -122,6 +122,8 @@ behaviour and tolerates it because replaying is tedious; Balatro saves the exact
 
 ### Going mobile: wrap the web game, or port to Godot?
 
+(The release plan built on this is in [`ROADMAP.md`](ROADMAP.md).)
+
 **Goal.** Release on iOS / Android. The game is ~7,000 lines of JS plus ~2,000 of HTML/CSS UI,
 all plain code (procedural models, synthesized audio, data in config modules).
 
